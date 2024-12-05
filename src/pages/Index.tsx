@@ -2,7 +2,7 @@ import { useState } from "react";
 import TravelForm from "@/components/TravelForm";
 import TravelResults from "@/components/TravelResults";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sun, Cloud, Snowflake, Leaf, Music, Theater, Food, Ticket } from "lucide-react";
+import { Sun, Cloud, Snowflake, Leaf, Music, Theater, Pizza, Ticket } from "lucide-react";
 
 const Index = () => {
   const [searchResults, setSearchResults] = useState<any>(null);
@@ -98,7 +98,7 @@ const Index = () => {
     {
       title: "Street Food Festival",
       type: "Food",
-      icon: <Food className="h-6 w-6 text-red-500" />,
+      icon: <Pizza className="h-6 w-6 text-red-500" />,
       time: "6:00 PM - 11:00 PM",
       location: "City Center Plaza",
       price: "Free Entry",
