@@ -8,7 +8,7 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50">
       {/* Hero Section */}
       <section className="relative py-32 px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1469041797191-50ace28483c3')] bg-cover bg-center opacity-10" />
+        <div className="absolute inset-0 bg-[url('/placeholder.svg')] bg-cover bg-center opacity-10" />
         <div className="relative max-w-6xl mx-auto text-center space-y-8 animate-fade-in">
           <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
             Find Your Perfect Travel Companion
