@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Globe, Users, Shield, MessageSquare, Calendar, MapPin, Heart } from "lucide-react";
+import { Globe, Users, Shield, MessageSquare, Calendar, MapPin } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   return (
@@ -13,8 +14,8 @@ const Index = () => {
         <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
           Connect with like-minded travelers who share your passion for exploration and adventure.
         </p>
-        <Button size="lg" className="mb-8">
-          Start Matching
+        <Button size="lg" className="mb-8" asChild>
+          <Link to="/create-profile">Start Matching</Link>
         </Button>
       </section>
 
@@ -67,7 +68,9 @@ const Index = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center gap-4">
-            <Button size="lg">Sign Up Now</Button>
+            <Button size="lg" asChild>
+              <Link to="/create-profile">Sign Up Now</Link>
+            </Button>
             <Button size="lg" variant="outline">Learn More</Button>
           </CardContent>
         </Card>
