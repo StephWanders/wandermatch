@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const profileFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -34,6 +35,7 @@ const profileFormSchema = z.object({
 });
 
 const CreateProfile = () => {
+  const navigate = useNavigate();
   const form = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
@@ -48,7 +50,8 @@ const CreateProfile = () => {
   const onSubmit = (values: z.infer<typeof profileFormSchema>) => {
     console.log(values);
     toast.success("Profile created successfully!");
-    // Here we would typically save the profile data to a backend
+    // Redirect to home page after successful profile creation
+    navigate("/");
   };
 
   return (
