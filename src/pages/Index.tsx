@@ -5,26 +5,29 @@ import { Link } from "react-router-dom";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50">
       {/* Hero Section */}
-      <section className="py-20 px-4 text-center">
-        <h1 className="text-4xl md:text-6xl font-bold mb-4">
-          Find Your Perfect Travel Companion
-        </h1>
-        <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Connect with like-minded travelers who share your passion for exploration and adventure.
-        </p>
-        <Button size="lg" className="mb-8" asChild>
-          <Link to="/create-profile">Start Matching</Link>
-        </Button>
+      <section className="relative py-32 px-4 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1469041797191-50ace28483c3')] bg-cover bg-center opacity-10" />
+        <div className="relative max-w-6xl mx-auto text-center space-y-8 animate-fade-in">
+          <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+            Find Your Perfect Travel Companion
+          </h1>
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Connect with like-minded travelers who share your passion for exploration and adventure.
+          </p>
+          <Button size="lg" className="animate-bounce" asChild>
+            <Link to="/create-profile">Start Matching</Link>
+          </Button>
+        </div>
       </section>
 
       {/* Key Features */}
-      <section className="py-16 px-4 bg-muted/50">
-        <h2 className="text-3xl font-bold text-center mb-12">
+      <section className="py-24 px-4">
+        <h2 className="text-4xl font-bold text-center mb-16 bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
           Why Choose WanderMatch?
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           <FeatureCard
             icon={Users}
             title="Smart Matching"
@@ -59,19 +62,23 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 text-center">
-        <Card className="max-w-2xl mx-auto">
+      <section className="py-24 px-4 bg-gradient-to-r from-blue-50 to-purple-50">
+        <Card className="max-w-2xl mx-auto border-none bg-white/50 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-2xl">Ready to Start Your Journey?</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-3xl text-center bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+              Ready to Start Your Journey?
+            </CardTitle>
+            <CardDescription className="text-center text-lg">
               Join thousands of travelers finding their perfect travel companions
             </CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center gap-4">
-            <Button size="lg" asChild>
+            <Button size="lg" className="bg-gradient-to-r from-primary to-purple-600 hover:opacity-90" asChild>
               <Link to="/create-profile">Sign Up Now</Link>
             </Button>
-            <Button size="lg" variant="outline">Learn More</Button>
+            <Button size="lg" variant="outline" className="border-primary hover:bg-primary/5">
+              Learn More
+            </Button>
           </CardContent>
         </Card>
       </section>
@@ -89,12 +96,14 @@ const FeatureCard = ({
   description: string;
 }) => {
   return (
-    <Card className="group hover:shadow-lg transition-shadow">
+    <Card className="group hover:shadow-lg transition-all duration-300 border-none bg-white/50 backdrop-blur-sm">
       <CardHeader>
-        <div className="mb-2 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto group-hover:bg-primary/20 transition-colors">
-          <Icon className="w-6 h-6 text-primary" />
+        <div className="mb-2 w-12 h-12 rounded-full bg-gradient-to-r from-primary/10 to-purple-600/10 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+          <Icon className="w-6 h-6 text-primary group-hover:text-purple-600 transition-colors" />
         </div>
-        <CardTitle className="text-xl text-center">{title}</CardTitle>
+        <CardTitle className="text-xl text-center group-hover:text-primary transition-colors">
+          {title}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <p className="text-center text-muted-foreground">{description}</p>
