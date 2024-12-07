@@ -48,56 +48,20 @@ const Hero = ({ session, profile }: HeroProps) => {
     <section className="relative py-32 px-4 overflow-hidden">
       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1469474968028-56623f02e42e')] bg-cover bg-center bg-fixed" />
       <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 to-green-900/70 backdrop-blur-sm" />
-      <div className="relative max-w-6xl mx-auto text-center space-y-8 animate-fade-in">
-        {session && profile && (
-          <div className="flex items-center justify-center space-x-4 mb-8">
-            <ProfileAvatar imageUrl={profile.profile_image_url} name={profile.full_name} />
-            <div className="text-left">
-              <h3 className="text-xl font-semibold text-white">
-                Welcome back, {profile.full_name}!
+      
+      {session && profile && (
+        <div className="relative max-w-6xl mx-auto">
+          <div className="absolute top-0 right-0 flex items-center space-x-4 bg-white/10 backdrop-blur-md rounded-lg p-3">
+            <div className="text-right">
+              <h3 className="text-lg font-semibold text-white">
+                Welcome, {profile.full_name}!
               </h3>
-              <p className="text-white/80">Ready to find your next travel companion?</p>
+              <p className="text-white/80 text-sm">Ready to explore?</p>
             </div>
+            <ProfileAvatar imageUrl={profile.profile_image_url} name={profile.full_name} />
           </div>
-        )}
-        
-        <div className="space-y-2">
-          <h2 className="text-4xl md:text-5xl font-bold text-white/90 font-display">WanderMatch</h2>
-          <h1 className="text-5xl md:text-7xl font-bold text-white font-display">
-            Find Your Perfect Travel Companion
-          </h1>
-        </div>
-        
-        <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto font-body">
-          Connect with like-minded travelers who share your passion for exploration and adventure.
-        </p>
-
-        {!session ? (
-          <Card className="max-w-md mx-auto bg-white/95 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Join WanderMatch</CardTitle>
-              <CardDescription>Sign in or create an account to get started</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Auth
-                supabaseClient={supabase}
-                appearance={{
-                  theme: ThemeSupa,
-                  variables: {
-                    default: {
-                      colors: {
-                        brand: '#2563eb',
-                        brandAccent: '#1d4ed8',
-                      },
-                    },
-                  },
-                }}
-                providers={[]}
-              />
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+          
+          <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto animate-fade-in">
             <Card className="bg-white/95 backdrop-blur-sm hover:bg-white/100 transition-all cursor-pointer">
               <Link to="/matches">
                 <CardContent className="p-6 flex flex-col items-center space-y-4">
@@ -146,8 +110,47 @@ const Hero = ({ session, profile }: HeroProps) => {
               </Link>
             </Card>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {!session && (
+        <div className="relative max-w-6xl mx-auto text-center space-y-8 animate-fade-in">
+          <div className="space-y-2">
+            <h2 className="text-4xl md:text-5xl font-bold text-white/90 font-display">WanderMatch</h2>
+            <h1 className="text-5xl md:text-7xl font-bold text-white font-display">
+              Find Your Perfect Travel Companion
+            </h1>
+          </div>
+          
+          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto font-body">
+            Connect with like-minded travelers who share your passion for exploration and adventure.
+          </p>
+
+          <Card className="max-w-md mx-auto bg-white/95 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle>Join WanderMatch</CardTitle>
+              <CardDescription>Sign in or create an account to get started</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Auth
+                supabaseClient={supabase}
+                appearance={{
+                  theme: ThemeSupa,
+                  variables: {
+                    default: {
+                      colors: {
+                        brand: '#2563eb',
+                        brandAccent: '#1d4ed8',
+                      },
+                    },
+                  },
+                }}
+                providers={[]}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </section>
   );
 };
