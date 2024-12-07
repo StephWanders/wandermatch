@@ -2,8 +2,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const AuthSection = () => {
+  const handleAuthError = (error: Error) => {
+    if (error.message.includes("Invalid login credentials")) {
+      toast.error("Invalid email or password. Please try again or sign up if you're new!");
+    } else {
+      toast.error("An error occurred. Please try again.");
+    }
+    console.error("Auth error:", error);
+  };
+
   return (
     <Card className="max-w-md mx-auto bg-white/95 backdrop-blur-sm">
       <CardHeader>
