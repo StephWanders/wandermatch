@@ -5,6 +5,7 @@ export const profileFormSchema = z.object({
   age: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 18, {
     message: "You must be at least 18 years old",
   }),
+  location: z.string().min(2, "Please enter your location"),
   travelStyle: z.string({
     required_error: "Please select your preferred travel style",
   }),
