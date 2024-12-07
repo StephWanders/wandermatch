@@ -9,24 +9,57 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      Members: {
+      profiles: {
         Row: {
-          created_at: string
-          id: number
-          name: string | null
-          surname: string | null
+          age: number | null
+          bio: string | null
+          budget_range: string | null
+          created_at: string | null
+          email_verified: boolean | null
+          full_name: string | null
+          id: string
+          interests: string[] | null
+          languages: string[] | null
+          location: string | null
+          preferred_destinations: string[] | null
+          profile_image_url: string | null
+          travel_experience_level: string | null
+          travel_style: string | null
+          updated_at: string | null
         }
         Insert: {
-          created_at?: string
-          id?: number
-          name?: string | null
-          surname?: string | null
+          age?: number | null
+          bio?: string | null
+          budget_range?: string | null
+          created_at?: string | null
+          email_verified?: boolean | null
+          full_name?: string | null
+          id: string
+          interests?: string[] | null
+          languages?: string[] | null
+          location?: string | null
+          preferred_destinations?: string[] | null
+          profile_image_url?: string | null
+          travel_experience_level?: string | null
+          travel_style?: string | null
+          updated_at?: string | null
         }
         Update: {
-          created_at?: string
-          id?: number
-          name?: string | null
-          surname?: string | null
+          age?: number | null
+          bio?: string | null
+          budget_range?: string | null
+          created_at?: string | null
+          email_verified?: boolean | null
+          full_name?: string | null
+          id?: string
+          interests?: string[] | null
+          languages?: string[] | null
+          location?: string | null
+          preferred_destinations?: string[] | null
+          profile_image_url?: string | null
+          travel_experience_level?: string | null
+          travel_style?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }

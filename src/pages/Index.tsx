@@ -2,8 +2,39 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Globe, Users, Shield, MessageSquare, Calendar, MapPin, Home, Heart, MessageCircle, User } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Auth } from "@supabase/auth-ui-react";
+import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const Index = () => {
+  const [session, setSession] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        toast.success("Welcome back!");
+      }
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) {
+        toast.success("Successfully logged in!");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50">
       {/* Hero Section with Travel Background */}
@@ -27,13 +58,50 @@ const Index = () => {
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto font-body">
             Connect with like-minded travelers who share your passion for exploration and adventure.
           </p>
-          <Button 
-            size="lg" 
-            className="animate-bounce bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 transition-all duration-300" 
-            asChild
-          >
-            <Link to="/create-profile">Start Matching</Link>
-          </Button>
+          {!session ? (
+            <Card className="max-w-md mx-auto bg-white/95 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle>Join WanderMatch</CardTitle>
+                <CardDescription>Sign in or create an account to get started</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Auth
+                  supabaseClient={supabase}
+                  appearance={{
+                    theme: ThemeSupa,
+                    variables: {
+                      default: {
+                        colors: {
+                          brand: '#2563eb',
+                          brandAccent: '#1d4ed8',
+                        },
+                      },
+                    },
+                  }}
+                  providers={[]}
+                />
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              <Button 
+                size="lg" 
+                className="animate-bounce bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 transition-all duration-300" 
+                asChild
+              >
+                <Link to="/create-profile">Complete Your Profile</Link>
+              </Button>
+              <div>
+                <Button 
+                  variant="outline" 
+                  className="bg-white/20 hover:bg-white/30 text-white border-white/40"
+                  onClick={() => supabase.auth.signOut()}
+                >
+                  Sign Out
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -121,7 +189,11 @@ const Index = () => {
         <NavButton icon={Home} label="Home" active />
         <NavButton icon={Heart} label="Matches" />
         <NavButton icon={MessageCircle} label="Chat" />
-        <NavButton icon={User} label="Profile" />
+        {session ? (
+          <NavButton icon={User} label="Profile" onClick={() => navigate('/create-profile')} />
+        ) : (
+          <NavButton icon={User} label="Sign In" />
+        )}
       </nav>
     </div>
   );
@@ -156,14 +228,19 @@ const FeatureCard = ({
 const NavButton = ({ 
   icon: Icon, 
   label, 
-  active 
+  active,
+  onClick 
 }: { 
   icon: React.ElementType;
   label: string;
   active?: boolean;
+  onClick?: () => void;
 }) => {
   return (
-    <button className={`flex flex-col items-center space-y-1 ${active ? 'text-blue-600' : 'text-gray-600'}`}>
+    <button 
+      className={`flex flex-col items-center space-y-1 ${active ? 'text-blue-600' : 'text-gray-600'}`}
+      onClick={onClick}
+    >
       <Icon className="w-6 h-6" />
       <span className="text-xs font-medium">{label}</span>
     </button>
