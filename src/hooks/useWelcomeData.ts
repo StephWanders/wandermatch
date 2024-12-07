@@ -23,31 +23,28 @@ export const useWelcomeData = (userId: string | undefined) => {
     queryKey: ['unread-messages', userId],
     queryFn: async () => {
       if (!userId) return [];
-      const { data } = await supabase
+      console.log('Fetching unread messages for user:', userId);
+      
+      const { data, error } = await supabase
         .from('messages')
-        .select(`
-          *,
-          match:matches!inner (
-            *,
-            profiles!matches_profile2_id_fkey (*)
-          )
-        `)
+        .select('*, sender:profiles!messages_sender_id_fkey(*)')
         .eq('receiver_id', userId)
         .is('read_at', null)
-        .order('created_at', { ascending: false })
-        .single();
+        .order('created_at', { ascending: false });
       
-      // If no unread messages, return empty array
-      if (!data) return [];
+      if (error) {
+        console.error('Error fetching unread messages:', error);
+        return [];
+      }
       
-      // Convert to array if single result
-      const messages = Array.isArray(data) ? data : [data];
-      return messages as Message[];
+      console.log('Unread messages data:', data);
+      return data as Message[];
     },
     enabled: !!userId,
   });
 
-  const firstUnreadChat = unreadMessages[0]?.match?.id;
+  // Find the first unread message's match ID
+  const firstUnreadChat = unreadMessages[0]?.sender?.id;
 
   return {
     recentMatches,
