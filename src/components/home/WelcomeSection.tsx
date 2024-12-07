@@ -4,6 +4,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Heart, MessageCircle, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
 import ProfileAvatar from "../profile/ProfileAvatar";
+import { Database } from "@/integrations/supabase/types";
+
+type Message = Database['public']['Tables']['messages']['Row'] & {
+  matches?: {
+    id: string;
+  };
+};
 
 interface WelcomeSectionProps {
   session: any;
@@ -27,7 +34,7 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
     enabled: !!session?.user?.id,
   });
 
-  const { data: unreadMessages } = useQuery({
+  const { data: unreadMessages } = useQuery<Message[]>({
     queryKey: ['unread-messages', session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return [];
