@@ -1,14 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Auth } from "@supabase/auth-ui-react";
-import { ThemeSupa } from "@supabase/auth-ui-shared";
-import { supabase } from "@/integrations/supabase/client";
-import { Link, useNavigate } from "react-router-dom";
-import { Heart, MessageCircle, Bell, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
-import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useEffect } from "react";
+import AuthSection from "./AuthSection";
+import WelcomeSection from "./WelcomeSection";
 
 interface HeroProps {
   session: any;
@@ -18,49 +15,6 @@ interface HeroProps {
 const Hero = ({ session, profile }: HeroProps) => {
   const navigate = useNavigate();
   
-  useEffect(() => {
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && !profile?.full_name) {
-        // If it's a new user (no profile), redirect to create profile
-        navigate('/create-profile');
-        toast.info("Welcome! Please complete your profile to get started.");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [profile, navigate]);
-
-  const { data: newMatches } = useQuery({
-    queryKey: ['new-matches', session?.user?.id],
-    queryFn: async () => {
-      if (!session?.user?.id) return [];
-      const { data } = await supabase
-        .from('matches')
-        .select('*, profiles!matches_profile2_id_fkey(*)')
-        .eq('profile1_id', session.user.id)
-        .eq('status', 'pending')
-        .order('matched_at', { ascending: false });
-      return data || [];
-    },
-    enabled: !!session?.user?.id,
-  });
-
-  const { data: recentMessages } = useQuery({
-    queryKey: ['recent-messages', session?.user?.id],
-    queryFn: async () => {
-      if (!session?.user?.id) return [];
-      const { data } = await supabase
-        .from('messages')
-        .select('*, profiles!messages_sender_id_fkey(*)')
-        .eq('receiver_id', session.user.id)
-        .is('read_at', null)
-        .order('created_at', { ascending: false });
-      return data || [];
-    },
-    enabled: !!session?.user?.id,
-  });
-
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -78,7 +32,7 @@ const Hero = ({ session, profile }: HeroProps) => {
       <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 to-green-900/70 backdrop-blur-sm" />
       
       {session && profile && (
-        <div className="relative max-w-6xl mx-auto">
+        <div className="relative">
           <div className="absolute -top-20 right-4 flex items-center space-x-4 bg-white/10 backdrop-blur-md rounded-lg p-3">
             <div className="text-right">
               <h3 className="text-lg font-semibold text-white">
@@ -98,55 +52,7 @@ const Hero = ({ session, profile }: HeroProps) => {
             </Button>
           </div>
           
-          <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto animate-fade-in">
-            <Card className="bg-white/95 backdrop-blur-sm hover:bg-white/100 transition-all cursor-pointer">
-              <Link to="/matches">
-                <CardContent className="p-6 flex flex-col items-center space-y-4">
-                  <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                    <Heart className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div className="text-center">
-                    <h3 className="font-semibold text-lg">New Matches</h3>
-                    <p className="text-sm text-gray-600">
-                      {newMatches?.length || 0} new potential matches
-                    </p>
-                  </div>
-                </CardContent>
-              </Link>
-            </Card>
-
-            <Card className="bg-white/95 backdrop-blur-sm hover:bg-white/100 transition-all cursor-pointer">
-              <Link to="/chat">
-                <CardContent className="p-6 flex flex-col items-center space-y-4">
-                  <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                    <MessageCircle className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div className="text-center">
-                    <h3 className="font-semibold text-lg">Recent Messages</h3>
-                    <p className="text-sm text-gray-600">
-                      {recentMessages?.length || 0} unread messages
-                    </p>
-                  </div>
-                </CardContent>
-              </Link>
-            </Card>
-
-            <Card className="bg-white/95 backdrop-blur-sm hover:bg-white/100 transition-all cursor-pointer">
-              <Link to="/notifications">
-                <CardContent className="p-6 flex flex-col items-center space-y-4">
-                  <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
-                    <Bell className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div className="text-center">
-                    <h3 className="font-semibold text-lg">Activity</h3>
-                    <p className="text-sm text-gray-600">
-                      Check your travel updates
-                    </p>
-                  </div>
-                </CardContent>
-              </Link>
-            </Card>
-          </div>
+          <WelcomeSection session={session} profile={profile} />
         </div>
       )}
 
@@ -163,55 +69,7 @@ const Hero = ({ session, profile }: HeroProps) => {
             Connect with like-minded travelers who share your passion for exploration and adventure.
           </p>
 
-          <Card className="max-w-md mx-auto bg-white/95 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Join WanderMatch</CardTitle>
-              <CardDescription>Sign in or create an account to get started</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Auth
-                supabaseClient={supabase}
-                appearance={{
-                  theme: ThemeSupa,
-                  variables: {
-                    default: {
-                      colors: {
-                        brand: '#2563eb',
-                        brandAccent: '#1d4ed8',
-                      },
-                    },
-                  },
-                }}
-                providers={[]}
-                onlyThirdPartyProviders={false}
-                redirectTo={window.location.origin}
-                localization={{
-                  variables: {
-                    sign_in: {
-                      email_input_placeholder: "Your email address",
-                      password_input_placeholder: "Your password",
-                      email_label: "Email",
-                      password_label: "Password",
-                      button_label: "Sign in",
-                      loading_button_label: "Signing in ...",
-                      social_provider_text: "Sign in with {{provider}}",
-                      link_text: "Already have an account? Sign in",
-                    },
-                    sign_up: {
-                      email_input_placeholder: "Your email address",
-                      password_input_placeholder: "Create a password",
-                      email_label: "Email",
-                      password_label: "Password",
-                      button_label: "Sign up",
-                      loading_button_label: "Signing up ...",
-                      social_provider_text: "Sign up with {{provider}}",
-                      link_text: "Don't have an account? Sign up",
-                    },
-                  },
-                }}
-              />
-            </CardContent>
-          </Card>
+          <AuthSection />
         </div>
       )}
     </section>
