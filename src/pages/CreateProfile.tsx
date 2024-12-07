@@ -21,6 +21,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Camera } from "lucide-react";
 
 const profileFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -32,6 +34,9 @@ const profileFormSchema = z.object({
   }),
   bio: z.string().min(10, "Bio must be at least 10 characters"),
   interests: z.string().min(5, "Please list some of your interests"),
+  languages: z.string().min(2, "Please list languages you speak"),
+  preferredDestinations: z.string().min(2, "Please list some destinations"),
+  profileImage: z.string().optional(),
 });
 
 const CreateProfile = () => {
@@ -44,24 +49,44 @@ const CreateProfile = () => {
       travelStyle: "",
       bio: "",
       interests: "",
+      languages: "",
+      preferredDestinations: "",
+      profileImage: "",
     },
   });
 
   const onSubmit = (values: z.infer<typeof profileFormSchema>) => {
     console.log(values);
     toast.success("Profile created successfully!");
-    // Redirect to home page after successful profile creation
     navigate("/");
   };
 
   return (
-    <div className="min-h-screen bg-background p-6 md:p-12">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50 p-6 md:p-12">
       <div className="mx-auto max-w-2xl space-y-6">
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold">Create Your Travel Profile</h1>
+          <h1 className="text-3xl font-bold text-blue-600">Create Your Travel Profile</h1>
           <p className="text-muted-foreground">
             Tell us about yourself to find your perfect travel companion
           </p>
+        </div>
+
+        <div className="flex justify-center mb-8">
+          <div className="relative">
+            <Avatar className="h-24 w-24">
+              <AvatarImage src="" alt="Profile" />
+              <AvatarFallback className="bg-blue-100">
+                <Camera className="h-8 w-8 text-blue-500" />
+              </AvatarFallback>
+            </Avatar>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="absolute bottom-0 right-0 rounded-full"
+            >
+              <Camera className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         <Form {...form}>
@@ -121,6 +146,34 @@ const CreateProfile = () => {
 
             <FormField
               control={form.control}
+              name="languages"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Languages Spoken</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., English, Spanish, French" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="preferredDestinations"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Preferred Destinations</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Japan, Italy, Brazil" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="bio"
               render={({ field }) => (
                 <FormItem>
@@ -128,6 +181,7 @@ const CreateProfile = () => {
                   <FormControl>
                     <Textarea
                       placeholder="Tell us about yourself and your travel experiences..."
+                      className="min-h-[100px]"
                       {...field}
                     />
                   </FormControl>
@@ -141,10 +195,11 @@ const CreateProfile = () => {
               name="interests"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Interests</FormLabel>
+                  <FormLabel>Travel Interests</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="What do you enjoy? (e.g., hiking, photography, local cuisine)"
+                      placeholder="What do you enjoy while traveling? (e.g., hiking, photography, local cuisine)"
+                      className="min-h-[100px]"
                       {...field}
                     />
                   </FormControl>
@@ -153,7 +208,7 @@ const CreateProfile = () => {
               )}
             />
 
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
               Create Profile
             </Button>
           </form>
