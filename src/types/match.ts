@@ -5,6 +5,7 @@ export type Match = Database['public']['Tables']['matches']['Row'] & {
 };
 
 export type Message = Database['public']['Tables']['messages']['Row'] & {
+  sender?: Database['public']['Tables']['profiles']['Row'];
   match?: {
     id: string;
     matched_at: string | null;
