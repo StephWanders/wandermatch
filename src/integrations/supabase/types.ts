@@ -9,53 +9,146 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      matches: {
+        Row: {
+          id: string
+          matched_at: string | null
+          profile1_id: string | null
+          profile2_id: string | null
+          status: string | null
+        }
+        Insert: {
+          id?: string
+          matched_at?: string | null
+          profile1_id?: string | null
+          profile2_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          id?: string
+          matched_at?: string | null
+          profile1_id?: string | null
+          profile2_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_profile1_id_fkey"
+            columns: ["profile1_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_profile2_id_fkey"
+            columns: ["profile2_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          read_at: string | null
+          receiver_id: string | null
+          sender_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          read_at?: string | null
+          receiver_id?: string | null
+          sender_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          read_at?: string | null
+          receiver_id?: string | null
+          sender_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
+          active_chats: string[] | null
           age: number | null
           bio: string | null
           budget_range: string | null
           created_at: string | null
           email_verified: boolean | null
           full_name: string | null
+          gender: string | null
           id: string
           interests: string[] | null
           languages: string[] | null
           location: string | null
+          matches: string[] | null
           preferred_destinations: string[] | null
+          preferred_gender: string[] | null
           profile_image_url: string | null
           travel_experience_level: string | null
           travel_style: string | null
           updated_at: string | null
         }
         Insert: {
+          active_chats?: string[] | null
           age?: number | null
           bio?: string | null
           budget_range?: string | null
           created_at?: string | null
           email_verified?: boolean | null
           full_name?: string | null
+          gender?: string | null
           id: string
           interests?: string[] | null
           languages?: string[] | null
           location?: string | null
+          matches?: string[] | null
           preferred_destinations?: string[] | null
+          preferred_gender?: string[] | null
           profile_image_url?: string | null
           travel_experience_level?: string | null
           travel_style?: string | null
           updated_at?: string | null
         }
         Update: {
+          active_chats?: string[] | null
           age?: number | null
           bio?: string | null
           budget_range?: string | null
           created_at?: string | null
           email_verified?: boolean | null
           full_name?: string | null
+          gender?: string | null
           id?: string
           interests?: string[] | null
           languages?: string[] | null
           location?: string | null
+          matches?: string[] | null
           preferred_destinations?: string[] | null
+          preferred_gender?: string[] | null
           profile_image_url?: string | null
           travel_experience_level?: string | null
           travel_style?: string | null
