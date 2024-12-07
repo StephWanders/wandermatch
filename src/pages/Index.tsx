@@ -16,9 +16,14 @@ const Index = () => {
           className="absolute inset-0 bg-gradient-to-r from-blue-900/70 to-green-900/70 backdrop-blur-sm"
         />
         <div className="relative max-w-6xl mx-auto text-center space-y-8 animate-fade-in">
-          <h1 className="text-5xl md:text-7xl font-bold text-white font-display">
-            Find Your Perfect Travel Companion
-          </h1>
+          <div className="space-y-2">
+            <h2 className="text-4xl md:text-5xl font-bold text-white/90 font-display">
+              WanderMatch
+            </h2>
+            <h1 className="text-5xl md:text-7xl font-bold text-white font-display">
+              Find Your Perfect Travel Companion
+            </h1>
+          </div>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto font-body">
             Connect with like-minded travelers who share your passion for exploration and adventure.
           </p>
