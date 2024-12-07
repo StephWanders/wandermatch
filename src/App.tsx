@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import CreateProfile from "./pages/CreateProfile";
 import Chat from "./pages/Chat";
+import Matches from "./pages/Matches";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/create-profile" element={<CreateProfile />} />
           <Route path="/chat/:matchId" element={<Chat />} />
+          <Route path="/matches" element={<Matches />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

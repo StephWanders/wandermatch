@@ -3,10 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
-import { Heart, MessageCircle, Bell } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Heart, MessageCircle, Bell, LogOut } from "lucide-react";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface HeroProps {
   session: any;
@@ -14,6 +15,8 @@ interface HeroProps {
 }
 
 const Hero = ({ session, profile }: HeroProps) => {
+  const navigate = useNavigate();
+  
   const { data: newMatches } = useQuery({
     queryKey: ['new-matches', session?.user?.id],
     queryFn: async () => {
@@ -44,6 +47,12 @@ const Hero = ({ session, profile }: HeroProps) => {
     enabled: !!session?.user?.id,
   });
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast.success("Successfully signed out");
+    navigate("/");
+  };
+
   return (
     <section className="relative py-32 px-4 overflow-hidden">
       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1469474968028-56623f02e42e')] bg-cover bg-center bg-fixed" />
@@ -51,7 +60,7 @@ const Hero = ({ session, profile }: HeroProps) => {
       
       {session && profile && (
         <div className="relative max-w-6xl mx-auto">
-          <div className="absolute top-0 right-0 flex items-center space-x-4 bg-white/10 backdrop-blur-md rounded-lg p-3">
+          <div className="absolute -top-20 right-4 flex items-center space-x-4 bg-white/10 backdrop-blur-md rounded-lg p-3">
             <div className="text-right">
               <h3 className="text-lg font-semibold text-white">
                 Welcome, {profile.full_name}!
@@ -59,6 +68,15 @@ const Hero = ({ session, profile }: HeroProps) => {
               <p className="text-white/80 text-sm">Ready to explore?</p>
             </div>
             <ProfileAvatar imageUrl={profile.profile_image_url} name={profile.full_name} />
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleSignOut}
+              className="text-white hover:text-white/80"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
           </div>
           
           <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto animate-fade-in">
