@@ -1,6 +1,5 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -21,27 +20,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera } from "lucide-react";
-
-const profileFormSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  age: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 18, {
-    message: "You must be at least 18 years old",
-  }),
-  travelStyle: z.string({
-    required_error: "Please select your preferred travel style",
-  }),
-  bio: z.string().min(10, "Bio must be at least 10 characters"),
-  interests: z.string().min(5, "Please list some of your interests"),
-  languages: z.string().min(2, "Please list languages you speak"),
-  preferredDestinations: z.string().min(2, "Please list some destinations"),
-  profileImage: z.string().optional(),
-});
+import ProfileImageUpload from "@/components/profile/ProfileImageUpload";
+import ProfileHeader from "@/components/profile/ProfileHeader";
+import { profileFormSchema, type ProfileFormValues } from "@/components/profile/ProfileSchema";
 
 const CreateProfile = () => {
   const navigate = useNavigate();
-  const form = useForm<z.infer<typeof profileFormSchema>>({
+  const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       name: "",
@@ -55,7 +40,7 @@ const CreateProfile = () => {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof profileFormSchema>) => {
+  const onSubmit = (values: ProfileFormValues) => {
     console.log(values);
     toast.success("Profile created successfully!");
     navigate("/");
@@ -64,30 +49,8 @@ const CreateProfile = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50 p-6 md:p-12">
       <div className="mx-auto max-w-2xl space-y-6">
-        <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-blue-600">Create Your Travel Profile</h1>
-          <p className="text-muted-foreground">
-            Tell us about yourself to find your perfect travel companion
-          </p>
-        </div>
-
-        <div className="flex justify-center mb-8">
-          <div className="relative">
-            <Avatar className="h-24 w-24">
-              <AvatarImage src="" alt="Profile" />
-              <AvatarFallback className="bg-blue-100">
-                <Camera className="h-8 w-8 text-blue-500" />
-              </AvatarFallback>
-            </Avatar>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="absolute bottom-0 right-0 rounded-full"
-            >
-              <Camera className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+        <ProfileHeader />
+        <ProfileImageUpload />
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
