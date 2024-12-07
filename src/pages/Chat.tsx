@@ -8,24 +8,6 @@ import ChatInput from "@/components/chat/ChatInput";
 import ChatMessages from "@/components/chat/ChatMessages";
 import ChatSidebar from "@/components/chat/ChatSidebar";
 import BottomNav from "@/components/navigation/BottomNav";
-import { MoreVertical, Trash2, UserMinus } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 const Chat = () => {
   const { matchId } = useParams();
@@ -34,8 +16,6 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [otherProfile, setOtherProfile] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
-  const [showUnmatchAlert, setShowUnmatchAlert] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -70,7 +50,7 @@ const Chat = () => {
     }
   };
 
-  const { data: matches, refetch: refetchMatches } = useQuery({
+  const { data: matches } = useQuery({
     queryKey: ['chat-matches', session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return [];
@@ -142,7 +122,7 @@ const Chat = () => {
 
     // Subscribe to new messages
     const channel = supabase
-      .channel('messages')
+      .channel(`chat:${matchId}`)
       .on(
         'postgres_changes',
         {
@@ -155,8 +135,6 @@ const Chat = () => {
           console.log('Message change received:', payload);
           if (payload.eventType === 'INSERT') {
             setMessages((current) => [...current, payload.new]);
-          } else if (payload.eventType === 'DELETE') {
-            setMessages((current) => current.filter(msg => msg.id !== payload.old.id));
           }
         }
       )
@@ -189,48 +167,6 @@ const Chat = () => {
     }
   };
 
-  const handleDeleteChat = async () => {
-    if (!session?.user?.id || !otherProfile?.id) return;
-
-    try {
-      const { error } = await supabase
-        .from('messages')
-        .delete()
-        .or(
-          `and(sender_id.eq.${session.user.id},receiver_id.eq.${otherProfile.id}),` +
-          `and(sender_id.eq.${otherProfile.id},receiver_id.eq.${session.user.id})`
-        );
-
-      if (error) throw error;
-      setMessages([]);
-      toast.success("Chat history deleted");
-      setShowDeleteAlert(false);
-    } catch (error) {
-      console.error("Error deleting chat:", error);
-      toast.error("Failed to delete chat");
-    }
-  };
-
-  const handleUnmatch = async () => {
-    if (!matchId) return;
-
-    try {
-      const { error } = await supabase
-        .from('matches')
-        .update({ status: 'unmatched' })
-        .eq('id', matchId);
-
-      if (error) throw error;
-      toast.success("User unmatched successfully");
-      setShowUnmatchAlert(false);
-      refetchMatches();
-      navigate('/matches');
-    } catch (error) {
-      console.error("Error unmatching user:", error);
-      toast.error("Failed to unmatch user");
-    }
-  };
-
   if (!session) {
     return <div>Loading...</div>;
   }
@@ -239,78 +175,13 @@ const Chat = () => {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50">
       <div className="h-[calc(100vh-64px)] flex">
         <ChatSidebar matches={matches || []} currentMatchId={matchId} />
-        
         <div className="flex-1 flex flex-col">
-          <div className="flex justify-between items-center bg-white border-b p-4">
-            <ChatHeader profile={otherProfile} />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <MoreVertical className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem 
-                  className="text-red-600"
-                  onClick={() => setShowDeleteAlert(true)}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Chat History
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="text-red-600"
-                  onClick={() => setShowUnmatchAlert(true)}
-                >
-                  <UserMinus className="mr-2 h-4 w-4" />
-                  Unmatch User
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          
-          <ChatMessages 
-            messages={messages} 
-            currentUserId={session?.user?.id} 
-          />
-          
+          <ChatHeader profile={otherProfile} />
+          <ChatMessages messages={messages} currentUserId={session?.user?.id} />
           <ChatInput onSendMessage={sendMessage} />
         </div>
       </div>
       <BottomNav session={session} profile={profile} />
-
-      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Chat History</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete all messages in this chat. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteChat} className="bg-red-600 hover:bg-red-700">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={showUnmatchAlert} onOpenChange={setShowUnmatchAlert}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Unmatch User</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will remove the match and delete your chat history. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleUnmatch} className="bg-red-600 hover:bg-red-700">
-              Unmatch
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
