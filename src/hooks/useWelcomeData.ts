@@ -25,11 +25,24 @@ export const useWelcomeData = (userId: string | undefined) => {
       if (!userId) return [];
       const { data } = await supabase
         .from('messages')
-        .select('*, match:matches(*)')
+        .select(`
+          *,
+          match:matches!inner (
+            *,
+            profiles!matches_profile2_id_fkey (*)
+          )
+        `)
         .eq('receiver_id', userId)
         .is('read_at', null)
-        .order('created_at', { ascending: false });
-      return (data as Message[]) || [];
+        .order('created_at', { ascending: false })
+        .single();
+      
+      // If no unread messages, return empty array
+      if (!data) return [];
+      
+      // Convert to array if single result
+      const messages = Array.isArray(data) ? data : [data];
+      return messages as Message[];
     },
     enabled: !!userId,
   });

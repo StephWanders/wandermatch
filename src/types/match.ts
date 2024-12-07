@@ -5,5 +5,12 @@ export type Match = Database['public']['Tables']['matches']['Row'] & {
 };
 
 export type Message = Database['public']['Tables']['messages']['Row'] & {
-  match?: Match;
+  match?: {
+    id: string;
+    matched_at: string | null;
+    profile1_id: string | null;
+    profile2_id: string | null;
+    status: string;
+    profiles: Database['public']['Tables']['profiles']['Row'];
+  };
 };
