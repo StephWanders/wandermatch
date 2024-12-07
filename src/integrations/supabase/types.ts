@@ -15,21 +15,21 @@ export type Database = {
           matched_at: string | null
           profile1_id: string | null
           profile2_id: string | null
-          status: string | null
+          status: string
         }
         Insert: {
           id?: string
           matched_at?: string | null
           profile1_id?: string | null
           profile2_id?: string | null
-          status?: string | null
+          status: string
         }
         Update: {
           id?: string
           matched_at?: string | null
           profile1_id?: string | null
           profile2_id?: string | null
-          status?: string | null
+          status?: string
         }
         Relationships: [
           {
@@ -46,7 +46,29 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "matches_status_fkey"
+            columns: ["status"]
+            isOneToOne: false
+            referencedRelation: "matchstatus"
+            referencedColumns: ["status"]
+          },
         ]
+      }
+      matchstatus: {
+        Row: {
+          id: number
+          status: string | null
+        }
+        Insert: {
+          id?: number
+          status?: string | null
+        }
+        Update: {
+          id?: number
+          status?: string | null
+        }
+        Relationships: []
       }
       messages: {
         Row: {

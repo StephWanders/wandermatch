@@ -7,6 +7,7 @@ import ChatHeader from "@/components/chat/ChatHeader";
 import ChatInput from "@/components/chat/ChatInput";
 import ChatMessages from "@/components/chat/ChatMessages";
 import ChatSidebar from "@/components/chat/ChatSidebar";
+import BottomNav from "@/components/navigation/BottomNav";
 
 const Chat = () => {
   const { matchId } = useParams();
@@ -14,11 +15,15 @@ const Chat = () => {
   const [session, setSession] = useState(null);
   const [messages, setMessages] = useState([]);
   const [otherProfile, setOtherProfile] = useState(null);
+  const [profile, setProfile] = useState(null);
 
   // Get and monitor session
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      if (session) {
+        fetchProfile(session.user.id);
+      }
     });
 
     const {
@@ -32,6 +37,19 @@ const Chat = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const fetchProfile = async (userId) => {
+    try {
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+      setProfile(data);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
+  };
 
   const { data: matches } = useQuery({
     queryKey: ['chat-matches', session?.user?.id],
@@ -155,7 +173,7 @@ const Chat = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50">
-      <div className="h-screen flex">
+      <div className="h-[calc(100vh-64px)] flex">
         <ChatSidebar matches={matches || []} currentMatchId={matchId} />
         
         <div className="flex-1 flex flex-col">
@@ -169,6 +187,7 @@ const Chat = () => {
           <ChatInput onSendMessage={sendMessage} />
         </div>
       </div>
+      <BottomNav session={session} profile={profile} />
     </div>
   );
 };

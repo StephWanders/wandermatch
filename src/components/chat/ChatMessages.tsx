@@ -23,30 +23,34 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-hidden" ref={scrollRef}>
+    <div className="flex-1 overflow-hidden bg-[#e5ded8]" ref={scrollRef}>
       <ScrollArea className="h-full p-4">
-        <div className="space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${
-                message.sender_id === currentUserId ? "justify-end" : "justify-start"
-              }`}
-            >
+        <div className="space-y-2">
+          {messages.map((message) => {
+            const isSentByMe = message.sender_id === currentUserId;
+            return (
               <div
-                className={`max-w-[70%] rounded-lg p-3 ${
-                  message.sender_id === currentUserId
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200"
-                }`}
+                key={message.id}
+                className={`flex ${isSentByMe ? "justify-end" : "justify-start"}`}
               >
-                <p>{message.content}</p>
-                <span className="text-xs opacity-70">
-                  {new Date(message.created_at).toLocaleTimeString()}
-                </span>
+                <div
+                  className={`max-w-[70%] rounded-lg p-3 shadow ${
+                    isSentByMe
+                      ? "bg-[#dcf8c6] mr-2"
+                      : "bg-white ml-2"
+                  }`}
+                >
+                  <p className="text-gray-800">{message.content}</p>
+                  <span className="text-xs text-gray-500 block text-right mt-1">
+                    {new Date(message.created_at).toLocaleTimeString([], { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </ScrollArea>
     </div>
