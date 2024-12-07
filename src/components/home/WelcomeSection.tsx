@@ -3,13 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, MessageCircle, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
-import ProfileAvatar from "../profile/ProfileAvatar";
 import { Database } from "@/integrations/supabase/types";
 
+type Match = Database['public']['Tables']['matches']['Row'];
 type Message = Database['public']['Tables']['messages']['Row'] & {
-  matches?: {
-    id: string;
-  };
+  matches: Match[];
 };
 
 interface WelcomeSectionProps {
@@ -34,7 +32,7 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
     enabled: !!session?.user?.id,
   });
 
-  const { data: unreadMessages } = useQuery<Message[]>({
+  const { data: unreadMessages = [] } = useQuery<Message[]>({
     queryKey: ['unread-messages', session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return [];
@@ -44,13 +42,13 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
         .eq('receiver_id', session.user.id)
         .is('read_at', null)
         .order('created_at', { ascending: false });
-      return data || [];
+      return (data as Message[]) || [];
     },
     enabled: !!session?.user?.id,
   });
 
   // Get the first match with unread messages for the chat redirect
-  const firstUnreadChat = unreadMessages?.[0]?.matches?.id;
+  const firstUnreadChat = unreadMessages[0]?.matches?.[0]?.id;
 
   return (
     <div className="relative max-w-6xl mx-auto">
@@ -80,7 +78,7 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
               <div className="text-center">
                 <h3 className="font-semibold text-lg">Messages</h3>
                 <p className="text-sm text-gray-600">
-                  {unreadMessages?.length || 0} unread messages
+                  {unreadMessages.length || 0} unread messages
                 </p>
               </div>
             </CardContent>
