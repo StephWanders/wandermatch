@@ -34,6 +34,7 @@ const Chat = () => {
           filter: `receiver_id=eq.${session?.user?.id}`,
         },
         (payload) => {
+          console.log('New message received:', payload);
           setMessages((current) => [...current, payload.new]);
         }
       )
@@ -42,13 +43,14 @@ const Chat = () => {
     return () => {
       channel.unsubscribe();
     };
-  }, [matchId]);
+  }, [matchId, session?.user?.id]);
 
   const { data: matches } = useQuery({
     queryKey: ['chat-matches', session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return [];
-      const { data } = await supabase
+      console.log('Fetching matches for chat');
+      const { data, error } = await supabase
         .from('matches')
         .select(`
           *,
@@ -57,9 +59,15 @@ const Chat = () => {
         .or(`profile1_id.eq.${session.user.id},profile2_id.eq.${session.user.id}`)
         .eq('status', 'accepted');
       
+      if (error) {
+        console.error('Error fetching matches:', error);
+        return [];
+      }
+      
       if (matchId && data) {
         const currentMatch = data.find(m => m.id === matchId);
         if (currentMatch) {
+          console.log('Setting other profile:', currentMatch.profiles);
           setOtherProfile(currentMatch.profiles);
         }
       }
@@ -71,6 +79,7 @@ const Chat = () => {
 
   const fetchMessages = async () => {
     try {
+      console.log('Fetching messages for match:', matchId);
       const { data, error } = await supabase
         .from("messages")
         .select("*")
@@ -78,6 +87,7 @@ const Chat = () => {
         .order("created_at", { ascending: true });
 
       if (error) throw error;
+      console.log('Messages fetched:', data);
       setMessages(data || []);
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -86,9 +96,13 @@ const Chat = () => {
   };
 
   const sendMessage = async (content: string) => {
-    if (!otherProfile) return;
+    if (!otherProfile) {
+      console.error('No recipient profile found');
+      return;
+    }
 
     try {
+      console.log('Sending message to:', otherProfile.id);
       const { error } = await supabase.from("messages").insert({
         content,
         sender_id: session.user.id,
@@ -96,6 +110,7 @@ const Chat = () => {
       });
 
       if (error) throw error;
+      console.log('Message sent successfully');
     } catch (error) {
       console.error("Error sending message:", error);
       toast.error("Failed to send message");

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import BottomNav from "@/components/navigation/BottomNav";
 import { toast } from "sonner";
@@ -35,7 +34,7 @@ const Matches = () => {
     }
   };
 
-  const { data: confirmedMatches, isLoading: isLoadingConfirmed } = useQuery({
+  const { data: confirmedMatches, isLoading: isLoadingConfirmed, refetch: refetchConfirmed } = useQuery({
     queryKey: ['confirmed-matches', session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return [];
@@ -87,6 +86,9 @@ const Matches = () => {
       
       toast.success(accept ? "Match accepted!" : "Match declined");
       refetchPending();
+      if (accept) {
+        refetchConfirmed();
+      }
     } catch (error) {
       console.error("Error updating match:", error);
       toast.error("Failed to update match status");

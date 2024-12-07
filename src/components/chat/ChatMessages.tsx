@@ -23,31 +23,33 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
   }, [messages]);
 
   return (
-    <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-      <div className="space-y-4">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${
-              message.sender_id === currentUserId ? "justify-end" : "justify-start"
-            }`}
-          >
+    <div className="flex-1 overflow-hidden" ref={scrollRef}>
+      <ScrollArea className="h-full p-4">
+        <div className="space-y-4">
+          {messages.map((message) => (
             <div
-              className={`max-w-[70%] rounded-lg p-3 ${
-                message.sender_id === currentUserId
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200"
+              key={message.id}
+              className={`flex ${
+                message.sender_id === currentUserId ? "justify-end" : "justify-start"
               }`}
             >
-              <p>{message.content}</p>
-              <span className="text-xs opacity-70">
-                {new Date(message.created_at).toLocaleTimeString()}
-              </span>
+              <div
+                className={`max-w-[70%] rounded-lg p-3 ${
+                  message.sender_id === currentUserId
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-200"
+                }`}
+              >
+                <p>{message.content}</p>
+                <span className="text-xs opacity-70">
+                  {new Date(message.created_at).toLocaleTimeString()}
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
-    </ScrollArea>
+          ))}
+        </div>
+      </ScrollArea>
+    </div>
   );
 };
 
