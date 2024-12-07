@@ -1,12 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Database } from "@/integrations/supabase/types";
-
-type Match = Database['public']['Tables']['matches']['Row'];
-type Message = Database['public']['Tables']['messages']['Row'];
+import { Match, Message } from "@/types/match";
 
 export const useWelcomeData = (userId: string | undefined) => {
-  const { data: recentMatches = [] } = useQuery({
+  const { data: recentMatches = [] } = useQuery<Match[]>({
     queryKey: ['recent-matches', userId],
     queryFn: async () => {
       if (!userId) return [];
@@ -17,27 +14,27 @@ export const useWelcomeData = (userId: string | undefined) => {
         .eq('status', 'accepted')
         .order('matched_at', { ascending: false })
         .limit(5);
-      return data || [];
+      return (data as Match[]) || [];
     },
     enabled: !!userId,
   });
 
-  const { data: unreadMessages = [] } = useQuery({
+  const { data: unreadMessages = [] } = useQuery<Message[]>({
     queryKey: ['unread-messages', userId],
     queryFn: async () => {
       if (!userId) return [];
       const { data } = await supabase
         .from('messages')
-        .select('*, matches(*)')
+        .select('*, match:matches(*)')
         .eq('receiver_id', userId)
         .is('read_at', null)
         .order('created_at', { ascending: false });
-      return (data as (Message & { matches: Match[] })[]) || [];
+      return (data as Message[]) || [];
     },
     enabled: !!userId,
   });
 
-  const firstUnreadChat = unreadMessages[0]?.matches?.[0]?.id;
+  const firstUnreadChat = unreadMessages[0]?.match?.id;
 
   return {
     recentMatches,

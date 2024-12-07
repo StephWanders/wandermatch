@@ -1,30 +1,28 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Link } from "react-router-dom";
 import { LucideIcon } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface StatsCardProps {
   icon: LucideIcon;
   title: string;
-  stat: string | number;
+  stat: string;
   to: string;
   bgColor: string;
   iconColor: string;
 }
 
 const StatsCard = ({ icon: Icon, title, stat, to, bgColor, iconColor }: StatsCardProps) => (
-  <Card className="bg-white/95 backdrop-blur-sm hover:bg-white/100 transition-all cursor-pointer">
-    <Link to={to}>
-      <CardContent className="p-6 flex flex-col items-center space-y-4">
-        <div className={`h-12 w-12 rounded-full ${bgColor} flex items-center justify-center`}>
-          <Icon className={`h-6 w-6 ${iconColor}`} />
+  <Link to={to}>
+    <Card className="hover:shadow-lg transition-shadow">
+      <CardContent className={`p-6 ${bgColor}`}>
+        <div className="flex items-center space-x-2">
+          <Icon className={`h-5 w-5 ${iconColor}`} />
+          <h3 className="font-medium text-gray-900">{title}</h3>
         </div>
-        <div className="text-center">
-          <h3 className="font-semibold text-lg">{title}</h3>
-          <p className="text-sm text-gray-600">{stat}</p>
-        </div>
+        <p className="mt-2 text-2xl font-semibold">{stat}</p>
       </CardContent>
-    </Link>
-  </Card>
+    </Card>
+  </Link>
 );
 
 export default StatsCard;

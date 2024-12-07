@@ -16,7 +16,7 @@ const WelcomeSection = ({ session }: WelcomeSectionProps) => {
         <StatsCard
           icon={Heart}
           title="Recent Travel Buddies"
-          stat={`${recentMatches.length || 0} recent matches`}
+          stat={`${recentMatches?.length || 0} recent matches`}
           to="/matches"
           bgColor="bg-blue-100"
           iconColor="text-blue-600"
@@ -25,7 +25,7 @@ const WelcomeSection = ({ session }: WelcomeSectionProps) => {
         <StatsCard
           icon={MessageCircle}
           title="Messages"
-          stat={`${unreadMessages.length || 0} unread messages`}
+          stat={`${unreadMessages?.length || 0} unread messages`}
           to={firstUnreadChat ? `/chat/${firstUnreadChat}` : '/matches'}
           bgColor="bg-green-100"
           iconColor="text-green-600"
