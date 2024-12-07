@@ -12,6 +12,8 @@ export const profileFormSchema = z.object({
   interests: z.string().min(5, "Please list some of your interests"),
   languages: z.string().min(2, "Please list languages you speak"),
   preferredDestinations: z.string().min(2, "Please list some destinations"),
+  gender: z.string().min(1, "Please select your gender"),
+  preferredGender: z.string().min(1, "Please specify preferred gender for matching"),
   profileImage: z.string().optional(),
 });
 
