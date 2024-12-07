@@ -12,28 +12,29 @@ interface WelcomeSectionProps {
 }
 
 const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
-  const { data: newMatches } = useQuery({
-    queryKey: ['new-matches', session?.user?.id],
+  const { data: recentMatches } = useQuery({
+    queryKey: ['recent-matches', session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return [];
       const { data } = await supabase
         .from('matches')
         .select('*, profiles!matches_profile2_id_fkey(*)')
         .eq('profile1_id', session.user.id)
-        .eq('status', 'pending')
-        .order('matched_at', { ascending: false });
+        .eq('status', 'accepted')
+        .order('matched_at', { ascending: false })
+        .limit(5);
       return data || [];
     },
     enabled: !!session?.user?.id,
   });
 
-  const { data: recentMessages } = useQuery({
-    queryKey: ['recent-messages', session?.user?.id],
+  const { data: unreadMessages } = useQuery({
+    queryKey: ['unread-messages', session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return [];
       const { data } = await supabase
         .from('messages')
-        .select('*, profiles!messages_sender_id_fkey(*)')
+        .select('*, matches!inner(*)')
         .eq('receiver_id', session.user.id)
         .is('read_at', null)
         .order('created_at', { ascending: false });
@@ -41,6 +42,9 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
     },
     enabled: !!session?.user?.id,
   });
+
+  // Get the first match with unread messages for the chat redirect
+  const firstUnreadChat = unreadMessages?.[0]?.matches?.id;
 
   return (
     <div className="relative max-w-6xl mx-auto">
@@ -52,9 +56,9 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
                 <Heart className="h-6 w-6 text-blue-600" />
               </div>
               <div className="text-center">
-                <h3 className="font-semibold text-lg">New Matches</h3>
+                <h3 className="font-semibold text-lg">Recent Travel Buddies</h3>
                 <p className="text-sm text-gray-600">
-                  {newMatches?.length || 0} new potential matches
+                  {recentMatches?.length || 0} recent matches
                 </p>
               </div>
             </CardContent>
@@ -62,15 +66,15 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
         </Card>
 
         <Card className="bg-white/95 backdrop-blur-sm hover:bg-white/100 transition-all cursor-pointer">
-          <Link to="/chat">
+          <Link to={firstUnreadChat ? `/chat/${firstUnreadChat}` : '/matches'}>
             <CardContent className="p-6 flex flex-col items-center space-y-4">
               <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
                 <MessageCircle className="h-6 w-6 text-green-600" />
               </div>
               <div className="text-center">
-                <h3 className="font-semibold text-lg">Recent Messages</h3>
+                <h3 className="font-semibold text-lg">Messages</h3>
                 <p className="text-sm text-gray-600">
-                  {recentMessages?.length || 0} unread messages
+                  {unreadMessages?.length || 0} unread messages
                 </p>
               </div>
             </CardContent>
