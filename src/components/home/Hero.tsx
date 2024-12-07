@@ -48,7 +48,12 @@ const Hero = ({ session, profile }: HeroProps) => {
   });
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error("Error signing out");
+      console.error("Error signing out:", error);
+      return;
+    }
     toast.success("Successfully signed out");
     navigate("/");
   };
@@ -164,6 +169,10 @@ const Hero = ({ session, profile }: HeroProps) => {
                   },
                 }}
                 providers={[]}
+                onError={(error) => {
+                  console.error("Auth error:", error);
+                  toast.error(error.message);
+                }}
               />
             </CardContent>
           </Card>
