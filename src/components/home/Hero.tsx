@@ -169,10 +169,8 @@ const Hero = ({ session, profile }: HeroProps) => {
                   },
                 }}
                 providers={[]}
-                onError={(error) => {
-                  console.error("Auth error:", error);
-                  toast.error(error.message);
-                }}
+                onlyThirdPartyProviders={false}
+                redirectTo={window.location.origin}
               />
             </CardContent>
           </Card>
