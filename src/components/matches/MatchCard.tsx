@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import { MessageCircle, X, Check, Heart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 
 interface MatchCardProps {
   match: any;
@@ -12,7 +13,12 @@ interface MatchCardProps {
 }
 
 const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: MatchCardProps) => {
-  const matchedProfile = isPending ? match.profiles : match.profiles;
+  const navigate = useNavigate();
+  const matchedProfile = match.profiles;
+
+  const handleChatClick = () => {
+    navigate(`/chat/${match.id}`);
+  };
 
   return (
     <Card className="hover:shadow-lg transition-shadow animate-fade-in">
@@ -72,7 +78,7 @@ const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: Match
               </span>
             </div>
             <Button 
-              onClick={() => onChatClick?.(match.id)}
+              onClick={handleChatClick}
               className="flex items-center gap-2"
             >
               <MessageCircle className="h-4 w-4" />
