@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Theater, Pizza, Ticket, MapPin } from "lucide-react";
+import { Music, Theater, Pizza, Ticket, MapPin, Users, Camera, Palette } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -32,7 +32,6 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
 
             console.log('Reverse geocode response:', data);
             
-            // Check if we got a fallback response
             if (data?.fallback) {
               console.log('Using fallback location due to API configuration issue');
               setCurrentLocation(defaultLocation);
@@ -70,43 +69,46 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
     }
   }, [defaultLocation]);
 
-  // Event templates that will be customized based on location
   const getLocationEvents = (cityName: string) => [
     {
-      title: `Jazz Night at ${cityName} Lounge`,
-      type: "Music",
+      title: `Live Jazz & Wine Tasting`,
+      type: "Music & Culture",
       icon: <Music className="h-6 w-6 text-purple-500" />,
-      time: "8:00 PM",
-      location: `Downtown ${cityName}`,
-      price: "$25",
-      description: "Live jazz performance featuring local artists"
+      time: "7:00 PM - 10:00 PM",
+      location: `The ${cityName} Jazz Club`,
+      price: "$45",
+      description: "An evening of smooth jazz paired with curated wine selections from local vineyards",
+      tags: ["Live Music", "Wine", "Jazz"]
     },
     {
-      title: `${cityName} Food Festival`,
-      type: "Food",
-      icon: <Pizza className="h-6 w-6 text-red-500" />,
-      time: "6:00 PM - 11:00 PM",
-      location: `${cityName} City Center`,
+      title: `${cityName} Food & Culture Festival`,
+      type: "Community Event",
+      icon: <Users className="h-6 w-6 text-blue-500" />,
+      time: "4:00 PM - 11:00 PM",
+      location: `${cityName} Central Park`,
       price: "Free Entry",
-      description: "Local vendors serving international cuisine"
+      description: "Celebrate diversity with international cuisine, cultural performances, and local artisans",
+      tags: ["Food", "Culture", "Family-Friendly"]
     },
     {
-      title: "Community Theater Night",
-      type: "Theater",
-      icon: <Theater className="h-6 w-6 text-blue-500" />,
-      time: "7:30 PM",
-      location: `${cityName} Theater`,
-      price: "$40",
-      description: `Experience ${cityName}'s finest local talent`
+      title: "Photography Workshop & Gallery",
+      type: "Art & Learning",
+      icon: <Camera className="h-6 w-6 text-green-500" />,
+      time: "6:30 PM - 9:00 PM",
+      location: `${cityName} Creative Space`,
+      price: "$35",
+      description: "Learn night photography techniques followed by a gallery showcase of local talent",
+      tags: ["Workshop", "Photography", "Art"]
     },
     {
-      title: `${cityName} Night Market`,
-      type: "Shopping & Entertainment",
-      icon: <Ticket className="h-6 w-6 text-green-500" />,
+      title: "Interactive Art Exhibition",
+      type: "Art & Entertainment",
+      icon: <Palette className="h-6 w-6 text-red-500" />,
       time: "5:00 PM - 10:00 PM",
-      location: `${cityName} Downtown`,
-      price: "Free Entry",
-      description: "Artisan crafts, live music, and local goods"
+      location: `${cityName} Modern Art Museum`,
+      price: "$20",
+      description: "Experience cutting-edge digital art installations with interactive elements",
+      tags: ["Art", "Interactive", "Modern"]
     }
   ];
 
@@ -142,8 +144,18 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
               <CardTitle className="text-lg">{event.title}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <p className="text-sm text-gray-600">{event.description}</p>
+                <div className="flex flex-wrap gap-2">
+                  {event.tags.map((tag, tagIndex) => (
+                    <span
+                      key={tagIndex}
+                      className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium">{event.time}</span>
                   <span className="text-primary">{event.price}</span>
