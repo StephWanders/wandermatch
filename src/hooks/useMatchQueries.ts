@@ -19,7 +19,7 @@ export const useMatchQueries = (userId: string | undefined) => {
           matched_at,
           profile1_id,
           profile2_id,
-          matched_profile:profiles!matches_profile2_id_fkey(*)
+          profiles!matches_profile2_id_fkey(*)
         `)
         .eq('status', 'active')
         .eq('profile1_id', userId);
@@ -29,13 +29,12 @@ export const useMatchQueries = (userId: string | undefined) => {
         return [];
       }
 
-      // Process matches to ensure correct profile mapping
-      const processedMatches = (data || []).map(match => ({
+      console.log('Confirmed matches data:', data);
+      
+      return data?.map(match => ({
         ...match,
-        profiles: match.matched_profile
-      }));
-
-      return processedMatches;
+        profiles: match.profiles
+      })) || [];
     },
     enabled: !!userId,
   });
@@ -45,6 +44,7 @@ export const useMatchQueries = (userId: string | undefined) => {
     queryFn: async () => {
       if (!userId) return [];
       console.log('Fetching pending matches');
+      
       const { data, error } = await supabase
         .from('matches')
         .select(`
@@ -55,14 +55,15 @@ export const useMatchQueries = (userId: string | undefined) => {
           profile2_id,
           profiles!matches_profile2_id_fkey(*)
         `)
-        .eq('profile2_id', userId)
         .eq('status', 'pending')
-        .order('matched_at', { ascending: false });
+        .eq('profile2_id', userId);
 
       if (error) {
         console.error('Error fetching pending matches:', error);
         return [];
       }
+
+      console.log('Pending matches data:', data);
       
       return data || [];
     },
@@ -73,15 +74,13 @@ export const useMatchQueries = (userId: string | undefined) => {
     try {
       console.log(`Handling match response - Match ID: ${matchId}, Accept: ${accept}`);
       
-      const { data: updateData, error: updateError } = await supabase
+      const { error: updateError } = await supabase
         .from('matches')
         .update({ 
           status: accept ? 'active' : 'rejected',
           matched_at: accept ? new Date().toISOString() : null
         })
-        .eq('id', matchId)
-        .select()
-        .single();
+        .eq('id', matchId);
 
       if (updateError) {
         console.error('Error updating match:', updateError);
@@ -89,8 +88,6 @@ export const useMatchQueries = (userId: string | undefined) => {
         return;
       }
 
-      console.log('Match update successful:', updateData);
-      
       // Invalidate both queries to refresh the data
       await Promise.all([
         queryClient.invalidateQueries({ 
