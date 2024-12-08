@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -7,6 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Database } from "@/integrations/supabase/types";
+
+type RatingCategory = Database['public']['Enums']['rating_category'];
 
 interface RatingFormProps {
   isOpen: boolean;
@@ -15,7 +18,7 @@ interface RatingFormProps {
   ratedUserId: string;
 }
 
-const RATING_CATEGORIES = [
+const RATING_CATEGORIES: { id: RatingCategory; label: string }[] = [
   { id: 'punctuality', label: 'Punctuality' },
   { id: 'communication', label: 'Communication' },
   { id: 'respectfulness', label: 'Respectfulness' },
@@ -24,16 +27,30 @@ const RATING_CATEGORIES = [
 ];
 
 const RatingForm = ({ isOpen, onClose, matchId, ratedUserId }: RatingFormProps) => {
-  const [ratings, setRatings] = useState<Record<string, number>>({});
+  const [ratings, setRatings] = useState<Record<RatingCategory, number>>({});
   const [review, setReview] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  const handleRatingChange = (category: string, value: number) => {
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setCurrentUserId(session.user.id);
+      }
+    });
+  }, []);
+
+  const handleRatingChange = (category: RatingCategory, value: number) => {
     setRatings(prev => ({ ...prev, [category]: value }));
   };
 
   const handleSubmit = async () => {
+    if (!currentUserId) {
+      toast.error("You must be logged in to submit ratings");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       
@@ -47,6 +64,7 @@ const RatingForm = ({ isOpen, onClose, matchId, ratedUserId }: RatingFormProps) 
           .insert({
             match_id: matchId,
             rated_user_id: ratedUserId,
+            rater_id: currentUserId,
             category: category.id,
             rating,
             review_text: category.id === 'overall_safety' ? review : null,
