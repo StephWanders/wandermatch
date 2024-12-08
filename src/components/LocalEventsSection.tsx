@@ -11,27 +11,57 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
   const [events, setEvents] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        // Extract city name from location string, handling various formats
-        const locationParts = defaultLocation.split(',');
-        const city = locationParts[0].trim();
-        console.log('Fetching events for city:', city);
-        setCurrentLocation(city);
+    const getGPSLocation = () => {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            try {
+              // Call the reverse-geocode function to get city name
+              const { data: locationData, error: locationError } = await supabase.functions.invoke('reverse-geocode', {
+                body: {
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude
+                }
+              });
 
+              if (locationError) throw locationError;
+              
+              const city = locationData?.city || defaultLocation.split(',')[0].trim();
+              console.log('GPS Location city:', city);
+              setCurrentLocation(city);
+              fetchEventsForCity(city);
+            } catch (error) {
+              console.error("Error getting city name:", error);
+              const fallbackCity = defaultLocation.split(',')[0].trim();
+              setCurrentLocation(fallbackCity);
+              fetchEventsForCity(fallbackCity);
+            }
+          },
+          (error) => {
+            console.error("Error getting GPS location:", error);
+            const fallbackCity = defaultLocation.split(',')[0].trim();
+            setCurrentLocation(fallbackCity);
+            fetchEventsForCity(fallbackCity);
+          }
+        );
+      } else {
+        const fallbackCity = defaultLocation.split(',')[0].trim();
+        setCurrentLocation(fallbackCity);
+        fetchEventsForCity(fallbackCity);
+      }
+    };
+
+    const fetchEventsForCity = async (city: string) => {
+      try {
+        console.log('Fetching events for city:', city);
         const { data: eventsData, error: eventsError } = await supabase.functions.invoke('get-events', {
           body: { city }
         });
 
-        if (eventsError) {
-          throw eventsError;
-        }
-
+        if (eventsError) throw eventsError;
         setEvents(eventsData.events || getPlaceholderEvents(city));
       } catch (error) {
         console.error("Error:", error);
-        const city = defaultLocation.split(',')[0].trim();
-        setCurrentLocation(city);
         setEvents(getPlaceholderEvents(city));
         toast.error("Could not fetch events. Using placeholder events.");
       } finally {
@@ -39,7 +69,7 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
       }
     };
 
-    fetchEvents();
+    getGPSLocation();
   }, [defaultLocation]);
 
   if (loading) {
