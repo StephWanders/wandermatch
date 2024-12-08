@@ -11,7 +11,8 @@ export const useMatchQueries = (userId: string | undefined) => {
       if (!userId) return [];
       console.log('Fetching confirmed matches for user:', userId);
       
-      const { data, error } = await supabase
+      // Get matches where user is either profile1 or profile2
+      const { data: profile1Matches, error: error1 } = await supabase
         .from('matches')
         .select(`
           id,
@@ -34,16 +35,49 @@ export const useMatchQueries = (userId: string | undefined) => {
         .eq('profile1_id', userId)
         .eq('status', 'active');
 
-      if (error) {
-        console.error('Error fetching confirmed matches:', error);
+      const { data: profile2Matches, error: error2 } = await supabase
+        .from('matches')
+        .select(`
+          id,
+          status,
+          matched_at,
+          profile1_id,
+          profile2_id,
+          profiles:profiles!matches_profile1_id_fkey(
+            id,
+            full_name,
+            age,
+            location,
+            profile_image_url,
+            travel_style,
+            bio,
+            interests,
+            preferred_destinations
+          )
+        `)
+        .eq('profile2_id', userId)
+        .eq('status', 'active');
+
+      if (error1 || error2) {
+        console.error('Error fetching confirmed matches:', error1 || error2);
         toast.error("Failed to load matches");
         return [];
       }
 
-      return data.map(match => ({
-        ...match,
-        profiles: match.profiles
-      }));
+      // Combine and format both sets of matches
+      const allConfirmedMatches = [
+        ...(profile1Matches || []).map(match => ({
+          ...match,
+          profiles: match.profiles
+        })),
+        ...(profile2Matches || []).map(match => ({
+          ...match,
+          profiles: match.profiles
+        }))
+      ];
+
+      console.log('All confirmed matches:', allConfirmedMatches);
+      return allConfirmedMatches;
     },
     enabled: !!userId,
     retry: 2,
