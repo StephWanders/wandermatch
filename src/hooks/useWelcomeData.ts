@@ -54,13 +54,14 @@ export const useWelcomeData = (userId: string | undefined) => {
         .select('sender_id, receiver_id')
         .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
         .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .limit(1);
       
-      if (error || !data) return null;
+      // If there's an error or no messages, return null
+      if (error || !data || data.length === 0) return null;
       
       // Return the ID of the other user in the chat
-      return data.sender_id === userId ? data.receiver_id : data.sender_id;
+      const message = data[0];
+      return message.sender_id === userId ? message.receiver_id : message.sender_id;
     },
     enabled: !!userId,
   });
