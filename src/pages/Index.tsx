@@ -40,17 +40,20 @@ const Index = () => {
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", userId)
-        .single();
+        .eq("id", userId);
 
       if (error) {
         throw error;
       }
 
-      setProfile(data);
+      // Handle the case where data is an array or might be empty
+      const profileData = data?.[0] || null;
+      console.log('Profile data:', profileData);
+      setProfile(profileData);
     } catch (error) {
       console.error("Error fetching profile:", error);
       toast.error("Failed to load profile");
