@@ -51,11 +51,14 @@ export const useConfirmedMatches = (userId: string | undefined) => {
           totalBeforeDedup: profile1Matches.length + profile2Matches.length
         });
 
-        // Combine matches and deduplicate by match ID
+        // Combine matches and deduplicate by the other user's profile ID
         const matchMap = new Map();
         [...profile1Matches, ...profile2Matches].forEach(match => {
-          if (!matchMap.has(match.id)) {
-            matchMap.set(match.id, match);
+          const otherProfileId = match.profile1_id === userId ? match.profile2_id : match.profile1_id;
+          // Keep only the most recent match with each user
+          if (!matchMap.has(otherProfileId) || 
+              new Date(match.matched_at) > new Date(matchMap.get(otherProfileId).matched_at)) {
+            matchMap.set(otherProfileId, match);
           }
         });
 
