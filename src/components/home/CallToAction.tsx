@@ -21,7 +21,7 @@ const CallToAction = () => {
             className="gradient-bg hover:opacity-90 transition-opacity duration-300"
             asChild
           >
-            <Link to="/create-profile">Sign Up Now</Link>
+            <Link to="/?view=sign_up">Sign Up Now</Link>
           </Button>
           <Button 
             size="lg" 

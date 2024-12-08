@@ -3,8 +3,12 @@ import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useSearchParams } from "react-router-dom";
 
 const AuthSection = () => {
+  const [searchParams] = useSearchParams();
+  const view = searchParams.get('view');
+
   const handleError = (error: Error) => {
     console.error("Auth error occurred:", error);
     
@@ -37,6 +41,7 @@ const AuthSection = () => {
               },
             },
           }}
+          view={view === 'sign_up' ? 'sign_up' : 'sign_in'}
           providers={[]}
           redirectTo={window.location.origin}
           localization={{
