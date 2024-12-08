@@ -40,6 +40,10 @@ const Matches = () => {
     navigate(`/chat/${matchId}`);
   };
 
+  // Calculate actual counts from the data
+  const confirmedCount = confirmedMatches?.length || 0;
+  const pendingCount = pendingMatches?.length || 0;
+
   return (
     <div className="min-h-screen pb-20 bg-gradient-to-b from-blue-50 to-green-50">
       <div className="max-w-6xl mx-auto px-4 py-8">
@@ -48,10 +52,10 @@ const Matches = () => {
         <Tabs defaultValue="matches" className="space-y-6">
           <TabsList>
             <TabsTrigger value="matches">
-              Matches ({confirmedMatches?.length || 0})
+              Matches ({confirmedCount})
             </TabsTrigger>
             <TabsTrigger value="pending">
-              Pending ({pendingMatches?.length || 0})
+              Pending ({pendingCount})
             </TabsTrigger>
             <TabsTrigger value="discover">
               Discover

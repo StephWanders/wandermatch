@@ -16,7 +16,7 @@ export const useMatchQueries = (userId: string | undefined) => {
           *,
           profiles!matches_profile2_id_fkey(*)
         `)
-        .eq('status', 'accepted')
+        .eq('status', 'active')
         .or(`profile1_id.eq.${userId},profile2_id.eq.${userId}`);
       
       if (error) {
@@ -43,7 +43,7 @@ export const useMatchQueries = (userId: string | undefined) => {
         .from('matches')
         .select(`
           *,
-          profiles!matches_profile1_id_fkey(*)
+          profiles!matches_profile2_id_fkey(*)
         `)
         .eq('profile2_id', userId)
         .eq('status', 'pending');
@@ -65,7 +65,7 @@ export const useMatchQueries = (userId: string | undefined) => {
       const { data: updateData, error: updateError } = await supabase
         .from('matches')
         .update({ 
-          status: accept ? 'accepted' : 'rejected',
+          status: accept ? 'active' : 'rejected',
           matched_at: accept ? new Date().toISOString() : null
         })
         .eq('id', matchId)
