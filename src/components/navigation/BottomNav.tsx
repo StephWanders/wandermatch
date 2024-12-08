@@ -52,30 +52,28 @@ const BottomNav = ({ session, profile }: BottomNavProps) => {
   const navigate = useNavigate();
   const currentPath = location.pathname;
 
-  // Query to get the most recent chat
-  const { data: recentChat } = useQuery({
-    queryKey: ['most-recent-chat', session?.user?.id],
+  // Query to get active matches
+  const { data: activeMatches } = useQuery({
+    queryKey: ['active-matches', session?.user?.id],
     queryFn: async () => {
-      if (!session?.user?.id) return null;
-
-      const { data: matches } = await supabase
+      if (!session?.user?.id) return [];
+      
+      const { data } = await supabase
         .from('matches')
-        .select('id, profile1_id, profile2_id, matched_at')
-        .or(`profile1_id.eq.${session.user.id},profile2_id.eq.${session.user.id}`)
+        .select('*, profiles!matches_profile2_id_fkey(*)')
         .eq('status', 'active')
+        .or(`profile1_id.eq.${session.user.id},profile2_id.eq.${session.user.id}`)
         .order('matched_at', { ascending: false });
-
-      if (!matches?.length) return null;
-
-      return matches[0].id;
+      
+      return data || [];
     },
     enabled: !!session?.user?.id
   });
 
   const handleChatClick = () => {
-    if (recentChat) {
-      navigate(`/chat/${recentChat}`, { 
-        replace: true,
+    if (activeMatches && activeMatches.length > 0) {
+      const mostRecentMatch = activeMatches[0];
+      navigate(`/chat/${mostRecentMatch.id}`, { 
         state: { from: location.pathname }
       });
     } else {
