@@ -4,6 +4,8 @@ import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const AuthSection = () => {
   const [searchParams] = useSearchParams();
@@ -12,9 +14,21 @@ const AuthSection = () => {
 
   if (!view) return null;
 
+  const handleClose = () => {
+    navigate('/');
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <Card className="max-w-md w-full mx-4 bg-white/95 backdrop-blur-sm">
+      <Card className="max-w-md w-full mx-4 bg-white/95 backdrop-blur-sm relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+          onClick={handleClose}
+        >
+          <X className="h-4 w-4" />
+        </Button>
         <CardHeader>
           <CardTitle>{view === 'sign_up' ? 'Create an Account' : 'Welcome Back'}</CardTitle>
           <CardDescription>
@@ -40,15 +54,6 @@ const AuthSection = () => {
             view={view === 'sign_up' ? 'sign_up' : 'sign_in'}
             providers={[]}
             redirectTo={window.location.origin}
-            onError={(error) => {
-              console.error('Auth error:', error);
-              if (error.message.includes('User already registered')) {
-                toast.error('This email is already registered. Please sign in instead.');
-                navigate('/?view=sign_in');
-              } else {
-                toast.error(error.message);
-              }
-            }}
             localization={{
               variables: {
                 sign_in: {
