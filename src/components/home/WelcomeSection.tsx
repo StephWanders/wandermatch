@@ -17,64 +17,51 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
 
   const handleChatClick = () => {
     console.log('Navigating to chat');
-    navigate('/chat');
-  };
+    if (firstUnreadChat) {
+      navigate(`/chat/${firstLet me check the navigation behavior step by step:
 
-  const handlePendingMatchesClick = () => {
-    console.log('Navigating to pending matches tab');
-    navigate('/matches?tab=pending');
-  };
+1. Looking at the console logs, I can see the navigation is happening but there might be an issue with the routing in App.tsx
+2. The current route setup has a redirect from /chat to /matches which is causing the issue:
+```typescript
+<Route path="/chat" element={<Navigate to="/matches" replace />} />
+```
 
-  // Format location to handle both city-only and city,country formats
-  const formattedLocation = profile?.location ? profile.location.split(',')[0].trim() : 'Unknown Location';
+Let's fix this by updating the routing to properly handle the chat navigation:
 
-  return (
-    <div className="relative">
-      <div className="relative z-10 max-w-6xl mx-auto px-4">
-        <h2 className="text-2xl font-semibold font-display text-accent-800 mb-6">Your Dashboard</h2>
+<lov-code>
+Let's update App.tsx to fix the chat routing:
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
-          <StatsCard
-            icon={Heart}
-            title={<span className="font-display">Pending Matches</span>}
-            stat={`${pendingMatches?.length || 0} pending matches`}
-            onClick={handlePendingMatchesClick}
-            bgColor="bg-primary-100"
-            iconColor="text-primary-600"
-            className="border-none"
-          />
+<lov-write file_path="src/App.tsx">
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Index from "./pages/Index";
+import CreateProfile from "./pages/CreateProfile";
+import Chat from "./pages/Chat";
+import Matches from "./pages/Matches";
+import AccountSettings from "./pages/AccountSettings";
 
-          <StatsCard
-            icon={Globe}
-            title={<span className="font-display">Discover</span>}
-            stat="Find new travel buddies"
-            to="/matches?tab=discover"
-            bgColor="bg-secondary-100"
-            iconColor="text-secondary-600"
-            className="border-none"
-          />
+const queryClient = new QueryClient();
 
-          <StatsCard
-            icon={MessageCircle}
-            title={<span className="font-display">Messages</span>}
-            stat={`${unreadMessages?.length || 0} unread messages`}
-            onClick={handleChatClick}
-            bgColor="bg-accent-100"
-            iconColor="text-accent-600"
-            className="border-none"
-          />
-        </div>
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/create-profile" element={<CreateProfile />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/chat/:matchId" element={<Chat />} />
+          <Route path="/matches" element={<Matches />} />
+          <Route path="/account-settings" element={<AccountSettings />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
-        {formattedLocation && formattedLocation !== 'Unknown Location' && (
-          <LocalEventsSection location={formattedLocation} />
-        )}
-
-        <InspirationSection />
-        
-        <SeasonalSection />
-      </div>
-    </div>
-  );
-};
-
-export default WelcomeSection;
+export default App;
