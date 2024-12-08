@@ -39,72 +39,91 @@ const Chat = () => {
 
   const fetchProfile = async (userId) => {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", userId)
         .single();
+        
+      if (error) throw error;
       setProfile(data);
     } catch (error) {
       console.error("Error fetching profile:", error);
+      toast.error("Failed to load profile");
     }
   };
 
-  const { data: matches } = useQuery({
+  const { data: matches = [], isError: matchesError } = useQuery({
     queryKey: ['chat-matches', session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return [];
-      console.log('Fetching matches for chat');
-      const { data, error } = await supabase
-        .from('matches')
-        .select(`
-          *,
-          profile2:profiles!matches_profile2_id_fkey(*),
-          profile1:profiles!matches_profile1_id_fkey(*)
-        `)
-        .eq('status', 'active')
-        .eq('profile1_id', session.user.id);
       
-      if (error) {
+      try {
+        console.log('Fetching matches for chat, user ID:', session.user.id);
+        const { data, error } = await supabase
+          .from('matches')
+          .select(`
+            id,
+            status,
+            profile1_id,
+            profile2_id,
+            profile2:profiles!matches_profile2_id_fkey(*)
+          `)
+          .eq('status', 'active')
+          .eq('profile1_id', session.user.id);
+        
+        if (error) throw error;
+        
+        console.log('Matches data:', data);
+        return data?.map(match => ({
+          ...match,
+          profiles: match.profile2
+        })) || [];
+      } catch (error) {
         console.error('Error fetching matches:', error);
-        return [];
+        toast.error("Failed to load matches");
+        throw error;
       }
-      
-      return data.map(match => ({
-        ...match,
-        profiles: match.profile2 // Since we're only getting matches where user is profile1, other profile is always profile2
-      }));
     },
     enabled: !!session?.user?.id,
+    retry: 3,
+    retryDelay: 1000,
   });
 
-  // Separate query for messages
-  const { data: messages = [] } = useQuery({
+  const { data: messages = [], isError: messagesError } = useQuery({
     queryKey: ['chat-messages', matchId, otherProfile?.id],
     queryFn: async () => {
       if (!session?.user?.id || !matchId || !otherProfile?.id) return [];
-      console.log('Fetching messages for match:', matchId);
       
-      const { data, error } = await supabase
-        .from("messages")
-        .select("*")
-        .or(
-          `and(sender_id.eq.${session.user.id},receiver_id.eq.${otherProfile.id}),` +
-          `and(sender_id.eq.${otherProfile.id},receiver_id.eq.${session.user.id})`
-        )
-        .order("created_at", { ascending: true });
+      try {
+        console.log('Fetching messages for match:', matchId);
+        const { data, error } = await supabase
+          .from("messages")
+          .select("*")
+          .or(
+            `and(sender_id.eq.${session.user.id},receiver_id.eq.${otherProfile.id}),` +
+            `and(sender_id.eq.${otherProfile.id},receiver_id.eq.${session.user.id})`
+          )
+          .order("created_at", { ascending: true });
 
-      if (error) throw error;
-      console.log('Messages fetched:', data);
-      return data || [];
+        if (error) throw error;
+        
+        console.log('Messages fetched:', data);
+        return data || [];
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+        toast.error("Failed to load messages");
+        throw error;
+      }
     },
     enabled: !!session?.user?.id && !!matchId && !!otherProfile?.id,
+    retry: 3,
+    retryDelay: 1000,
   });
 
-  // Effect to update otherProfile when matchId changes
   useEffect(() => {
     const updateOtherProfile = async () => {
-      if (!session?.user?.id || !matchId || !matches) return;
+      if (!session?.user?.id || !matchId || !matches?.length) return;
       
       const currentMatch = matches.find(m => m.id === matchId);
       if (currentMatch) {
@@ -115,7 +134,6 @@ const Chat = () => {
     updateOtherProfile();
   }, [matchId, matches, session?.user?.id]);
 
-  // Subscribe to new messages
   useEffect(() => {
     if (!session?.user?.id || !matchId || !otherProfile?.id) return;
 
@@ -169,6 +187,21 @@ const Chat = () => {
 
   if (!session) {
     return <div>Loading...</div>;
+  }
+
+  if (matchesError || messagesError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            Unable to load chat
+          </h2>
+          <p className="text-gray-600">
+            Please try refreshing the page
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
