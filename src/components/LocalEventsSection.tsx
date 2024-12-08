@@ -32,7 +32,12 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
 
             console.log('Reverse geocode response:', data);
             
-            if (data?.results?.[0]?.components) {
+            // Check if we got a fallback response
+            if (data?.fallback) {
+              console.log('Using fallback location due to API configuration issue');
+              setCurrentLocation(defaultLocation);
+              toast.error("Location service unavailable. Using default location.");
+            } else if (data?.results?.[0]?.components) {
               const city = data.results[0].components.city || 
                           data.results[0].components.town ||
                           data.results[0].components.village ||
@@ -40,10 +45,12 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
               setCurrentLocation(city);
             } else {
               console.warn('No location data in response:', data);
+              setCurrentLocation(defaultLocation);
               toast.error("Could not determine location. Using default location.");
             }
           } catch (error) {
             console.error("Error getting location:", error);
+            setCurrentLocation(defaultLocation);
             toast.error("Could not get current location. Using default location.");
           } finally {
             setLoading(false);
@@ -51,11 +58,13 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
         },
         (error) => {
           console.error("Geolocation error:", error);
+          setCurrentLocation(defaultLocation);
           toast.error("Could not access location. Using default location.");
           setLoading(false);
         }
       );
     } else {
+      setCurrentLocation(defaultLocation);
       toast.error("Geolocation is not supported by your browser. Using default location.");
       setLoading(false);
     }

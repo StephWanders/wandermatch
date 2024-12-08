@@ -14,14 +14,22 @@ serve(async (req) => {
   }
 
   try {
+    if (!OPENCAGE_API_KEY) {
+      console.error('OpenCage API key is not configured');
+      // Return a more specific error response
+      return new Response(JSON.stringify({
+        error: 'OpenCage API key is not configured',
+        details: 'Please configure OPENCAGE_API_KEY in Supabase Edge Function secrets',
+        fallback: true
+      }), {
+        status: 200, // Changed to 200 to allow fallback behavior
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { latitude, longitude } = await req.json();
     
     console.log('Received coordinates:', { latitude, longitude });
-    console.log('Using API key:', OPENCAGE_API_KEY ? 'Present' : 'Missing');
-    
-    if (!OPENCAGE_API_KEY) {
-      throw new Error('OpenCage API key is not configured');
-    }
     
     const response = await fetch(
       `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${OPENCAGE_API_KEY}`
@@ -43,9 +51,10 @@ serve(async (req) => {
     console.error('Function error:', error);
     return new Response(JSON.stringify({ 
       error: error.message,
-      details: 'Error in reverse-geocode function' 
+      details: 'Error in reverse-geocode function',
+      fallback: true
     }), {
-      status: 500,
+      status: 200, // Changed to 200 to allow fallback behavior
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
