@@ -22,9 +22,9 @@ const getRandomAge = (min: number, max: number) => {
 
 const createUserWithProfile = async (email: string, profile: any) => {
   try {
-    console.log(`Creating user with email: ${email}`);
+    console.log(`Attempting to create/update user with email: ${email}`);
     
-    // Create auth user
+    // Try to sign up the user
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password: 'password123',
@@ -35,17 +35,36 @@ const createUserWithProfile = async (email: string, profile: any) => {
       }
     });
 
+    let userId;
+
     if (authError) {
-      console.error('Auth error:', authError);
-      throw authError;
-    }
-    
-    if (!authData.user) {
-      console.error('No user data returned');
-      throw new Error('No user data returned');
+      // Check if error is due to existing user
+      if (authError.message === "User already registered") {
+        console.log(`User ${email} already exists, proceeding with profile update...`);
+        // Get existing user data
+        const { data: userData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password: 'password123',
+        });
+
+        if (signInError) {
+          console.error('Error signing in existing user:', signInError);
+          throw signInError;
+        }
+
+        userId = userData.user?.id;
+      } else {
+        console.error('Auth error:', authError);
+        throw authError;
+      }
+    } else {
+      userId = authData.user?.id;
+      console.log(`Created new auth user ${email} with ID ${userId}`);
     }
 
-    console.log(`Created auth user ${email} with ID ${authData.user.id}`);
+    if (!userId) {
+      throw new Error('No user ID available for profile update');
+    }
 
     // Wait a bit to ensure the trigger has time to create the profile
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -54,7 +73,7 @@ const createUserWithProfile = async (email: string, profile: any) => {
     const { error: profileError } = await supabase
       .from('profiles')
       .update(profile)
-      .eq('id', authData.user.id);
+      .eq('id', userId);
 
     if (profileError) {
       console.error('Profile update error:', profileError);
@@ -62,9 +81,9 @@ const createUserWithProfile = async (email: string, profile: any) => {
     }
 
     console.log(`Updated profile for ${email}`);
-    return authData.user.id;
+    return userId;
   } catch (error) {
-    console.error(`Error creating user ${email}:`, error);
+    console.error(`Error creating/updating user ${email}:`, error);
     throw error;
   }
 };
