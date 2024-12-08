@@ -11,7 +11,8 @@ export const useMatchQueries = (userId: string | undefined) => {
       if (!userId) return [];
       console.log('Fetching confirmed matches');
       
-      const { data, error } = await supabase
+      // First get matches where user is profile1
+      const { data: matches1, error: error1 } = await supabase
         .from('matches')
         .select(`
           id,
@@ -24,17 +25,43 @@ export const useMatchQueries = (userId: string | undefined) => {
         .eq('status', 'active')
         .eq('profile1_id', userId);
 
-      if (error) {
-        console.error('Error fetching confirmed matches:', error);
+      if (error1) {
+        console.error('Error fetching matches as profile1:', error1);
         return [];
       }
 
-      console.log('Confirmed matches data:', data);
-      
-      return data?.map(match => ({
-        ...match,
-        profiles: match.profiles
-      })) || [];
+      // Then get matches where user is profile2
+      const { data: matches2, error: error2 } = await supabase
+        .from('matches')
+        .select(`
+          id,
+          status,
+          matched_at,
+          profile1_id,
+          profile2_id,
+          profiles!matches_profile1_id_fkey(*)
+        `)
+        .eq('status', 'active')
+        .eq('profile2_id', userId);
+
+      if (error2) {
+        console.error('Error fetching matches as profile2:', error2);
+        return [];
+      }
+
+      const allMatches = [
+        ...(matches1?.map(match => ({
+          ...match,
+          profiles: match.profiles
+        })) || []),
+        ...(matches2?.map(match => ({
+          ...match,
+          profiles: match.profiles
+        })) || [])
+      ];
+
+      console.log('Confirmed matches data:', allMatches);
+      return allMatches;
     },
     enabled: !!userId,
   });
