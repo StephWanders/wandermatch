@@ -13,7 +13,10 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const city = defaultLocation.split(',')[0].trim();
+        // Extract city name from location string, handling various formats
+        const locationParts = defaultLocation.split(',');
+        const city = locationParts[0].trim();
+        console.log('Fetching events for city:', city);
         setCurrentLocation(city);
 
         const { data: eventsData, error: eventsError } = await supabase.functions.invoke('get-events', {
@@ -49,14 +52,12 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
     );
   }
 
-  const cityName = currentLocation.split(',')[0].trim();
-
   return (
     <section className="mt-16">
       <div className="flex items-center justify-center gap-2 mb-8">
         <MapPin className="h-6 w-6 text-gray-500" />
         <h2 className="text-3xl font-bold text-center">
-          What's Happening Tonight in {cityName}
+          What's Happening Tonight in {currentLocation}
         </h2>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
