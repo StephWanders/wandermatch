@@ -46,6 +46,7 @@ const ProfileForm = ({ session, profile, onProfileUpdate }: ProfileFormProps) =>
 
   useEffect(() => {
     if (session?.user?.id) {
+      console.log('Fetching profile pictures for user:', session.user.id);
       fetchProfilePictures();
     }
   }, [session?.user?.id]);
@@ -59,6 +60,7 @@ const ProfileForm = ({ session, profile, onProfileUpdate }: ProfileFormProps) =>
         .order('created_at', { ascending: true });
 
       if (error) throw error;
+      console.log('Fetched profile pictures:', data);
       setProfilePictures(data || []);
     } catch (error) {
       console.error('Error fetching profile pictures:', error);
@@ -67,6 +69,7 @@ const ProfileForm = ({ session, profile, onProfileUpdate }: ProfileFormProps) =>
   };
 
   const handleImagesUpdate = async (updatedImages: ProfilePicture[]) => {
+    console.log('Updating images:', updatedImages);
     setProfilePictures(updatedImages);
     
     // Update profile's main image URL if there's a default image
