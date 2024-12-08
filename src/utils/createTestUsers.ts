@@ -102,6 +102,86 @@ const testUsers = [
       gender: 'female',
       preferred_gender: ['female']
     }
+  },
+  {
+    email: 'carlos.test@example.com',
+    password: 'password123',
+    profile: {
+      full_name: 'Carlos Rodriguez',
+      age: getRandomAge(25, 35),
+      location: 'Madrid, Spain',
+      bio: 'Adventure seeker and mountain climber. Looking for fellow travelers who love the outdoors!',
+      travel_style: 'adventure',
+      languages: ['Spanish', 'English', 'Portuguese'],
+      interests: ['hiking', 'mountains', 'adventure sports', 'photography', 'nature'],
+      preferred_destinations: ['Peru', 'Nepal', 'New Zealand', 'Switzerland'],
+      gender: 'male',
+      preferred_gender: ['female', 'other']
+    }
+  },
+  {
+    email: 'emma.test@example.com',
+    password: 'password123',
+    profile: {
+      full_name: 'Emma Wilson',
+      age: getRandomAge(28, 38),
+      location: 'Sydney, Australia',
+      bio: 'Beach lover and diving enthusiast. Always chasing summer around the world!',
+      travel_style: 'adventure',
+      languages: ['English', 'French'],
+      interests: ['beaches', 'diving', 'photography', 'wildlife', 'nature'],
+      preferred_destinations: ['Thailand', 'Indonesia', 'Maldives', 'Greece'],
+      gender: 'female',
+      preferred_gender: ['male']
+    }
+  },
+  {
+    email: 'raj.test@example.com',
+    password: 'password123',
+    profile: {
+      full_name: 'Raj Patel',
+      age: getRandomAge(30, 40),
+      location: 'Mumbai, India',
+      bio: 'Food enthusiast and cultural explorer. Love discovering local cuisines and traditions.',
+      travel_style: 'cultural',
+      languages: ['English', 'Hindi', 'Gujarati'],
+      interests: ['food', 'culture', 'local markets', 'cooking', 'history'],
+      preferred_destinations: ['Japan', 'Italy', 'Thailand', 'Mexico'],
+      gender: 'male',
+      preferred_gender: ['female']
+    }
+  },
+  {
+    email: 'nina.test@example.com',
+    password: 'password123',
+    profile: {
+      full_name: 'Nina Schmidt',
+      age: getRandomAge(24, 34),
+      location: 'Berlin, Germany',
+      bio: 'Digital nomad and art lover. Seeking inspiration in museums and galleries worldwide.',
+      travel_style: 'cultural',
+      languages: ['German', 'English', 'French'],
+      interests: ['art', 'museums', 'architecture', 'music', 'festivals'],
+      preferred_destinations: ['France', 'Italy', 'Spain', 'Netherlands'],
+      gender: 'female',
+      preferred_gender: ['female', 'other']
+    }
+  },
+  {
+    email: 'leo.test@example.com',
+    password: 'password123',
+    profile: {
+      full_name: 'Leo Costa',
+      age: getRandomAge(27, 37),
+      location: 'Rio de Janeiro, Brazil',
+      bio: 'Beach volleyball player and carnival enthusiast. Living life to the fullest!',
+      travel_style: 'backpacker',
+      languages: ['Portuguese', 'English', 'Spanish'],
+      interests: ['beaches', 'sports', 'festivals', 'music', 'food'],
+      preferred_destinations: ['Brazil', 'Mexico', 'Spain', 'Thailand'],
+      gender: 'male',
+      preferred_gender: ['male', 'female']
+    }
   }
 ];
 
