@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import ChatHeader from "@/components/chat/ChatHeader";
 import ChatInput from "@/components/chat/ChatInput";
 import ChatMessages from "@/components/chat/ChatMessages";
 import ChatSidebar from "@/components/chat/ChatSidebar";
 import BottomNav from "@/components/navigation/BottomNav";
+import { useMatchData } from "@/hooks/useMatchData";
+import { useMessageData } from "@/hooks/useMessageData";
 
 const Chat = () => {
   const { matchId } = useParams();
@@ -53,88 +55,8 @@ const Chat = () => {
     }
   };
 
-  const { data: matches = [], isError: matchesError } = useQuery({
-    queryKey: ['chat-matches', session?.user?.id],
-    queryFn: async () => {
-      if (!session?.user?.id) return [];
-      
-      try {
-        console.log('Fetching matches for chat, user ID:', session.user.id);
-        const { data, error } = await supabase
-          .from('matches')
-          .select(`
-            id,
-            status,
-            profile1_id,
-            profile2_id,
-            profiles:profiles!matches_profile2_id_fkey(*)
-          `)
-          .eq('status', 'active')
-          .or(`profile1_id.eq.${session.user.id},profile2_id.eq.${session.user.id}`);
-        
-        if (error) throw error;
-        
-        // Transform the data to always show the other user's profile
-        const transformedData = data?.map(match => ({
-          ...match,
-          profiles: match.profile1_id === session.user.id ? match.profiles : await getProfile(match.profile1_id)
-        }));
-        
-        console.log('Matches data:', transformedData);
-        return transformedData || [];
-      } catch (error) {
-        console.error('Error fetching matches:', error);
-        toast.error("Failed to load matches");
-        throw error;
-      }
-    },
-    enabled: !!session?.user?.id,
-    retry: 3,
-    retryDelay: 1000,
-  });
-
-  // Helper function to get a profile by ID
-  const getProfile = async (profileId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', profileId)
-      .single();
-    
-    if (error) throw error;
-    return data;
-  };
-
-  const { data: messages = [], isError: messagesError } = useQuery({
-    queryKey: ['chat-messages', matchId, otherProfile?.id],
-    queryFn: async () => {
-      if (!session?.user?.id || !matchId || !otherProfile?.id) return [];
-      
-      try {
-        console.log('Fetching messages for match:', matchId);
-        const { data, error } = await supabase
-          .from("messages")
-          .select("*")
-          .or(
-            `and(sender_id.eq.${session.user.id},receiver_id.eq.${otherProfile.id}),` +
-            `and(sender_id.eq.${otherProfile.id},receiver_id.eq.${session.user.id})`
-          )
-          .order("created_at", { ascending: true });
-
-        if (error) throw error;
-        
-        console.log('Messages fetched:', data);
-        return data || [];
-      } catch (error) {
-        console.error('Error fetching messages:', error);
-        toast.error("Failed to load messages");
-        throw error;
-      }
-    },
-    enabled: !!session?.user?.id && !!matchId && !!otherProfile?.id,
-    retry: 3,
-    retryDelay: 1000,
-  });
+  const { data: matches = [], isError: matchesError } = useMatchData(session?.user?.id);
+  const { data: messages = [] } = useMessageData(session?.user?.id, matchId, otherProfile?.id);
 
   useEffect(() => {
     const updateOtherProfile = async () => {
