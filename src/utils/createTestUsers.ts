@@ -60,7 +60,6 @@ const generateRandomProfile = () => {
 
 const createUserWithProfile = async (index: number) => {
   try {
-    // Generate a unique timestamp-based email to avoid conflicts
     const timestamp = Date.now();
     const email = `test.user${index}.${timestamp}@example.com`;
     const password = 'password123';
@@ -68,7 +67,7 @@ const createUserWithProfile = async (index: number) => {
     
     console.log(`Creating user ${index + 1}: ${email}`);
 
-    // Try to sign up the user
+    // Create the user first
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -90,17 +89,26 @@ const createUserWithProfile = async (index: number) => {
       return null;
     }
 
-    // Wait a bit to ensure the trigger has time to create the profile
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Wait for the trigger to create the initial profile
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Update the profile with additional data
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update(profile)
-      .eq('id', userId);
+    // Use the RPC function to update the profile with additional data
+    const { error: rpcError } = await supabase.rpc('insert_test_profile', {
+      user_id: userId,
+      user_full_name: profile.full_name,
+      user_age: profile.age,
+      user_location: profile.location,
+      user_bio: profile.bio,
+      user_travel_style: profile.travel_style,
+      user_languages: profile.languages,
+      user_interests: profile.interests,
+      user_preferred_destinations: profile.preferred_destinations,
+      user_gender: profile.gender,
+      user_preferred_gender: profile.preferred_gender
+    });
 
-    if (profileError) {
-      console.error('Profile update error:', profileError);
+    if (rpcError) {
+      console.error('Profile update error:', rpcError);
       return null;
     }
 
