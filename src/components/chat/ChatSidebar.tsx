@@ -30,7 +30,6 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get the current user's ID
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user?.id) {
         setCurrentUserId(session.user.id);
@@ -101,21 +100,24 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     const isOnChatRoute = location.pathname === '/chat';
     const hasNoMatchSelected = !currentMatchId;
     const hasMatches = sortedMatches.length > 0;
+    const isComingFromHome = location.state?.from === '/';
     
     console.log('Navigation check:', {
       isOnChatRoute,
       hasNoMatchSelected,
       hasMatches,
       currentMatchId,
-      pathname: location.pathname
+      pathname: location.pathname,
+      isComingFromHome,
+      state: location.state
     });
 
-    if ((isOnChatRoute || hasNoMatchSelected) && hasMatches) {
+    if ((isOnChatRoute || hasNoMatchSelected || isComingFromHome) && hasMatches) {
       const mostRecentMatchId = sortedMatches[0].id;
       console.log('Navigating to most recent chat:', mostRecentMatchId);
       navigate(`/chat/${mostRecentMatchId}`, { replace: true });
     }
-  }, [location.pathname, currentMatchId, sortedMatches, navigate]);
+  }, [location.pathname, location.state, currentMatchId, sortedMatches, navigate]);
 
   return (
     <div className="w-80 bg-white border-r">

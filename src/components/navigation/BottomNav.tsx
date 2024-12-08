@@ -58,7 +58,6 @@ const BottomNav = ({ session, profile }: BottomNavProps) => {
     queryFn: async () => {
       if (!session?.user?.id) return null;
 
-      // First get all active matches
       const { data: matches } = await supabase
         .from('matches')
         .select('id, profile1_id, profile2_id, matched_at')
@@ -68,7 +67,6 @@ const BottomNav = ({ session, profile }: BottomNavProps) => {
 
       if (!matches?.length) return null;
 
-      // Return the most recent match ID
       return matches[0].id;
     },
     enabled: !!session?.user?.id
@@ -76,7 +74,10 @@ const BottomNav = ({ session, profile }: BottomNavProps) => {
 
   const handleChatClick = () => {
     if (recentChat) {
-      navigate(`/chat/${recentChat}`, { replace: true });
+      navigate(`/chat/${recentChat}`, { 
+        replace: true,
+        state: { from: location.pathname }
+      });
     } else {
       navigate('/matches');
     }
