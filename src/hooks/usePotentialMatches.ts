@@ -19,7 +19,7 @@ export const usePotentialMatches = (userId: string | undefined, userProfile: any
 
         console.log('Fetching potential matches for user:', userId);
 
-        // Get existing swipes
+        // Get existing swipes with error handling
         const { data: existingSwipes, error: swipesError } = await supabase
           .from('potential_matches')
           .select('target_id')
@@ -30,7 +30,7 @@ export const usePotentialMatches = (userId: string | undefined, userProfile: any
           throw swipesError;
         }
 
-        // Get existing matches
+        // Get existing matches with error handling
         const { data: existingMatches, error: matchesError } = await supabase
           .from('matches')
           .select('profile1_id, profile2_id')
@@ -82,7 +82,7 @@ export const usePotentialMatches = (userId: string | undefined, userProfile: any
       } catch (error) {
         console.error('Error in potential matches query:', error);
         toast.error("Failed to load potential matches. Please try again.");
-        throw error;
+        return [];
       }
     },
     enabled: !!userId && !!userProfile,
