@@ -65,12 +65,14 @@ export const useMatchQueries = (userId: string | undefined) => {
       const { error } = await supabase
         .from('matches')
         .update({ 
-          status: accept ? 'accepted' : 'rejected' 
+          status: accept ? 'accepted' : 'rejected',
+          matched_at: accept ? new Date().toISOString() : null
         })
         .eq('id', matchId);
 
       if (error) throw error;
       
+      // Invalidate both queries to refresh the data
       await queryClient.invalidateQueries({ queryKey: ['confirmed-matches'] });
       await queryClient.invalidateQueries({ queryKey: ['pending-matches'] });
       
