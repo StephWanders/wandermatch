@@ -59,17 +59,22 @@ const Chat = () => {
         .from('matches')
         .select(`
           *,
-          profiles!matches_profile2_id_fkey(*)
+          profile2:profiles!matches_profile2_id_fkey(*),
+          profile1:profiles!matches_profile1_id_fkey(*)
         `)
-        .or(`profile1_id.eq.${session.user.id}`)
-        .eq('status', 'accepted');
+        .eq('status', 'active')
+        .or(`profile1_id.eq.${session.user.id},profile2_id.eq.${session.user.id}`);
       
       if (error) {
         console.error('Error fetching matches:', error);
         return [];
       }
       
-      return data || [];
+      return data.map(match => ({
+        ...match,
+        // Select the profile that isn't the current user
+        profiles: match.profile1_id === session.user.id ? match.profile2 : match.profile1
+      }));
     },
     enabled: !!session?.user?.id,
   });
@@ -104,20 +109,7 @@ const Chat = () => {
       
       const currentMatch = matches.find(m => m.id === matchId);
       if (currentMatch) {
-        const otherProfileId = currentMatch.profile1_id === session.user.id 
-          ? currentMatch.profile2_id 
-          : currentMatch.profile1_id;
-        
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', otherProfileId)
-          .single();
-          
-        if (profileData) {
-          console.log('Setting other profile:', profileData);
-          setOtherProfile(profileData);
-        }
+        setOtherProfile(currentMatch.profiles);
       }
     };
 
