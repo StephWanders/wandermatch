@@ -68,17 +68,24 @@ export const usePotentialMatches = (userId: string | undefined, userProfile: any
           return [];
         }
 
-        // Sort profiles by match score
-        const scoredProfiles = profiles
-          .map(p => ({
-            ...p,
-            matchScore: calculateMatchScore(userProfile, p)
-          }))
+        // Calculate match scores for all profiles
+        const scoredProfiles = await Promise.all(
+          profiles.map(async (profile) => {
+            const matchScore = await calculateMatchScore(userProfile, profile);
+            return {
+              ...profile,
+              matchScore
+            };
+          })
+        );
+
+        // Sort and filter profiles
+        const filteredProfiles = scoredProfiles
           .sort((a, b) => b.matchScore - a.matchScore)
           .filter(p => p.matchScore > 0);
 
-        console.log(`Found ${scoredProfiles.length} potential matches`);
-        return scoredProfiles;
+        console.log(`Found ${filteredProfiles.length} potential matches`);
+        return filteredProfiles;
       } catch (error) {
         console.error('Error in potential matches query:', error);
         toast.error("Failed to load potential matches. Please try again.");
