@@ -48,14 +48,20 @@ const Chat = () => {
     
     console.log('Setting other profile for match:', matchId);
     const currentMatch = matches.find(m => m.id === matchId);
+    
     if (currentMatch) {
-      const profileToSet = currentMatch.profile1_id === session.user.id 
-        ? currentMatch.profiles 
-        : matches.find(m => m.profile1_id === session.user.id && m.profile2_id === currentMatch.profile1_id)?.profiles;
+      // If current user is profile1, use profile2's data from profiles
+      // If current user is profile2, use profile1's data from profiles
+      const otherProfileId = currentMatch.profile1_id === session.user.id 
+        ? currentMatch.profile2_id 
+        : currentMatch.profile1_id;
       
-      if (profileToSet) {
-        console.log('Other profile set:', profileToSet);
-        setOtherProfile(profileToSet);
+      // Find the match that contains the other profile's data
+      const matchWithOtherProfile = matches.find(m => m.profiles.id === otherProfileId);
+      
+      if (matchWithOtherProfile) {
+        console.log('Other profile set:', matchWithOtherProfile.profiles);
+        setOtherProfile(matchWithOtherProfile.profiles);
       }
     }
   }, [matchId, matches, session?.user?.id]);
