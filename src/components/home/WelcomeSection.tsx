@@ -53,32 +53,32 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
         <StatsCard
           icon={Heart}
-          title={<span className="font-display text-lg">Pending Matches</span>}
+          title={<span className="font-display">Pending Matches</span>}
           stat={`${pendingMatches?.length || 0} pending matches`}
           to="/matches?tab=pending"
-          bgColor="bg-white/80 backdrop-blur-sm"
+          bgColor="bg-primary-100"
           iconColor="text-primary-600"
-          className="shadow-lg hover:shadow-xl transition-all duration-300 border border-primary-100"
+          className="border-none"
         />
 
         <StatsCard
           icon={Globe}
-          title={<span className="font-display text-lg">Discover</span>}
+          title={<span className="font-display">Discover</span>}
           stat="Find new travel buddies"
           to="/matches?tab=discover"
-          bgColor="bg-white/80 backdrop-blur-sm"
+          bgColor="bg-secondary-100"
           iconColor="text-secondary-600"
-          className="shadow-lg hover:shadow-xl transition-all duration-300 border border-secondary-100"
+          className="border-none"
         />
 
         <StatsCard
           icon={MessageCircle}
-          title={<span className="font-display text-lg">Messages</span>}
+          title={<span className="font-display">Messages</span>}
           stat={`${unreadMessages?.length || 0} unread messages`}
           to={firstUnreadChat ? `/chat/${firstUnreadChat}` : '/matches'}
-          bgColor="bg-white/80 backdrop-blur-sm"
+          bgColor="bg-accent-100"
           iconColor="text-accent-600"
-          className="shadow-lg hover:shadow-xl transition-all duration-300 border border-accent-100"
+          className="border-none"
           onClick={handleChatClick}
         />
       </div>
