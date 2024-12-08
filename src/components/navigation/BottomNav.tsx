@@ -1,6 +1,7 @@
 import { Home, Heart, MessageCircle } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import ProfileAvatar from "../profile/ProfileAvatar";
+import { useWelcomeData } from "@/hooks/useWelcomeData";
 
 interface NavButtonProps {
   icon: React.ElementType;
@@ -26,6 +27,9 @@ interface BottomNavProps {
 const BottomNav = ({ session, profile }: BottomNavProps) => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const { latestChat } = useWelcomeData(session?.user?.id);
+
+  const chatPath = latestChat ? `/chat/${latestChat}` : '/matches';
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-gray-200 px-4 py-3 flex justify-around items-center z-50">
@@ -47,7 +51,7 @@ const BottomNav = ({ session, profile }: BottomNavProps) => {
         <NavButton 
           icon={MessageCircle} 
           label="Chat" 
-          to="/matches" 
+          to={chatPath}
           active={currentPath.startsWith('/chat')} 
         />
       )}

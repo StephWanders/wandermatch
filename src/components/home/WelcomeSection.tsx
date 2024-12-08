@@ -11,7 +11,9 @@ interface WelcomeSectionProps {
 }
 
 const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
-  const { pendingMatches, unreadMessages, firstUnreadChat } = useWelcomeData(session?.user?.id);
+  const { pendingMatches, unreadMessages, latestChat } = useWelcomeData(session?.user?.id);
+
+  const chatPath = latestChat ? `/chat/${latestChat}` : '/matches';
 
   return (
     <div className="relative max-w-6xl mx-auto px-4">
@@ -38,7 +40,7 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
           icon={MessageCircle}
           title="Messages"
           stat={`${unreadMessages?.length || 0} unread messages`}
-          to={firstUnreadChat ? `/chat/${firstUnreadChat}` : '/matches'}
+          to={chatPath}
           bgColor="bg-blue-100"
           iconColor="text-blue-600"
         />

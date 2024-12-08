@@ -43,12 +43,32 @@ export const useWelcomeData = (userId: string | undefined) => {
     enabled: !!userId,
   });
 
-  // Find the first unread message's match ID
-  const firstUnreadChat = unreadMessages[0]?.sender?.id;
+  // Get the latest chat (whether read or unread)
+  const { data: latestChat } = useQuery({
+    queryKey: ['latest-chat', userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      
+      const { data, error } = await supabase
+        .from('messages')
+        .select('sender_id, receiver_id')
+        .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (error || !data) return null;
+      
+      // Return the ID of the other user in the chat
+      return data.sender_id === userId ? data.receiver_id : data.sender_id;
+    },
+    enabled: !!userId,
+  });
 
   return {
     pendingMatches,
     unreadMessages,
-    firstUnreadChat,
+    firstUnreadChat: unreadMessages[0]?.sender?.id,
+    latestChat,
   };
 };
