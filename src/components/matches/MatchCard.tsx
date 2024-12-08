@@ -8,6 +8,8 @@ import ProfileModal from "./ProfileModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
+import UserRating from "./UserRating";
+import RatingForm from "./RatingForm";
 
 interface MatchCardProps {
   match: any;
@@ -20,6 +22,7 @@ interface MatchCardProps {
 const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: MatchCardProps) => {
   const navigate = useNavigate();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -78,6 +81,8 @@ const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: Match
     return null;
   }
 
+  const isCompleted = match.status === 'completed';
+
   return (
     <>
       <Card className="hover:shadow-lg transition-shadow animate-fade-in">
@@ -92,7 +97,10 @@ const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: Match
                 name={matchedProfile.full_name}
               />
               <div>
-                <h3 className="font-semibold">{matchedProfile.full_name}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold">{matchedProfile.full_name}</h3>
+                  <UserRating userId={matchedProfile.id} />
+                </div>
                 <p className="text-sm text-gray-500">{matchedProfile.location}</p>
               </div>
             </div>
@@ -139,13 +147,23 @@ const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: Match
                   <Heart className="h-4 w-4" /> {matchedProfile.travel_style}
                 </span>
               </div>
-              <Button 
-                onClick={handleChatClick}
-                className="flex items-center gap-2"
-              >
-                <MessageCircle className="h-4 w-4" />
-                Chat
-              </Button>
+              <div className="flex gap-2">
+                {isCompleted && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsRatingModalOpen(true)}
+                  >
+                    Rate User
+                  </Button>
+                )}
+                <Button 
+                  onClick={handleChatClick}
+                  className="flex items-center gap-2"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Chat
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
@@ -155,6 +173,13 @@ const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: Match
         profile={matchedProfile}
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
+      />
+
+      <RatingForm
+        isOpen={isRatingModalOpen}
+        onClose={() => setIsRatingModalOpen(false)}
+        matchId={match.id}
+        ratedUserId={matchedProfile.id}
       />
     </>
   );

@@ -217,11 +217,82 @@ export type Database = {
         }
         Relationships: []
       }
+      trip_ratings: {
+        Row: {
+          category: Database["public"]["Enums"]["rating_category"]
+          created_at: string | null
+          id: string
+          is_anonymous: boolean | null
+          is_flagged: boolean | null
+          match_id: string
+          rated_user_id: string
+          rater_id: string
+          rating: number
+          review_text: string | null
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["rating_category"]
+          created_at?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          is_flagged?: boolean | null
+          match_id: string
+          rated_user_id: string
+          rater_id: string
+          rating: number
+          review_text?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["rating_category"]
+          created_at?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          is_flagged?: boolean | null
+          match_id?: string
+          rated_user_id?: string
+          rater_id?: string
+          rating?: number
+          review_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_ratings_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_ratings_rated_user_id_fkey"
+            columns: ["rated_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_ratings_rater_id_fkey"
+            columns: ["rater_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      get_user_ratings: {
+        Args: {
+          user_id: string
+        }
+        Returns: {
+          category: Database["public"]["Enums"]["rating_category"]
+          average_rating: number
+          total_ratings: number
+        }[]
+      }
       insert_test_profile: {
         Args: {
           user_id: string
@@ -247,7 +318,12 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      rating_category:
+        | "punctuality"
+        | "communication"
+        | "respectfulness"
+        | "responsibility"
+        | "overall_safety"
     }
     CompositeTypes: {
       [_ in never]: never
