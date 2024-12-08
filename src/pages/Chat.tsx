@@ -76,7 +76,7 @@ const Chat = () => {
 
   // Separate query for messages
   const { data: messages = [] } = useQuery({
-    queryKey: ['chat-messages', matchId],
+    queryKey: ['chat-messages', matchId, otherProfile?.id],
     queryFn: async () => {
       if (!session?.user?.id || !matchId || !otherProfile?.id) return [];
       console.log('Fetching messages for match:', matchId);
@@ -85,12 +85,13 @@ const Chat = () => {
         .from("messages")
         .select("*")
         .or(
-          `sender_id.eq.${session.user.id},and(receiver_id.eq.${session.user.id}),` +
-          `sender_id.eq.${otherProfile.id},and(receiver_id.eq.${otherProfile.id})`
+          `and(sender_id.eq.${session.user.id},receiver_id.eq.${otherProfile.id}),` +
+          `and(sender_id.eq.${otherProfile.id},receiver_id.eq.${session.user.id})`
         )
         .order("created_at", { ascending: true });
 
       if (error) throw error;
+      console.log('Messages fetched:', data);
       return data || [];
     },
     enabled: !!session?.user?.id && !!matchId && !!otherProfile?.id,
@@ -140,7 +141,6 @@ const Chat = () => {
         (payload) => {
           console.log('Message change received:', payload);
           if (payload.eventType === 'INSERT') {
-            // Invalidate and refetch messages query
             queryClient.invalidateQueries({ queryKey: ['chat-messages', matchId] });
           }
         }
@@ -168,7 +168,6 @@ const Chat = () => {
 
       if (error) throw error;
       
-      // Invalidate and refetch messages after sending
       queryClient.invalidateQueries({ queryKey: ['chat-messages', matchId] });
       console.log('Message sent successfully');
     } catch (error) {
