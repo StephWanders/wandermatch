@@ -18,8 +18,22 @@ interface MatchCardProps {
 
 const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: MatchCardProps) => {
   const navigate = useNavigate();
-  const matchedProfile = match.profiles;
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // Get the current user's ID when the component mounts
+  useState(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setCurrentUserId(session.user.id);
+      }
+    });
+  });
+
+  // Determine which profile to show based on the current user's ID
+  const matchedProfile = currentUserId === match.profile1_id ? 
+    match.profiles!matches_profile2_id_fkey : 
+    match.profiles!matches_profile1_id_fkey;
 
   const handleChatClick = async () => {
     try {
