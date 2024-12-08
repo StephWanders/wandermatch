@@ -13,23 +13,23 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           try {
-            // Call our Edge Function instead of directly calling OpenCage
-            const response = await fetch(
-              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reverse-geocode`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
-                },
-                body: JSON.stringify({
-                  latitude: position.coords.latitude,
-                  longitude: position.coords.longitude
-                })
+            console.log('Attempting to reverse geocode coordinates:', {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude
+            });
+
+            const { data, error } = await supabase.functions.invoke('reverse-geocode', {
+              body: {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
               }
-            );
-            
-            const data = await response.json();
+            });
+
+            if (error) {
+              throw error;
+            }
+
+            console.log('Reverse geocode response:', data);
             
             if (data.results && data.results[0]) {
               const city = data.results[0].components.city || 
