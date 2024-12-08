@@ -44,8 +44,10 @@ const Chat = () => {
   // If no matchId is provided, navigate to the most recent chat
   useEffect(() => {
     if (!matchId && matches.length > 0) {
-      const sortedMatches = [...(matches as Match[])].sort((a, b) => {
-        return new Date(b.matched_at || '').getTime() - new Date(a.matched_at || '').getTime();
+      const sortedMatches = [...matches].sort((a, b) => {
+        const timeA = new Date(a.matched_at || '').getTime();
+        const timeB = new Date(b.matched_at || '').getTime();
+        return timeB - timeA;
       });
       navigate(`/chat/${sortedMatches[0].id}`);
     }
@@ -96,7 +98,7 @@ const Chat = () => {
       <div className="relative z-10">
         <TopNav session={session} profile={profile} />
         <div className="h-[calc(100vh-128px)] flex mt-16">
-          <ChatSidebar matches={matches || []} currentMatchId={matchId} />
+          <ChatSidebar matches={matches} currentMatchId={matchId} />
           <ChatContainer 
             matchId={matchId!}
             otherProfile={otherProfile}
