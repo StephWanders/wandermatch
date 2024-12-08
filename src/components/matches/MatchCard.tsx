@@ -77,11 +77,35 @@ const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: Match
     enabled: !!match.profile2_id
   });
 
+  // Check if the match is completed
+  const isCompleted = match.status === 'completed';
+
+  // Function to complete the match
+  const handleCompleteMatch = async () => {
+    try {
+      const { error } = await supabase
+        .from('matches')
+        .update({ status: 'completed' })
+        .eq('id', match.id);
+
+      if (error) {
+        console.error('Error completing match:', error);
+        toast.error("Failed to complete match");
+        return;
+      }
+
+      toast.success("Match completed! You can now rate your travel partner.");
+      // Refresh the page to show updated status
+      window.location.reload();
+    } catch (error) {
+      console.error('Error completing match:', error);
+      toast.error("Failed to complete match");
+    }
+  };
+
   if (!matchedProfile) {
     return null;
   }
-
-  const isCompleted = match.status === 'completed';
 
   return (
     <>
@@ -148,6 +172,14 @@ const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: Match
                 </span>
               </div>
               <div className="flex gap-2">
+                {!isCompleted && (
+                  <Button
+                    variant="outline"
+                    onClick={handleCompleteMatch}
+                  >
+                    Complete Trip
+                  </Button>
+                )}
                 {isCompleted && (
                   <Button
                     variant="outline"

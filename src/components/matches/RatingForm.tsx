@@ -61,6 +61,7 @@ const RatingForm = ({ isOpen, onClose, matchId, ratedUserId }: RatingFormProps) 
 
     try {
       setIsSubmitting(true);
+      console.log('Submitting ratings:', ratings);
       
       // Submit a rating for each category
       for (const category of RATING_CATEGORIES) {
@@ -79,11 +80,16 @@ const RatingForm = ({ isOpen, onClose, matchId, ratedUserId }: RatingFormProps) 
             is_anonymous: isAnonymous,
           });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error submitting rating:', error);
+          throw error;
+        }
       }
 
       toast.success("Rating submitted successfully");
       onClose();
+      // Refresh the page to show the new rating
+      window.location.reload();
     } catch (error) {
       console.error('Error submitting rating:', error);
       toast.error("Failed to submit rating");
@@ -139,7 +145,7 @@ const RatingForm = ({ isOpen, onClose, matchId, ratedUserId }: RatingFormProps) 
 
           <Button
             onClick={handleSubmit}
-            disabled={isSubmitting || Object.keys(ratings).length === 0}
+            disabled={isSubmitting || Object.values(ratings).every(r => r === 0)}
             className="w-full"
           >
             Submit Rating
