@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Music, Theater, Pizza, Ticket, MapPin } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const LocalEventsSection = ({ location: defaultLocation }: { location: string }) => {
   const [currentLocation, setCurrentLocation] = useState<string>(defaultLocation);
@@ -12,10 +13,22 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           try {
-            // Use reverse geocoding to get city name from coordinates
+            // Call our Edge Function instead of directly calling OpenCage
             const response = await fetch(
-              `https://api.opencagedata.com/geocode/v1/json?q=${position.coords.latitude}+${position.coords.longitude}&key=24d14c17c3304c1b9d2e2e49c7449c9c`
+              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reverse-geocode`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+                },
+                body: JSON.stringify({
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude
+                })
+              }
             );
+            
             const data = await response.json();
             
             if (data.results && data.results[0]) {
