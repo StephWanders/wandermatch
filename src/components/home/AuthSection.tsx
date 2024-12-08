@@ -24,8 +24,12 @@ const AuthSection = () => {
   return (
     <Card className="max-w-md mx-auto bg-white/95 backdrop-blur-sm">
       <CardHeader>
-        <CardTitle>Join WanderMatch</CardTitle>
-        <CardDescription>Sign in or create an account to get started</CardDescription>
+        <CardTitle>{view === 'sign_up' ? 'Create an Account' : 'Welcome Back'}</CardTitle>
+        <CardDescription>
+          {view === 'sign_up' 
+            ? 'Sign up to start finding your perfect travel companion' 
+            : 'Sign in to continue your journey'}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Auth
@@ -44,6 +48,7 @@ const AuthSection = () => {
           view={view === 'sign_up' ? 'sign_up' : 'sign_in'}
           providers={[]}
           redirectTo={window.location.origin}
+          onError={handleError}
           localization={{
             variables: {
               sign_in: {
