@@ -52,7 +52,7 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
             .update({ read_at: timestamp })
             .in('id', messageIds)
             .eq('receiver_id', currentUserId)
-            .select();
+            .select('*');
 
           if (error) {
             console.error('Error marking messages as read:', error);
