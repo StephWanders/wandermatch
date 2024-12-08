@@ -238,6 +238,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      mark_messages_as_read: {
+        Args: {
+          p_message_ids: string[]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
