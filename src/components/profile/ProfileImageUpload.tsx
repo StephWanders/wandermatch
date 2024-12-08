@@ -55,41 +55,53 @@ const ProfileImageUpload = ({ userId, existingImages = [], onImagesUpdate }: Pro
 
       // Set is_default to true only if this is the first image
       const isFirstImage = images.length === 0;
-      
-      // First, update any existing default image if we're setting a new default
-      if (isFirstImage && images.some(img => img.is_default)) {
-        const { error: updateError } = await supabase
+
+      try {
+        // If this will be the default image, first update existing default
+        if (isFirstImage) {
+          const { error: updateError } = await supabase
+            .from('profile_pictures')
+            .update({ is_default: false })
+            .eq('profile_id', userId)
+            .eq('is_default', true);
+
+          if (updateError && !updateError.message.includes('no rows')) {
+            throw updateError;
+          }
+        }
+
+        const { error: dbError, data: pictureData } = await supabase
           .from('profile_pictures')
-          .update({ is_default: false })
-          .eq('profile_id', userId)
-          .eq('is_default', true);
+          .insert({
+            profile_id: userId,
+            image_url: publicUrl,
+            is_default: isFirstImage
+          })
+          .select()
+          .single();
 
-        if (updateError) throw updateError;
+        if (dbError) throw dbError;
+
+        const updatedImages = [...images, pictureData];
+        setImages(updatedImages);
+        onImagesUpdate?.(updatedImages);
+        
+        toast.success("Profile picture uploaded successfully!");
+      } catch (error: any) {
+        // If there was an error inserting the image, clean up the uploaded file
+        await supabase.storage
+          .from('profile-pictures')
+          .remove([filePath]);
+        throw error;
       }
-
-      const { error: dbError, data: pictureData } = await supabase
-        .from('profile_pictures')
-        .insert({
-          profile_id: userId,
-          image_url: publicUrl,
-          is_default: isFirstImage
-        })
-        .select()
-        .single();
-
-      if (dbError) throw dbError;
-
-      const updatedImages = [...images, pictureData];
-      setImages(updatedImages);
-      onImagesUpdate?.(updatedImages);
-      
-      toast.success("Profile picture uploaded successfully!");
-      event.target.value = '';
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading image:', error);
-      toast.error("Failed to upload profile picture");
+      toast.error(error.message || "Failed to upload profile picture");
     } finally {
       setUploading(false);
+      if (event.target) {
+        event.target.value = '';
+      }
     }
   };
 
@@ -121,7 +133,7 @@ const ProfileImageUpload = ({ userId, existingImages = [], onImagesUpdate }: Pro
       setImages(updatedImages);
       onImagesUpdate?.(updatedImages);
       toast.success("Default profile picture updated!");
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error setting default image:', error);
       toast.error("Failed to update default profile picture");
     }
@@ -142,7 +154,7 @@ const ProfileImageUpload = ({ userId, existingImages = [], onImagesUpdate }: Pro
       setImages(updatedImages);
       onImagesUpdate?.(updatedImages);
       toast.success("Profile picture deleted successfully!");
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting image:', error);
       toast.error("Failed to delete profile picture");
     }
