@@ -11,8 +11,8 @@ export const useMatchQueries = (userId: string | undefined) => {
       if (!userId) return [];
       console.log('Fetching confirmed matches');
       
-      // First get matches where user is profile1
-      const { data: matches1, error: error1 } = await supabase
+      // Only get matches where user is profile1
+      const { data: matches, error } = await supabase
         .from('matches')
         .select(`
           id,
@@ -26,12 +26,17 @@ export const useMatchQueries = (userId: string | undefined) => {
         .eq('status', 'active')
         .eq('profile1_id', userId);
 
-      if (error1) {
-        console.error('Error fetching matches as profile1:', error1);
+      if (error) {
+        console.error('Error fetching matches:', error);
         return [];
       }
 
-     
+      console.log('Confirmed matches data:', matches);
+      return matches || [];
+    },
+    enabled: !!userId,
+  });
+
   const { data: pendingMatches } = useQuery({
     queryKey: ['pending-matches', userId],
     queryFn: async () => {
