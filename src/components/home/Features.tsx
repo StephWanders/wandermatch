@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Calendar, Shield, MessageSquare, MapPin, Globe } from "lucide-react";
+import { Users, Calendar, Shield, MessageCircle, MapPin, Globe } from "lucide-react";
 
 const FeatureCard = ({ 
   icon: Icon, 
@@ -11,12 +11,12 @@ const FeatureCard = ({
   description: string;
 }) => {
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 border-none bg-white/50 backdrop-blur-sm">
+    <Card className="group card-hover border-none bg-white/50 backdrop-blur-sm">
       <CardHeader>
-        <div className="mb-2 w-12 h-12 rounded-full bg-gradient-to-r from-blue-100 to-green-100 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
-          <Icon className="w-6 h-6 text-blue-600 group-hover:text-green-600 transition-colors" />
+        <div className="mb-2 w-12 h-12 rounded-full bg-gradient-to-r from-primary-100 to-secondary-100 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+          <Icon className="w-6 h-6 text-primary group-hover:text-secondary transition-colors" />
         </div>
-        <CardTitle className="text-xl text-center group-hover:text-blue-600 transition-colors font-display">
+        <CardTitle className="text-xl text-center group-hover:text-primary transition-colors font-display">
           {title}
         </CardTitle>
       </CardHeader>
@@ -32,7 +32,7 @@ const Features = () => {
     <section className="py-24 px-4 relative">
       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1482938289607-e9573fc25ebb')] bg-cover bg-center opacity-10" />
       <div className="relative">
-        <h2 className="text-4xl font-bold text-center mb-16 bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent font-display">
+        <h2 className="text-4xl font-bold text-center mb-16 gradient-text font-display">
           Why Choose WanderMatch?
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -52,7 +52,7 @@ const Features = () => {
             description="Verified profiles and safety features for peace of mind"
           />
           <FeatureCard
-            icon={MessageSquare}
+            icon={MessageCircle}
             title="Easy Communication"
             description="Chat and video call to plan your perfect trip together"
           />
