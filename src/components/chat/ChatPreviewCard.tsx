@@ -37,22 +37,26 @@ const ChatPreviewCard = ({
         isActive ? "bg-primary-50" : ""
       }`}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <div 
-          className="flex items-center space-x-3 cursor-pointer flex-1"
+          className="flex items-center space-x-3 cursor-pointer flex-1 min-w-0"
           onClick={onClick}
         >
           <ProfileAvatar
             imageUrl={profile.profile_image_url}
             name={profile.full_name}
+            className="flex-shrink-0"
           />
           <div className="min-w-0 flex-1">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <h3 className="font-display text-lg font-medium text-accent-800 truncate">
                 {profile.full_name}
               </h3>
               {unreadCount > 0 && (
-                <Badge variant="secondary" className="ml-2 bg-primary-100">
+                <Badge 
+                  variant="secondary" 
+                  className="bg-primary-500 text-white flex-shrink-0"
+                >
                   {unreadCount}
                 </Badge>
               )}
@@ -67,7 +71,7 @@ const ChatPreviewCard = ({
             <Button 
               variant="ghost" 
               size="icon"
-              className="text-red-500 hover:text-red-600 hover:bg-red-50 flex-shrink-0"
+              className="text-red-500 hover:text-red-600 hover:bg-red-50 flex-shrink-0 h-8 w-8"
             >
               <UserMinus className="h-4 w-4" />
             </Button>

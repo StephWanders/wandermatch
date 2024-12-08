@@ -46,11 +46,10 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
           const messageIds = unreadMessages.map(m => m.id);
           console.log('Attempting to mark messages as read:', messageIds);
           
-          const { error } = await supabase
-            .from('messages')
-            .update({ read_at: new Date().toISOString() })
-            .in('id', messageIds)
-            .eq('receiver_id', currentUserId);
+          const { error } = await supabase.rpc('mark_messages_as_read', {
+            p_message_ids: messageIds,
+            p_user_id: currentUserId
+          });
 
           if (error) {
             console.error('Error marking messages as read:', error);
