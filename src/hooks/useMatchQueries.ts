@@ -5,14 +5,13 @@ import { toast } from "sonner";
 export const useMatchQueries = (userId: string | undefined) => {
   const queryClient = useQueryClient();
 
-  const { data: confirmedMatches } = useQuery({
+  const { data: confirmedMatches = [] } = useQuery({
     queryKey: ['confirmed-matches', userId],
     queryFn: async () => {
       if (!userId) return [];
-      console.log('Fetching confirmed matches');
+      console.log('Fetching confirmed matches for user:', userId);
       
-      // Only get matches where user is profile1
-      const { data: matches, error } = await supabase
+      const { data, error } = await supabase
         .from('matches')
         .select(`
           id,
@@ -20,31 +19,32 @@ export const useMatchQueries = (userId: string | undefined) => {
           matched_at,
           profile1_id,
           profile2_id,
-          profile2:profiles!matches_profile2_id_fkey(*),
-          profile1:profiles!matches_profile1_id_fkey(*)
+          profile1:profiles!matches_profile1_id_fkey(*),
+          profile2:profiles!matches_profile2_id_fkey(*)
         `)
-        .eq('status', 'active')
-        .eq('profile1_id', userId);
+        .or(`profile1_id.eq.${userId},profile2_id.eq.${userId}`)
+        .eq('status', 'active');
 
       if (error) {
-        console.error('Error fetching matches:', error);
+        console.error('Error fetching confirmed matches:', error);
+        toast.error("Failed to load matches");
         return [];
       }
 
-      console.log('Confirmed matches data:', matches);
-      return matches || [];
+      console.log('Confirmed matches data:', data);
+      return data || [];
     },
     enabled: !!userId,
+    retry: 2,
   });
 
-  const { data: pendingMatches } = useQuery({
+  const { data: pendingMatches = [] } = useQuery({
     queryKey: ['pending-matches', userId],
     queryFn: async () => {
       if (!userId) return [];
-      console.log('Fetching pending matches');
+      console.log('Fetching pending matches for user:', userId);
       
-      // Get matches where user is profile2 and status is pending_first
-      const { data: pendingFirst, error: error1 } = await supabase
+      const { data, error } = await supabase
         .from('matches')
         .select(`
           id,
@@ -52,46 +52,23 @@ export const useMatchQueries = (userId: string | undefined) => {
           matched_at,
           profile1_id,
           profile2_id,
-          profile2:profiles!matches_profile2_id_fkey(*),
-          profile1:profiles!matches_profile1_id_fkey(*)
+          profile1:profiles!matches_profile1_id_fkey(*),
+          profile2:profiles!matches_profile2_id_fkey(*)
         `)
-        .eq('status', 'pending_first')
-        .eq('profile2_id', userId);
+        .or(`profile1_id.eq.${userId},profile2_id.eq.${userId}`)
+        .or('status.eq.pending_first,status.eq.pending_second');
 
-      if (error1) {
-        console.error('Error fetching pending_first matches:', error1);
+      if (error) {
+        console.error('Error fetching pending matches:', error);
+        toast.error("Failed to load pending matches");
         return [];
       }
 
-      // Get matches where user is profile1 and status is pending_second
-      const { data: pendingSecond, error: error2 } = await supabase
-        .from('matches')
-        .select(`
-          id,
-          status,
-          matched_at,
-          profile1_id,
-          profile2_id,
-          profile2:profiles!matches_profile2_id_fkey(*),
-          profile1:profiles!matches_profile1_id_fkey(*)
-        `)
-        .eq('status', 'pending_second')
-        .eq('profile1_id', userId);
-
-      if (error2) {
-        console.error('Error fetching pending_second matches:', error2);
-        return [];
-      }
-
-      const allPendingMatches = [
-        ...(pendingFirst || []),
-        ...(pendingSecond || [])
-      ];
-
-      console.log('Pending matches data:', allPendingMatches);
-      return allPendingMatches;
+      console.log('Pending matches data:', data);
+      return data || [];
     },
     enabled: !!userId,
+    retry: 2,
   });
 
   const handleMatchResponse = async (matchId: string, accept: boolean) => {
@@ -116,7 +93,7 @@ export const useMatchQueries = (userId: string | undefined) => {
 
         if (matchError) throw matchError;
 
-        // Determine the new status based on current status and user's role
+        // Determine the new status based on current status
         let newStatus = 'active';
         if (match.status === 'pending_first') {
           newStatus = 'pending_second';
@@ -138,7 +115,7 @@ export const useMatchQueries = (userId: string | undefined) => {
         );
       }
 
-      // Invalidate both queries to refresh the data
+      // Invalidate queries to refresh the data
       await Promise.all([
         queryClient.invalidateQueries({ 
           queryKey: ['confirmed-matches', userId]
