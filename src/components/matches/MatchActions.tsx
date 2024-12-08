@@ -11,8 +11,10 @@ const MatchActions = ({ matchId, onRateClick }: MatchActionsProps) => {
   const navigate = useNavigate();
 
   const handleChatClick = () => {
+    console.log('Navigating to chat with match:', matchId);
     navigate(`/chat/${matchId}`, { 
-      state: { from: location.pathname, showLatest: true }
+      state: { from: location.pathname, showLatest: true },
+      replace: true // This ensures we replace the current history entry
     });
   };
 
