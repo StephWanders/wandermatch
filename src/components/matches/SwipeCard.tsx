@@ -22,6 +22,22 @@ const SwipeCard = ({ profile, onSwipe, currentUserId }: SwipeCardProps) => {
     setIsTransitioning(true);
     
     try {
+      // First check if a swipe already exists
+      const { data: existingSwipe } = await supabase
+        .from('potential_matches')
+        .select('id')
+        .eq('user_id', currentUserId)
+        .eq('target_id', profile.id)
+        .single();
+
+      if (existingSwipe) {
+        console.log('Already swiped on this profile');
+        onSwipe(); // Move to next profile
+        setIsTransitioning(false);
+        return;
+      }
+
+      // If no existing swipe, proceed with the new swipe
       const { error } = await supabase
         .from('potential_matches')
         .insert({
