@@ -2,41 +2,72 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { calculateMatchScore } from "@/utils/matching";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 export const usePotentialMatches = (userId: string | undefined, userProfile: any) => {
-  const [potentialMatches, setPotentialMatches] = useState([]);
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
 
-  const fetchPotentialMatches = async (userId: string) => {
-    try {
-      // Get existing swipes
-      const { data: existingSwipes } = await supabase
-        .from('potential_matches')
-        .select('target_id')
-        .eq('user_id', userId);
+  // Use React Query for better caching and retry logic
+  const { data: potentialMatches = [], refetch } = useQuery({
+    queryKey: ['potential-matches', userId],
+    queryFn: async () => {
+      try {
+        if (!userId || !userProfile) {
+          console.log('Missing userId or userProfile, skipping fetch');
+          return [];
+        }
 
-      // Get existing matches
-      const { data: existingMatches } = await supabase
-        .from('matches')
-        .select('profile1_id, profile2_id')
-        .or(`profile1_id.eq.${userId},profile2_id.eq.${userId}`);
+        console.log('Fetching potential matches for user:', userId);
 
-      // Collect all IDs to exclude
-      const swipedIds = existingSwipes?.map(swipe => swipe.target_id) || [];
-      const matchedIds = existingMatches?.flatMap(match => [
-        match.profile1_id,
-        match.profile2_id
-      ]).filter(id => id !== userId) || [];
-      const excludeIds = [...new Set([...swipedIds, ...matchedIds, userId])];
+        // Get existing swipes
+        const { data: existingSwipes, error: swipesError } = await supabase
+          .from('potential_matches')
+          .select('target_id')
+          .eq('user_id', userId);
 
-      // Only query if we have IDs to exclude
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('*')
-        .not('id', 'in', `(${excludeIds.join(',')})`)
-        .limit(50); // Limit the number of profiles to process
+        if (swipesError) {
+          console.error('Error fetching existing swipes:', swipesError);
+          throw swipesError;
+        }
 
-      if (profiles && userProfile) {
+        // Get existing matches
+        const { data: existingMatches, error: matchesError } = await supabase
+          .from('matches')
+          .select('profile1_id, profile2_id')
+          .or(`profile1_id.eq.${userId},profile2_id.eq.${userId}`);
+
+        if (matchesError) {
+          console.error('Error fetching existing matches:', matchesError);
+          throw matchesError;
+        }
+
+        // Collect all IDs to exclude
+        const swipedIds = existingSwipes?.map(swipe => swipe.target_id) || [];
+        const matchedIds = existingMatches?.flatMap(match => [
+          match.profile1_id,
+          match.profile2_id
+        ]).filter(id => id !== userId) || [];
+        const excludeIds = [...new Set([...swipedIds, ...matchedIds, userId])];
+
+        console.log('Fetching profiles excluding IDs:', excludeIds);
+
+        // Only query if we have IDs to exclude
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('*')
+          .not('id', 'in', `(${excludeIds.join(',')})`)
+          .limit(50);
+
+        if (profilesError) {
+          console.error('Error fetching profiles:', profilesError);
+          throw profilesError;
+        }
+
+        if (!profiles) {
+          console.log('No potential matches found');
+          return [];
+        }
+
         // Sort profiles by match score
         const scoredProfiles = profiles
           .map(p => ({
@@ -46,33 +77,34 @@ export const usePotentialMatches = (userId: string | undefined, userProfile: any
           .sort((a, b) => b.matchScore - a.matchScore)
           .filter(p => p.matchScore > 0);
 
-        setPotentialMatches(scoredProfiles);
+        console.log(`Found ${scoredProfiles.length} potential matches`);
+        return scoredProfiles;
+      } catch (error) {
+        console.error('Error in potential matches query:', error);
+        toast.error("Failed to load potential matches. Please try again.");
+        throw error;
       }
-    } catch (error) {
-      console.error("Error fetching potential matches:", error);
-      toast.error("Failed to load potential matches");
-    }
-  };
+    },
+    enabled: !!userId && !!userProfile,
+    retry: 3,
+    retryDelay: 1000,
+    staleTime: 30000, // Consider data fresh for 30 seconds
+  });
 
-  const handleSwipe = () => {
+  const handleSwipe = async () => {
     setCurrentMatchIndex(prev => prev + 1);
     // Refresh potential matches if we're running low
-    if (currentMatchIndex >= potentialMatches.length - 3) {
-      fetchPotentialMatches(userId);
+    if (currentMatchIndex >= (potentialMatches?.length || 0) - 3) {
+      console.log('Running low on potential matches, refreshing...');
+      await refetch();
     }
   };
-
-  useEffect(() => {
-    if (userId) {
-      fetchPotentialMatches(userId);
-    }
-  }, [userId]);
 
   return {
     potentialMatches,
     currentMatchIndex,
     handleSwipe,
     currentProfile: potentialMatches[currentMatchIndex],
-    refreshMatches: () => fetchPotentialMatches(userId)
+    refreshMatches: refetch
   };
 };
