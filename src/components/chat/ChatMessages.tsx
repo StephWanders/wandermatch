@@ -2,6 +2,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { format, isToday } from "date-fns";
 
 interface Message {
   id: string;
@@ -76,6 +77,14 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
     markMessagesAsRead();
   }, [messages, currentUserId, queryClient]);
 
+  const formatMessageTime = (dateString: string) => {
+    const date = new Date(dateString);
+    if (isToday(date)) {
+      return format(date, 'HH:mm');
+    }
+    return format(date, 'MMM d, HH:mm');
+  };
+
   return (
     <div className="flex-1 overflow-hidden bg-[#e5ded8]" ref={scrollRef}>
       <ScrollArea className="h-full p-4">
@@ -96,10 +105,7 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
                 >
                   <p className="text-gray-800">{message.content}</p>
                   <span className="text-xs text-gray-500 block text-right mt-1">
-                    {new Date(message.created_at).toLocaleTimeString([], { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
+                    {formatMessageTime(message.created_at)}
                   </span>
                 </div>
               </div>
