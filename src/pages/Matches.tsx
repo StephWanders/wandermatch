@@ -1,57 +1,16 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate, useSearchParams } from "react-router-dom";
 import BottomNav from "@/components/navigation/BottomNav";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import MatchList from "@/components/matches/MatchList";
+import MatchesTab from "@/components/matches/tabs/MatchesTab";
+import PendingTab from "@/components/matches/tabs/PendingTab";
 import DiscoverTab from "@/components/matches/DiscoverTab";
 import { useMatchQueries } from "@/hooks/useMatchQueries";
-import { toast } from "sonner";
+import { useMatchState } from "@/hooks/useMatchState";
+import { useSearchParams } from "react-router-dom";
 
 const Matches = () => {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [session, setSession] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        fetchProfile(session.user.id);
-      }
-    });
-  }, []);
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      console.log('Fetching profile for user:', userId);
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId);
-
-      if (error) {
-        console.error("Error fetching profile:", error);
-        toast.error("Failed to load profile");
-        throw error;
-      }
-
-      // Handle the case where data is an array
-      const profileData = data?.[0] || null;
-      console.log('Profile data:', profileData);
-      setProfile(profileData);
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-      toast.error("Failed to load profile");
-    }
-  };
-
+  const { session, profile } = useMatchState();
   const { confirmedMatches, pendingMatches, handleMatchResponse } = useMatchQueries(session?.user?.id);
-
-  const handleChatClick = (matchId: string) => {
-    navigate(`/chat/${matchId}`);
-  };
 
   // Get the initial tab from URL or default to "matches"
   const initialTab = searchParams.get("tab") || "matches";
@@ -79,16 +38,12 @@ const Matches = () => {
           </TabsList>
 
           <TabsContent value="matches">
-            <MatchList
-              matches={confirmedMatches || []}
-              onChatClick={handleChatClick}
-            />
+            <MatchesTab confirmedMatches={confirmedMatches} />
           </TabsContent>
 
           <TabsContent value="pending">
-            <MatchList
-              matches={pendingMatches || []}
-              isPending
+            <PendingTab 
+              pendingMatches={pendingMatches}
               onAccept={(id) => handleMatchResponse(id, true)}
               onDecline={(id) => handleMatchResponse(id, false)}
             />
