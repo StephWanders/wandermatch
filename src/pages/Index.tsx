@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { createTestUsers } from "@/utils/createTestUsers";
 import BottomNav from "@/components/navigation/BottomNav";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import TopNav from "@/components/navigation/TopNav";
 
 const Index = () => {
   const { session, profile, loading } = useAuthState();
@@ -33,17 +34,18 @@ const Index = () => {
       {/* Background Image with Overlay */}
       <div className="fixed inset-0 z-0">
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ 
-            backgroundImage: "url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80')",
+            backgroundImage: "url('https://images.unsplash.com/photo-1469474968028-56623f02e42e')",
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-white/80" />
+          <div className="absolute inset-0 bg-gradient-to-br from-white/95 via-white/90 to-white/95 backdrop-blur-[2px]" />
         </div>
       </div>
       
       {/* Content */}
       <div className="relative z-10">
+        <TopNav session={session} profile={profile} />
         <Hero session={session} profile={profile} />
         
         {/* Temporary button for creating test users - remove in production */}
