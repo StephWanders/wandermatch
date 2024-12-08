@@ -45,8 +45,8 @@ const Chat = () => {
   useEffect(() => {
     if (!matchId && matches.length > 0) {
       const sortedMatches = [...matches].sort((a, b) => {
-        const timeA = new Date(a.matched_at || '').getTime();
-        const timeB = new Date(b.matched_at || '').getTime();
+        const timeA = new Date(a.matched_at || a.profiles.created_at || '').getTime();
+        const timeB = new Date(b.matched_at || b.profiles.created_at || '').getTime();
         return timeB - timeA;
       });
       navigate(`/chat/${sortedMatches[0].id}`);
@@ -98,7 +98,7 @@ const Chat = () => {
       <div className="relative z-10">
         <TopNav session={session} profile={profile} />
         <div className="h-[calc(100vh-128px)] flex mt-16">
-          <ChatSidebar matches={matches} currentMatchId={matchId} />
+          <ChatSidebar matches={matches as Match[]} currentMatchId={matchId} />
           <ChatContainer 
             matchId={matchId!}
             otherProfile={otherProfile}
