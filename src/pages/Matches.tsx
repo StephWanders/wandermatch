@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MatchList from "@/components/matches/MatchList";
 import DiscoverTab from "@/components/matches/DiscoverTab";
 import { useMatchQueries } from "@/hooks/useMatchQueries";
+import { toast } from "sonner";
 
 const Matches = () => {
   const navigate = useNavigate();
