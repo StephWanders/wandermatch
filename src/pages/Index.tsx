@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuthState } from "@/hooks/useAuthState";
 import { toast } from "sonner";
 import Hero from "@/components/home/Hero";
 import Features from "@/components/home/Features";
@@ -7,60 +6,10 @@ import CallToAction from "@/components/home/CallToAction";
 import { Button } from "@/components/ui/button";
 import { createTestUsers } from "@/utils/createTestUsers";
 import BottomNav from "@/components/navigation/BottomNav";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 
 const Index = () => {
-  const [session, setSession] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        fetchProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session) {
-        fetchProfile(session.user.id);
-      } else {
-        setProfile(null);
-        setLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      console.log('Fetching profile for user:', userId);
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId);
-
-      if (error) {
-        throw error;
-      }
-
-      // Handle the case where data is an array or might be empty
-      const profileData = data?.[0] || null;
-      console.log('Profile data:', profileData);
-      setProfile(profileData);
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-      toast.error("Failed to load profile");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { session, profile, loading } = useAuthState();
 
   const handleCreateTestUsers = async () => {
     try {
@@ -73,11 +22,7 @@ const Index = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
