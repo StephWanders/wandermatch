@@ -61,43 +61,22 @@ const BottomNav = ({ session, profile }: BottomNavProps) => {
       // First get all active matches
       const { data: matches } = await supabase
         .from('matches')
-        .select('id, profile1_id, profile2_id')
+        .select('id, profile1_id, profile2_id, matched_at')
         .or(`profile1_id.eq.${session.user.id},profile2_id.eq.${session.user.id}`)
-        .eq('status', 'active');
+        .eq('status', 'active')
+        .order('matched_at', { ascending: false });
 
       if (!matches?.length) return null;
 
-      // Get the most recent message from any of these matches
-      const matchIds = matches.map(m => m.id);
-      const { data: messages } = await supabase
-        .from('messages')
-        .select('created_at, sender_id, receiver_id')
-        .or(
-          matches.map(m => 
-            `and(sender_id.in.(${m.profile1_id},${m.profile2_id}),receiver_id.in.(${m.profile1_id},${m.profile2_id}))`
-          ).join(',')
-        )
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (!messages?.length) {
-        // If no messages, return the most recent match
-        return matches[0].id;
-      }
-
-      // Find the match that corresponds to this message
-      const message = messages[0];
-      return matches.find(m => 
-        (m.profile1_id === message.sender_id && m.profile2_id === message.receiver_id) ||
-        (m.profile1_id === message.receiver_id && m.profile2_id === message.sender_id)
-      )?.id;
+      // Return the most recent match ID
+      return matches[0].id;
     },
     enabled: !!session?.user?.id
   });
 
   const handleChatClick = () => {
     if (recentChat) {
-      navigate(`/chat/${recentChat}`);
+      navigate(`/chat/${recentChat}`, { replace: true });
     } else {
       navigate('/matches');
     }
