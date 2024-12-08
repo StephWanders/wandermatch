@@ -22,6 +22,22 @@ const getRandomAge = (min: number, max: number) => {
 
 const createUserWithProfile = async (email: string, profile: any) => {
   try {
+    // Check if user already exists - using email instead of full_name
+    const { data: existingProfiles, error: queryError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', profile.id);
+
+    if (queryError) {
+      console.error('Error checking for existing profile:', queryError);
+      throw queryError;
+    }
+
+    if (existingProfiles && existingProfiles.length > 0) {
+      console.log(`User ${email} already exists, skipping...`);
+      return existingProfiles[0].id;
+    }
+
     // Create auth user
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
@@ -110,18 +126,6 @@ export const createTestUsers = async () => {
   
   for (const user of testUsers) {
     try {
-      // Check if user already exists
-      const { data: existingUser } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('full_name', user.profile.full_name)
-        .single();
-
-      if (existingUser) {
-        console.log(`User ${user.email} already exists, skipping...`);
-        continue;
-      }
-
       await createUserWithProfile(user.email, user.profile);
     } catch (error) {
       console.error(`Failed to create test user ${user.email}:`, error);
