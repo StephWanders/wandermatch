@@ -6,7 +6,7 @@ import SeasonalSection from "../SeasonalSection";
 import InspirationSection from "../InspirationSection";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 interface WelcomeSectionProps {
   session: any;
