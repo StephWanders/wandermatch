@@ -1,60 +1,42 @@
-import { Link as LinkIcon } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { getEventIcon } from "@/utils/eventUtils";
 
 interface EventCardProps {
   event: {
     title: string;
     type: string;
+    time: string;
+    location: string;
+    price: string;
     description: string;
     tags: string[];
-    time: string;
-    price: string;
-    location: string;
-    url?: string;
+    icon?: React.ReactNode;
   };
 }
 
 const EventCard = ({ event }: EventCardProps) => {
+  const icon = event.icon || getEventIcon(event.type);
+
   return (
-    <Card className="hover:shadow-lg transition-shadow">
-      <CardHeader>
-        <div className="flex items-center gap-2 mb-2">
-          {getEventIcon(event.type)}
-          <span className="text-sm font-medium text-gray-600">{event.type}</span>
-        </div>
-        <CardTitle className="text-lg">{event.title}</CardTitle>
+    <Card className="h-full hover:shadow-lg transition-shadow duration-200">
+      <CardHeader className="flex flex-row items-center gap-2 pb-2">
+        {icon}
+        <h3 className="text-lg font-semibold line-clamp-1">{event.title}</h3>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
-          <p className="text-sm text-gray-600">{event.description}</p>
-          <div className="flex flex-wrap gap-2">
-            {event.tags.map((tag, tagIndex) => (
-              <span
-                key={tagIndex}
-                className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full"
-              >
+        <div className="space-y-2">
+          <p className="text-sm text-gray-600">{event.time}</p>
+          <p className="text-sm text-gray-600">{event.location}</p>
+          <p className="text-sm font-semibold text-blue-600">{event.price}</p>
+          <p className="text-sm text-gray-700 line-clamp-2">{event.description}</p>
+          <div className="flex flex-wrap gap-1 pt-2">
+            {event.tags.map((tag, index) => (
+              <Badge key={index} variant="secondary" className="text-xs">
                 {tag}
-              </span>
+              </Badge>
             ))}
           </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-medium">{event.time}</span>
-            <span className="text-primary">{event.price}</span>
-          </div>
-          <p className="text-sm text-gray-500">{event.location}</p>
-          {event.url && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full mt-2"
-              onClick={() => window.open(event.url, '_blank')}
-            >
-              <LinkIcon className="h-4 w-4 mr-2" />
-              Get Tickets
-            </Button>
-          )}
         </div>
       </CardContent>
     </Card>
