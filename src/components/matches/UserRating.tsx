@@ -46,12 +46,12 @@ const UserRating = ({ userId }: UserRatingProps) => {
         </TooltipTrigger>
         <TooltipContent>
           <div className="space-y-1">
-            {ratings.map((rating) => (
-              <div key={rating.category} className="flex justify-between gap-4 text-sm">
-                <span className="capitalize">{rating.category.replace(/_/g, ' ')}</span>
-                <span className="font-medium">{rating.average_rating} ({rating.total_ratings})</span>
-              </div>
-            ))}
+            <div className="flex justify-between gap-4 text-sm">
+              <span>Overall Safety Rating</span>
+              <span className="font-medium">
+                {overallRating.average_rating} ({overallRating.total_ratings})
+              </span>
+            </div>
           </div>
         </TooltipContent>
       </Tooltip>
