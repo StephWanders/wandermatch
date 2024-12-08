@@ -39,7 +39,6 @@ const AuthSection = () => {
           }}
           providers={[]}
           redirectTo={window.location.origin}
-          onError={handleError}
           localization={{
             variables: {
               sign_in: {
