@@ -29,27 +29,38 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
   // Mark messages as read when they are displayed
   useEffect(() => {
     const markMessagesAsRead = async () => {
+      if (!currentUserId || !messages?.length) return;
+
       const unreadMessages = messages.filter(
         msg => msg.sender_id !== currentUserId && !msg.read_at
       );
 
       if (unreadMessages.length > 0) {
-        console.log('Marking messages as read:', unreadMessages.map(m => m.id));
+        console.log('Found unread messages:', unreadMessages.length);
         
-        const { error } = await supabase
-          .from('messages')
-          .update({ read_at: new Date().toISOString() })
-          .in('id', unreadMessages.map(m => m.id));
+        try {
+          const { error } = await supabase
+            .from('messages')
+            .update({ read_at: new Date().toISOString() })
+            .in('id', unreadMessages.map(m => m.id));
 
-        if (error) {
-          console.error('Error marking messages as read:', error);
-          return;
+          if (error) {
+            console.error('Error marking messages as read:', error);
+            return;
+          }
+
+          console.log('Successfully marked messages as read');
+          
+          // Invalidate all relevant queries to refresh counts and messages
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['unread-messages'] }),
+            queryClient.invalidateQueries({ queryKey: ['welcomeData'] }),
+            queryClient.invalidateQueries({ queryKey: ['chat-messages'] }),
+            queryClient.invalidateQueries({ queryKey: ['latest-messages'] })
+          ]);
+        } catch (error) {
+          console.error('Failed to mark messages as read:', error);
         }
-
-        // Invalidate queries to refresh unread count
-        queryClient.invalidateQueries({ queryKey: ['unread-messages'] });
-        queryClient.invalidateQueries({ queryKey: ['welcomeData'] });
-        queryClient.invalidateQueries({ queryKey: ['chat-messages'] });
       }
     };
 
