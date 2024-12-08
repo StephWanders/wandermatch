@@ -10,22 +10,29 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useQuery } from "@tanstack/react-query";
 
 interface NavButtonProps {
   icon: React.ElementType;
   label: string;
-  to: string;
+  to?: string;
+  onClick?: () => void;
   active?: boolean;
 }
 
-const NavButton = ({ icon: Icon, label, to, active }: NavButtonProps) => (
-  <Link to={to} className="flex flex-col items-center space-y-1">
-    <div className={`flex flex-col items-center space-y-1 ${active ? "text-blue-600" : "text-gray-600"}`}>
-      <Icon className="w-6 h-6" />
-      <span className="text-xs font-medium">{label}</span>
-    </div>
-  </Link>
-);
+const NavButton = ({ icon: Icon, label, to, onClick, active }: NavButtonProps) => {
+  const Component = to ? Link : "button";
+  const props = to ? { to } : { onClick };
+
+  return (
+    <Component {...props} className="flex flex-col items-center space-y-1">
+      <div className={`flex flex-col items-center space-y-1 ${active ? "text-blue-600" : "text-gray-600"}`}>
+        <Icon className="w-6 h-6" />
+        <span className="text-xs font-medium">{label}</span>
+      </div>
+    </Component>
+  );
+};
 
 interface BottomNavProps {
   session: any;
@@ -36,9 +43,34 @@ const BottomNav = ({ session, profile }: BottomNavProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const currentPath = location.pathname;
-  const { latestChat } = useWelcomeData(session?.user?.id);
+  
+  // Query to get the most recent chat
+  const { data: recentChat } = useQuery({
+    queryKey: ['recent-chat', session?.user?.id],
+    queryFn: async () => {
+      if (!session?.user?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('messages')
+        .select('id, created_at, sender_id, receiver_id, matches!inner(*)')
+        .or(`sender_id.eq.${session.user.id},receiver_id.eq.${session.user.id}`)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (error || !data) return null;
+      return data;
+    },
+    enabled: !!session?.user?.id
+  });
 
-  const chatPath = latestChat ? `/chat/${latestChat}` : '/matches';
+  const handleChatClick = () => {
+    if (recentChat?.matches?.id) {
+      navigate(`/chat/${recentChat.matches.id}`);
+    } else {
+      navigate('/matches');
+    }
+  };
 
   const handleSignOut = async () => {
     try {
@@ -72,7 +104,7 @@ const BottomNav = ({ session, profile }: BottomNavProps) => {
         <NavButton 
           icon={MessageCircle} 
           label="Chat" 
-          to={chatPath}
+          onClick={handleChatClick}
           active={currentPath.startsWith('/chat')} 
         />
       )}
