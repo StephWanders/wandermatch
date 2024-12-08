@@ -22,22 +22,8 @@ const getRandomAge = (min: number, max: number) => {
 
 const createUserWithProfile = async (email: string, profile: any) => {
   try {
-    // Check if user already exists - using email instead of full_name
-    const { data: existingProfiles, error: queryError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('id', profile.id);
-
-    if (queryError) {
-      console.error('Error checking for existing profile:', queryError);
-      throw queryError;
-    }
-
-    if (existingProfiles && existingProfiles.length > 0) {
-      console.log(`User ${email} already exists, skipping...`);
-      return existingProfiles[0].id;
-    }
-
+    console.log(`Creating user with email: ${email}`);
+    
     // Create auth user
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
@@ -49,8 +35,15 @@ const createUserWithProfile = async (email: string, profile: any) => {
       }
     });
 
-    if (authError) throw authError;
-    if (!authData.user) throw new Error('No user data returned');
+    if (authError) {
+      console.error('Auth error:', authError);
+      throw authError;
+    }
+    
+    if (!authData.user) {
+      console.error('No user data returned');
+      throw new Error('No user data returned');
+    }
 
     console.log(`Created auth user ${email} with ID ${authData.user.id}`);
 
@@ -63,7 +56,10 @@ const createUserWithProfile = async (email: string, profile: any) => {
       .update(profile)
       .eq('id', authData.user.id);
 
-    if (profileError) throw profileError;
+    if (profileError) {
+      console.error('Profile update error:', profileError);
+      throw profileError;
+    }
 
     console.log(`Updated profile for ${email}`);
     return authData.user.id;
