@@ -10,7 +10,8 @@ const TopNav = () => {
     if (session) {
       navigate('/matches');
     } else {
-      navigate('/?view=sign_in');
+      // Show sign in form
+      navigate('/', { state: { view: 'sign_in' } });
     }
   };
 
@@ -18,7 +19,8 @@ const TopNav = () => {
     if (session) {
       navigate('/matches');
     } else {
-      navigate('/?view=sign_up');
+      // Show sign up form
+      navigate('/', { state: { view: 'sign_up' } });
     }
   };
 
