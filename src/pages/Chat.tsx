@@ -40,6 +40,16 @@ const Chat = () => {
     updateOtherProfile();
   }, [matchId, matches, session?.user?.id]);
 
+  // If no matchId is provided, navigate to the most recent chat
+  useEffect(() => {
+    if (!matchId && matches.length > 0) {
+      const sortedMatches = [...matches].sort((a, b) => {
+        return new Date(b.matched_at).getTime() - new Date(a.matched_at).getTime();
+      });
+      navigate(`/chat/${sortedMatches[0].id}`);
+    }
+  }, [matchId, matches, navigate]);
+
   useChatSubscription(matchId, session?.user?.id, otherProfile?.id, queryClient);
 
   if (loading) {
@@ -71,7 +81,6 @@ const Chat = () => {
 
   return (
     <div className="min-h-screen relative">
-      {/* Background Image with Overlay */}
       <div className="fixed inset-0 z-0">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -83,7 +92,6 @@ const Chat = () => {
         </div>
       </div>
 
-      {/* Content */}
       <div className="relative z-10">
         <TopNav session={session} profile={profile} />
         <div className="h-[calc(100vh-128px)] flex mt-16">

@@ -32,7 +32,6 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     queryKey: ['unread-counts', currentUserId],
     queryFn: async () => {
       if (!currentUserId) return {};
-      console.log('Fetching unread counts for user:', currentUserId);
       
       const { data: messages, error } = await supabase
         .from('messages')
@@ -51,7 +50,6 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
         return acc;
       }, {}) || {};
 
-      console.log('Unread counts:', counts);
       return counts;
     },
     enabled: !!currentUserId,
@@ -88,26 +86,28 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     return acc;
   }, []);
 
+  // Sort matches by latest message time first, then by unread count
   const sortedMatches = [...uniqueMatches].sort((a, b) => {
+    const timeA = latestMessages?.[a.id]?.time || a.matched_at;
+    const timeB = latestMessages?.[b.id]?.time || b.matched_at;
+    
+    // Compare message times
+    const timeComparison = new Date(timeB).getTime() - new Date(timeA).getTime();
+    if (timeComparison !== 0) return timeComparison;
+    
+    // If times are equal, sort by unread count
     const unreadA = unreadCounts[a.profiles.id] || 0;
     const unreadB = unreadCounts[b.profiles.id] || 0;
-    
-    if (unreadA !== unreadB) {
-      return unreadB - unreadA;
-    }
-    
-    const timeA = latestMessages?.[a.id]?.time;
-    const timeB = latestMessages?.[b.id]?.time;
-    
-    if (timeA && timeB) {
-      return new Date(timeB).getTime() - new Date(timeA).getTime();
-    }
-    
-    if (timeA) return -1;
-    if (timeB) return 1;
-    
-    return new Date(b.matched_at).getTime() - new Date(a.matched_at).getTime();
+    return unreadB - unreadA;
   });
+
+  // Navigate to most recent chat if no specific chat is selected
+  useEffect(() => {
+    if (location.pathname === '/chat' && sortedMatches.length > 0) {
+      const mostRecentMatch = sortedMatches[0];
+      navigate(`/chat/${mostRecentMatch.id}`);
+    }
+  }, [location.pathname, sortedMatches, navigate]);
 
   return (
     <div className="w-80 bg-white/40 backdrop-blur-md border-r border-primary-100">
