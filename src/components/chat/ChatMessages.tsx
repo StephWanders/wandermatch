@@ -2,7 +2,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { format, isToday } from "date-fns";
+import { format, isToday, isYesterday } from "date-fns";
 
 interface Message {
   id: string;
@@ -79,10 +79,16 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
 
   const formatMessageTime = (dateString: string) => {
     const date = new Date(dateString);
+    
     if (isToday(date)) {
       return format(date, 'HH:mm');
     }
-    return format(date, 'MMM d, HH:mm');
+    
+    if (isYesterday(date)) {
+      return `Yesterday, ${format(date, 'HH:mm')}`;
+    }
+    
+    return format(date, 'MMM d, yyyy HH:mm');
   };
 
   return (
