@@ -59,6 +59,8 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
 
   const handleUnmatch = async (matchId: string) => {
     try {
+      console.log('Unmatching match:', matchId);
+      
       const { error } = await supabase
         .from('matches')
         .update({ status: 'unmatched' })
@@ -70,19 +72,37 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
       navigate('/matches');
       
       // Invalidate queries to refresh the data
-      queryClient.invalidateQueries({ queryKey: ['chat-matches'] });
-      queryClient.invalidateQueries({ queryKey: ['confirmed-matches'] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['chat-matches'] }),
+        queryClient.invalidateQueries({ queryKey: ['confirmed-matches'] })
+      ]);
+      
+      console.log('Queries invalidated after unmatch');
     } catch (error) {
       console.error("Error unmatching:", error);
       toast.error("Failed to unmatch");
     }
   };
 
+  console.log('All matches before filtering:', matches);
+
   // Filter matches to only show active ones where the current user is involved
-  const activeMatches = matches.filter(match => 
-    match.status === 'active' && 
-    (match.profile1_id === currentUserId || match.profile2_id === currentUserId)
-  );
+  const activeMatches = matches.filter(match => {
+    const isActive = match.status === 'active';
+    const isUserInvolved = match.profile1_id === currentUserId || match.profile2_id === currentUserId;
+    
+    console.log('Match filtering details:', {
+      matchId: match.id,
+      status: match.status,
+      profile1_id: match.profile1_id,
+      profile2_id: match.profile2_id,
+      currentUserId,
+      isActive,
+      isUserInvolved
+    });
+
+    return isActive && isUserInvolved;
+  });
 
   console.log('Filtered active matches:', activeMatches);
 
