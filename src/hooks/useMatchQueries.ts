@@ -19,7 +19,7 @@ export const useMatchQueries = (userId: string | undefined) => {
           matched_at,
           profile1_id,
           profile2_id,
-          profiles:profiles!matches_profile1_id_fkey(
+          profiles:profiles!matches_profile2_id_fkey(
             id,
             full_name,
             age,
@@ -55,7 +55,32 @@ export const useMatchQueries = (userId: string | undefined) => {
       if (!userId) return [];
       console.log('Fetching pending matches for user:', userId);
       
-      const { data, error } = await supabase
+      // First, get matches where user is profile1
+      const { data: profile1Matches, error: error1 } = await supabase
+        .from('matches')
+        .select(`
+          id,
+          status,
+          matched_at,
+          profile1_id,
+          profile2_id,
+          profiles:profiles!matches_profile2_id_fkey(
+            id,
+            full_name,
+            age,
+            location,
+            profile_image_url,
+            travel_style,
+            bio,
+            interests,
+            preferred_destinations
+          )
+        `)
+        .eq('profile1_id', userId)
+        .or('status.eq.pending_first,status.eq.pending_second');
+
+      // Then, get matches where user is profile2
+      const { data: profile2Matches, error: error2 } = await supabase
         .from('matches')
         .select(`
           id,
@@ -75,19 +100,29 @@ export const useMatchQueries = (userId: string | undefined) => {
             preferred_destinations
           )
         `)
-        .eq('profile1_id', userId)
+        .eq('profile2_id', userId)
         .or('status.eq.pending_first,status.eq.pending_second');
 
-      if (error) {
-        console.error('Error fetching pending matches:', error);
+      if (error1 || error2) {
+        console.error('Error fetching pending matches:', error1 || error2);
         toast.error("Failed to load pending matches");
         return [];
       }
 
-      return data.map(match => ({
-        ...match,
-        profiles: match.profiles
-      }));
+      // Combine and format both sets of matches
+      const allPendingMatches = [
+        ...(profile1Matches || []).map(match => ({
+          ...match,
+          profiles: match.profiles
+        })),
+        ...(profile2Matches || []).map(match => ({
+          ...match,
+          profiles: match.profiles
+        }))
+      ];
+
+      console.log('All pending matches:', allPendingMatches);
+      return allPendingMatches;
     },
     enabled: !!userId,
     retry: 2,
