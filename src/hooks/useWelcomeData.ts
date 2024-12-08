@@ -3,15 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Match, Message } from "@/types/match";
 
 export const useWelcomeData = (userId: string | undefined) => {
-  const { data: recentMatches = [] } = useQuery<Match[]>({
-    queryKey: ['recent-matches', userId],
+  const { data: pendingMatches = [] } = useQuery<Match[]>({
+    queryKey: ['pending-matches', userId],
     queryFn: async () => {
       if (!userId) return [];
       const { data } = await supabase
         .from('matches')
         .select('*, profiles!matches_profile2_id_fkey(*)')
-        .eq('profile1_id', userId)
-        .eq('status', 'accepted')
+        .or(`profile1_id.eq.${userId},profile2_id.eq.${userId}`)
+        .or('status.eq.pending_first,status.eq.pending_second')
         .order('matched_at', { ascending: false })
         .limit(5);
       return (data as Match[]) || [];
@@ -47,7 +47,7 @@ export const useWelcomeData = (userId: string | undefined) => {
   const firstUnreadChat = unreadMessages[0]?.sender?.id;
 
   return {
-    recentMatches,
+    pendingMatches,
     unreadMessages,
     firstUnreadChat,
   };
