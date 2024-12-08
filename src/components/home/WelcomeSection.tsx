@@ -37,27 +37,27 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
 
   return (
     <div className="relative max-w-6xl mx-auto px-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold">Your Dashboard</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold font-display text-accent-800">Your Dashboard</h2>
         <Button 
           variant="ghost" 
           size="sm" 
           onClick={handleRefresh}
-          className="text-gray-600 hover:text-gray-900"
+          className="text-accent-600 hover:text-accent-900 hover:bg-primary-50"
         >
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-in">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
         <StatsCard
           icon={Heart}
           title="Pending Matches"
           stat={`${pendingMatches?.length || 0} pending matches`}
           to="/matches?tab=pending"
-          bgColor="bg-purple-100"
-          iconColor="text-purple-600"
+          bgColor="bg-primary-50"
+          iconColor="text-primary-600"
         />
 
         <StatsCard
@@ -65,8 +65,8 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
           title="Discover"
           stat="Find new travel buddies"
           to="/matches?tab=discover"
-          bgColor="bg-green-100"
-          iconColor="text-green-600"
+          bgColor="bg-secondary-50"
+          iconColor="text-secondary-600"
         />
 
         <StatsCard
@@ -74,8 +74,8 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
           title="Messages"
           stat={`${unreadMessages?.length || 0} unread messages`}
           to={firstUnreadChat ? `/chat/${firstUnreadChat}` : '/matches'}
-          bgColor="bg-blue-100"
-          iconColor="text-blue-600"
+          bgColor="bg-accent-50"
+          iconColor="text-accent-600"
           onClick={handleChatClick}
         />
       </div>

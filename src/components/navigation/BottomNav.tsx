@@ -23,20 +23,30 @@ interface NavButtonProps {
 const NavButton = ({ icon: Icon, label, to, onClick, active }: NavButtonProps) => {
   if (to) {
     return (
-      <Link to={to} className="flex flex-col items-center space-y-1">
-        <div className={`flex flex-col items-center space-y-1 ${active ? "text-blue-600" : "text-gray-600"}`}>
+      <Link 
+        to={to} 
+        className="flex flex-col items-center space-y-1 transition-colors duration-200"
+      >
+        <div className={`flex flex-col items-center space-y-1 ${
+          active ? "text-primary-600" : "text-accent-500 hover:text-accent-700"
+        }`}>
           <Icon className="w-6 h-6" />
-          <span className="text-xs font-medium">{label}</span>
+          <span className="text-xs font-medium font-display">{label}</span>
         </div>
       </Link>
     );
   }
 
   return (
-    <button onClick={onClick} className="flex flex-col items-center space-y-1">
-      <div className={`flex flex-col items-center space-y-1 ${active ? "text-blue-600" : "text-gray-600"}`}>
+    <button 
+      onClick={onClick} 
+      className="flex flex-col items-center space-y-1 transition-colors duration-200"
+    >
+      <div className={`flex flex-col items-center space-y-1 ${
+        active ? "text-primary-600" : "text-accent-500 hover:text-accent-700"
+      }`}>
         <Icon className="w-6 h-6" />
-        <span className="text-xs font-medium">{label}</span>
+        <span className="text-xs font-medium font-display">{label}</span>
       </div>
     </button>
   );
@@ -125,7 +135,7 @@ const BottomNav = ({ session, profile }: BottomNavProps) => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-gray-200 px-4 py-3 flex justify-around items-center z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-primary-100 px-4 py-3 flex justify-around items-center z-50 shadow-lg">
       <NavButton 
         icon={Home} 
         label="Home" 
@@ -155,16 +165,19 @@ const BottomNav = ({ session, profile }: BottomNavProps) => {
               imageUrl={profile?.profile_image_url} 
               name={profile?.full_name} 
             />
-            <span className="text-xs font-medium">Profile</span>
+            <span className="text-xs font-medium font-display text-accent-500">Profile</span>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent 
+            align="end"
+            className="w-48 bg-white/95 backdrop-blur-sm border border-primary-100"
+          >
             <DropdownMenuItem asChild>
-              <Link to="/create-profile" className="cursor-pointer">
+              <Link to="/create-profile" className="cursor-pointer hover:bg-primary-50">
                 Edit Profile
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem 
-              className="text-red-600 cursor-pointer"
+              className="text-red-600 cursor-pointer hover:bg-red-50"
               onClick={handleSignOut}
             >
               <LogOut className="w-4 h-4 mr-2" />
