@@ -28,7 +28,7 @@ const SwipeCard = ({ profile, onSwipe, currentUserId }: SwipeCardProps) => {
         .select('id')
         .eq('user_id', currentUserId)
         .eq('target_id', profile.id)
-        .single();
+        .maybeSingle();
 
       if (existingSwipe) {
         console.log('Already swiped on this profile');
