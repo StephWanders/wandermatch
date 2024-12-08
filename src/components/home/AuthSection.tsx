@@ -5,13 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const AuthSection = () => {
-  const handleAuthError = (error: Error) => {
-    if (error.message.includes("Invalid login credentials")) {
-      toast.error("Invalid email or password. Please try again or sign up if you're new!");
-    } else {
-      toast.error("An error occurred. Please try again.");
-    }
-    console.error("Auth error:", error);
+  const handleError = () => {
+    toast.error("Invalid email or password. Please try again or sign up if you're new!");
+    console.error("Auth error occurred");
   };
 
   return (
@@ -36,7 +32,6 @@ const AuthSection = () => {
           }}
           providers={[]}
           redirectTo={window.location.origin}
-          onError={handleAuthError}
           onlyThirdPartyProviders={false}
           localization={{
             variables: {
