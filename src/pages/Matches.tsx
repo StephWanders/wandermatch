@@ -37,29 +37,38 @@ const Matches = () => {
     }
   };
 
+  // Query for confirmed matches
   const { data: confirmedMatches } = useQuery({
     queryKey: ['confirmed-matches', session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return [];
-      const { data: matchesData } = await supabase
+      console.log('Fetching confirmed matches');
+      const { data, error } = await supabase
         .from('matches')
         .select(`
           *,
           profiles!matches_profile2_id_fkey(*)
         `)
-        .or(`profile1_id.eq.${session.user.id},profile2_id.eq.${session.user.id}`)
-        .eq('status', 'accepted');
+        .eq('status', 'accepted')
+        .or(`profile1_id.eq.${session.user.id},profile2_id.eq.${session.user.id}`);
       
-      return matchesData || [];
+      if (error) {
+        console.error('Error fetching confirmed matches:', error);
+        return [];
+      }
+      
+      return data || [];
     },
     enabled: !!session?.user?.id,
   });
 
+  // Query for pending matches
   const { data: pendingMatches } = useQuery({
     queryKey: ['pending-matches', session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return [];
-      const { data } = await supabase
+      console.log('Fetching pending matches');
+      const { data, error } = await supabase
         .from('matches')
         .select(`
           *,
@@ -67,6 +76,13 @@ const Matches = () => {
         `)
         .eq('profile2_id', session.user.id)
         .eq('status', 'pending');
+
+      if (error) {
+        console.error('Error fetching pending matches:', error);
+        return [];
+      }
+      
+      console.log('Pending matches:', data);
       return data || [];
     },
     enabled: !!session?.user?.id,
@@ -74,10 +90,12 @@ const Matches = () => {
 
   const handleMatchResponse = async (matchId: string, accept: boolean) => {
     try {
+      console.log('Updating match:', matchId, 'with status:', accept ? 'accepted' : 'rejected');
+      
       const { error } = await supabase
         .from('matches')
         .update({ 
-          status: accept ? 'accepted' : 'rejected',
+          status: accept ? 'accepted' : 'rejected' 
         })
         .eq('id', matchId);
 
