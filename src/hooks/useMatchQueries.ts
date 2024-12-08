@@ -53,7 +53,7 @@ export const useMatchQueries = (userId: string | undefined) => {
           matched_at,
           profile1_id,
           profile2_id,
-          profiles!matches_profile2_id_fkey(*)
+          profiles!matches_profile1_id_fkey(*)
         `)
         .eq('status', 'pending')
         .eq('profile2_id', userId);
@@ -65,7 +65,10 @@ export const useMatchQueries = (userId: string | undefined) => {
 
       console.log('Pending matches data:', data);
       
-      return data || [];
+      return data?.map(match => ({
+        ...match,
+        profiles: match.profiles
+      })) || [];
     },
     enabled: !!userId,
   });
