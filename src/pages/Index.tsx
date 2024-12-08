@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Hero from "@/components/home/Hero";
-import WelcomeSection from "@/components/home/WelcomeSection";
 import Features from "@/components/home/Features";
 import CallToAction from "@/components/home/CallToAction";
 import { Button } from "@/components/ui/button";
 import { createTestUsers } from "@/utils/createTestUsers";
+import BottomNav from "@/components/navigation/BottomNav";
 
 const Index = () => {
   const [session, setSession] = useState<any>(null);
@@ -14,7 +14,6 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
@@ -24,7 +23,6 @@ const Index = () => {
       }
     });
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -80,16 +78,13 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50 pb-20">
       <Hero session={session} profile={profile} />
       {!session && (
         <>
           <Features />
           <CallToAction />
         </>
-      )}
-      {session && profile && (
-        <WelcomeSection session={session} profile={profile} />
       )}
       
       {/* Temporary button for creating test users - remove in production */}
@@ -102,6 +97,8 @@ const Index = () => {
           Create Test Users
         </Button>
       </div>
+
+      {session && <BottomNav session={session} profile={profile} />}
     </div>
   );
 };
