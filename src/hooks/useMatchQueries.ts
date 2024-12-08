@@ -72,7 +72,8 @@ export const useMatchQueries = (userId: string | undefined) => {
       if (!userId) return [];
       console.log('Fetching pending matches');
       
-      const { data, error } = await supabase
+      // Get matches where user is profile2 and status is pending_first
+      const { data: pendingFirst, error: error1 } = await supabase
         .from('matches')
         .select(`
           id,
@@ -82,20 +83,46 @@ export const useMatchQueries = (userId: string | undefined) => {
           profile2_id,
           profiles!matches_profile1_id_fkey(*)
         `)
-        .eq('status', 'pending')
+        .eq('status', 'pending_first')
         .eq('profile2_id', userId);
 
-      if (error) {
-        console.error('Error fetching pending matches:', error);
+      if (error1) {
+        console.error('Error fetching pending_first matches:', error1);
         return [];
       }
 
-      console.log('Pending matches data:', data);
-      
-      return data?.map(match => ({
-        ...match,
-        profiles: match.profiles
-      })) || [];
+      // Get matches where user is profile1 and status is pending_second
+      const { data: pendingSecond, error: error2 } = await supabase
+        .from('matches')
+        .select(`
+          id,
+          status,
+          matched_at,
+          profile1_id,
+          profile2_id,
+          profiles!matches_profile2_id_fkey(*)
+        `)
+        .eq('status', 'pending_second')
+        .eq('profile1_id', userId);
+
+      if (error2) {
+        console.error('Error fetching pending_second matches:', error2);
+        return [];
+      }
+
+      const allPendingMatches = [
+        ...(pendingFirst?.map(match => ({
+          ...match,
+          profiles: match.profiles
+        })) || []),
+        ...(pendingSecond?.map(match => ({
+          ...match,
+          profiles: match.profiles
+        })) || [])
+      ];
+
+      console.log('Pending matches data:', allPendingMatches);
+      return allPendingMatches;
     },
     enabled: !!userId,
   });
@@ -104,18 +131,44 @@ export const useMatchQueries = (userId: string | undefined) => {
     try {
       console.log(`Handling match response - Match ID: ${matchId}, Accept: ${accept}`);
       
-      const { error: updateError } = await supabase
-        .from('matches')
-        .update({ 
-          status: accept ? 'active' : 'rejected',
-          matched_at: accept ? new Date().toISOString() : null
-        })
-        .eq('id', matchId);
+      if (!accept) {
+        const { error: updateError } = await supabase
+          .from('matches')
+          .update({ status: 'rejected' })
+          .eq('id', matchId);
 
-      if (updateError) {
-        console.error('Error updating match:', updateError);
-        toast.error("Failed to update match status");
-        return;
+        if (updateError) throw updateError;
+        toast.success("Match declined");
+      } else {
+        // Get the current match details
+        const { data: match, error: matchError } = await supabase
+          .from('matches')
+          .select('*')
+          .eq('id', matchId)
+          .single();
+
+        if (matchError) throw matchError;
+
+        // Determine the new status based on current status and user's role
+        let newStatus = 'active';
+        if (match.status === 'pending_first') {
+          newStatus = 'pending_second';
+        }
+
+        const { error: updateError } = await supabase
+          .from('matches')
+          .update({ 
+            status: newStatus,
+            matched_at: newStatus === 'active' ? new Date().toISOString() : match.matched_at
+          })
+          .eq('id', matchId);
+
+        if (updateError) throw updateError;
+        
+        toast.success(newStatus === 'active' ? 
+          "It's a match! You can now start chatting." : 
+          "Match accepted! Waiting for the other person to accept."
+        );
       }
 
       // Invalidate both queries to refresh the data
@@ -128,7 +181,6 @@ export const useMatchQueries = (userId: string | undefined) => {
         })
       ]);
       
-      toast.success(accept ? "Match accepted!" : "Match declined");
     } catch (error) {
       console.error("Error updating match:", error);
       toast.error("Failed to update match status");
