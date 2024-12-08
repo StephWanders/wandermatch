@@ -77,8 +77,22 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     }
   };
 
+  // Deduplicate matches by the other user's profile ID
+  const uniqueMatches = matches.reduce((acc: any[], match) => {
+    const otherProfileId = match.profile1_id === currentUserId ? match.profile2_id : match.profile1_id;
+    const existingMatch = acc.find(m => {
+      const existingOtherProfileId = m.profile1_id === currentUserId ? m.profile2_id : m.profile1_id;
+      return existingOtherProfileId === otherProfileId;
+    });
+
+    if (!existingMatch) {
+      acc.push(match);
+    }
+    return acc;
+  }, []);
+
   // Sort matches by unread messages first, then by latest message time
-  const sortedMatches = [...(matches || [])].sort((a, b) => {
+  const sortedMatches = [...uniqueMatches].sort((a, b) => {
     const unreadA = unreadCounts[a.profiles.id] || 0;
     const unreadB = unreadCounts[b.profiles.id] || 0;
     
