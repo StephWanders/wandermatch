@@ -96,17 +96,26 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     return new Date(timeB).getTime() - new Date(timeA).getTime();
   });
 
-  // Select most recent chat when navigating to /chat or when no match is selected
+  // Select most recent chat when navigating to /chat
   useEffect(() => {
-    const shouldSelectMostRecent = 
-      (location.pathname === '/chat' || !currentMatchId) && 
-      sortedMatches.length > 0;
+    const isOnChatRoute = location.pathname === '/chat';
+    const hasNoMatchSelected = !currentMatchId;
+    const hasMatches = sortedMatches.length > 0;
+    
+    console.log('Navigation check:', {
+      isOnChatRoute,
+      hasNoMatchSelected,
+      hasMatches,
+      currentMatchId,
+      pathname: location.pathname
+    });
 
-    if (shouldSelectMostRecent) {
-      console.log('Selecting most recent chat:', sortedMatches[0].id);
-      navigate(`/chat/${sortedMatches[0].id}`);
+    if ((isOnChatRoute || hasNoMatchSelected) && hasMatches) {
+      const mostRecentMatchId = sortedMatches[0].id;
+      console.log('Navigating to most recent chat:', mostRecentMatchId);
+      navigate(`/chat/${mostRecentMatchId}`, { replace: true });
     }
-  }, [currentMatchId, sortedMatches, navigate, location.pathname]);
+  }, [location.pathname, currentMatchId, sortedMatches, navigate]);
 
   return (
     <div className="w-80 bg-white border-r">
