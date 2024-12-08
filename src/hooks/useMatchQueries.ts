@@ -31,7 +31,7 @@ export const useMatchQueries = (userId: string | undefined) => {
             preferred_destinations
           )
         `)
-        .or(`profile1_id.eq.${userId},profile2_id.eq.${userId}`)
+        .eq('profile1_id', userId)
         .eq('status', 'active');
 
       if (error) {
@@ -40,7 +40,6 @@ export const useMatchQueries = (userId: string | undefined) => {
         return [];
       }
 
-      // Transform the data to ensure we get the other user's profile
       return data.map(match => ({
         ...match,
         profiles: match.profiles
@@ -76,7 +75,7 @@ export const useMatchQueries = (userId: string | undefined) => {
             preferred_destinations
           )
         `)
-        .or(`profile1_id.eq.${userId},profile2_id.eq.${userId}`)
+        .eq('profile1_id', userId)
         .or('status.eq.pending_first,status.eq.pending_second');
 
       if (error) {
@@ -85,7 +84,6 @@ export const useMatchQueries = (userId: string | undefined) => {
         return [];
       }
 
-      // Transform the data to ensure we get the other user's profile
       return data.map(match => ({
         ...match,
         profiles: match.profiles
