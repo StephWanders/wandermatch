@@ -19,10 +19,9 @@ export const useMatchQueries = (userId: string | undefined) => {
           matched_at,
           profile1_id,
           profile2_id,
-          profile1:profiles!matches_profile1_id_fkey(*),
-          profile2:profiles!matches_profile2_id_fkey(*)
+          profiles:profiles!matches_profile2_id_fkey(*)
         `)
-        .or(`profile1_id.eq.${userId},profile2_id.eq.${userId}`)
+        .eq('profile1_id', userId)
         .eq('status', 'active');
 
       if (error) {
@@ -52,10 +51,9 @@ export const useMatchQueries = (userId: string | undefined) => {
           matched_at,
           profile1_id,
           profile2_id,
-          profile1:profiles!matches_profile1_id_fkey(*),
-          profile2:profiles!matches_profile2_id_fkey(*)
+          profiles:profiles!matches_profile2_id_fkey(*)
         `)
-        .or(`profile1_id.eq.${userId},profile2_id.eq.${userId}`)
+        .eq('profile1_id', userId)
         .or('status.eq.pending_first,status.eq.pending_second');
 
       if (error) {
