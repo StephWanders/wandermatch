@@ -33,12 +33,12 @@ const Index = () => {
       {/* Background Image with Overlay */}
       <div className="fixed inset-0 z-0">
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
           style={{ 
             backgroundImage: "url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80')",
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/80 to-white/90" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-white/80" />
         </div>
       </div>
       
