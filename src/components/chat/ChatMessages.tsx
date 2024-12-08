@@ -29,35 +29,44 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
   // Mark messages as read when they are displayed
   useEffect(() => {
     const markMessagesAsRead = async () => {
-      if (!currentUserId || !messages?.length) return;
+      if (!currentUserId || !messages?.length) {
+        console.log('No messages to mark as read or no current user');
+        return;
+      }
 
       const unreadMessages = messages.filter(
         msg => msg.sender_id !== currentUserId && !msg.read_at
       );
 
+      console.log('Found unread messages:', unreadMessages.length);
+      
       if (unreadMessages.length > 0) {
-        console.log('Found unread messages:', unreadMessages.length);
-        
         try {
-          const { error } = await supabase
+          console.log('Attempting to mark messages as read:', unreadMessages.map(m => m.id));
+          
+          const { data, error } = await supabase
             .from('messages')
             .update({ read_at: new Date().toISOString() })
-            .in('id', unreadMessages.map(m => m.id));
+            .in('id', unreadMessages.map(m => m.id))
+            .select();
 
           if (error) {
             console.error('Error marking messages as read:', error);
             return;
           }
 
+          console.log('Update response:', data);
           console.log('Successfully marked messages as read');
           
-          // Invalidate all relevant queries to refresh counts and messages
+          // Invalidate queries immediately after successful update
           await Promise.all([
             queryClient.invalidateQueries({ queryKey: ['unread-messages'] }),
             queryClient.invalidateQueries({ queryKey: ['welcomeData'] }),
             queryClient.invalidateQueries({ queryKey: ['chat-messages'] }),
             queryClient.invalidateQueries({ queryKey: ['latest-messages'] })
           ]);
+
+          console.log('Queries invalidated');
         } catch (error) {
           console.error('Failed to mark messages as read:', error);
         }
