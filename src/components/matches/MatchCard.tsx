@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import ProfileModal from "./ProfileModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 interface MatchCardProps {
   match: any;
@@ -28,8 +29,6 @@ const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: Match
       }
     });
   }, []);
-
-  const matchedProfile = match.profiles;
 
   const handleChatClick = async () => {
     try {
@@ -58,6 +57,22 @@ const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: Match
   const handleProfileClick = () => {
     setIsProfileModalOpen(true);
   };
+
+  // Get the profile of the other user (profile2)
+  const { data: matchedProfile } = useQuery({
+    queryKey: ['profile', match.profile2_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', match.profile2_id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!match.profile2_id
+  });
 
   if (!matchedProfile) {
     return null;
