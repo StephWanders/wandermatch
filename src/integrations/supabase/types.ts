@@ -151,6 +151,38 @@ export type Database = {
           },
         ]
       }
+      profile_pictures: {
+        Row: {
+          created_at: string | null
+          id: string
+          image_url: string
+          is_default: boolean | null
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          image_url: string
+          is_default?: boolean | null
+          profile_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          image_url?: string
+          is_default?: boolean | null
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_pictures_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           active_chats: string[] | null

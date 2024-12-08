@@ -9,6 +9,14 @@ import { supabase } from "@/integrations/supabase/client";
 import BasicInfoSection from "./sections/BasicInfoSection";
 import TravelPreferencesSection from "./sections/TravelPreferencesSection";
 import AboutYouSection from "./sections/AboutYouSection";
+import ProfileImageUpload from "./ProfileImageUpload";
+import { useEffect, useState } from "react";
+
+interface ProfilePicture {
+  id: string;
+  image_url: string;
+  is_default: boolean;
+}
 
 interface ProfileFormProps {
   session: any;
@@ -18,6 +26,7 @@ interface ProfileFormProps {
 
 const ProfileForm = ({ session, profile, onProfileUpdate }: ProfileFormProps) => {
   const navigate = useNavigate();
+  const [profilePictures, setProfilePictures] = useState<ProfilePicture[]>([]);
   
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -34,6 +43,48 @@ const ProfileForm = ({ session, profile, onProfileUpdate }: ProfileFormProps) =>
       preferredGender: profile?.preferred_gender?.join(", ") || "",
     },
   });
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchProfilePictures();
+    }
+  }, [session?.user?.id]);
+
+  const fetchProfilePictures = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profile_pictures')
+        .select('*')
+        .eq('profile_id', session.user.id)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      setProfilePictures(data || []);
+    } catch (error) {
+      console.error('Error fetching profile pictures:', error);
+      toast.error("Failed to load profile pictures");
+    }
+  };
+
+  const handleImagesUpdate = async (updatedImages: ProfilePicture[]) => {
+    setProfilePictures(updatedImages);
+    
+    // Update profile's main image URL if there's a default image
+    const defaultImage = updatedImages.find(img => img.is_default);
+    if (defaultImage?.image_url !== profile?.profile_image_url) {
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ profile_image_url: defaultImage?.image_url || null })
+          .eq('id', session.user.id);
+
+        if (error) throw error;
+      } catch (error) {
+        console.error('Error updating profile image URL:', error);
+        toast.error("Failed to update profile image");
+      }
+    }
+  };
 
   const hasChanges = (values: ProfileFormValues) => {
     const currentValues = {
@@ -115,6 +166,11 @@ const ProfileForm = ({ session, profile, onProfileUpdate }: ProfileFormProps) =>
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <ProfileImageUpload 
+          userId={session?.user?.id}
+          existingImages={profilePictures}
+          onImagesUpdate={handleImagesUpdate}
+        />
         <BasicInfoSection form={form} />
         <TravelPreferencesSection form={form} />
         <AboutYouSection form={form} />
