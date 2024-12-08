@@ -34,9 +34,7 @@ const Chat = () => {
     if (!matchId && matches.length > 0) {
       console.log('No matchId provided, navigating to most recent chat');
       const sortedMatches = [...matches].sort((a, b) => {
-        const timeA = new Date(a.matched_at || a.profiles.created_at || '').getTime();
-        const timeB = new Date(b.matched_at || b.profiles.created_at || '').getTime();
-        return timeB - timeA;
+        return new Date(b.matched_at || '').getTime() - new Date(a.matched_at || '').getTime();
       });
       navigate(`/chat/${sortedMatches[0].id}`, { replace: true });
     }
@@ -44,24 +42,29 @@ const Chat = () => {
 
   // Set other profile based on current match
   useEffect(() => {
-    if (!session?.user?.id || !matchId || !matches?.length) return;
+    if (!session?.user?.id || !matchId || !matches?.length) {
+      console.log('Missing required data for setting other profile:', {
+        userId: session?.user?.id,
+        matchId,
+        matchesLength: matches?.length
+      });
+      return;
+    }
     
     console.log('Setting other profile for match:', matchId);
     const currentMatch = matches.find(m => m.id === matchId);
     
     if (currentMatch) {
-      // If current user is profile1, use profile2's data from profiles
-      // If current user is profile2, use profile1's data from profiles
       const otherProfileId = currentMatch.profile1_id === session.user.id 
         ? currentMatch.profile2_id 
         : currentMatch.profile1_id;
       
-      // Find the match that contains the other profile's data
-      const matchWithOtherProfile = matches.find(m => m.profiles.id === otherProfileId);
+      console.log('Other profile ID determined:', otherProfileId);
       
-      if (matchWithOtherProfile) {
-        console.log('Other profile set:', matchWithOtherProfile.profiles);
-        setOtherProfile(matchWithOtherProfile.profiles);
+      // The profiles field in the match contains the other user's profile data
+      if (currentMatch.profiles) {
+        console.log('Setting other profile from match:', currentMatch.profiles);
+        setOtherProfile(currentMatch.profiles);
       }
     }
   }, [matchId, matches, session?.user?.id]);
