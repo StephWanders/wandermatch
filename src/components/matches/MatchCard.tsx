@@ -9,6 +9,7 @@ import ProfileModal from "./ProfileModal";
 import RatingForm from "./RatingForm";
 import UserInfo from "./UserInfo";
 import MatchActions from "./MatchActions";
+import { useAuthState } from "@/hooks/useAuthState";
 
 interface MatchCardProps {
   match: any;
@@ -20,23 +21,27 @@ interface MatchCardProps {
 
 const MatchCard = ({ match, isPending, onAccept, onDecline }: MatchCardProps) => {
   const navigate = useNavigate();
+  const { session } = useAuthState();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
 
-  // Get the profile of the other user (profile2)
+  // Determine which profile ID to query based on the current user
+  const otherProfileId = match.profile1_id === session?.user?.id ? match.profile2_id : match.profile1_id;
+
+  // Get the profile of the other user
   const { data: matchedProfile } = useQuery({
-    queryKey: ['profile', match.profile2_id],
+    queryKey: ['profile', otherProfileId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', match.profile2_id)
+        .eq('id', otherProfileId)
         .single();
 
       if (error) throw error;
       return data;
     },
-    enabled: !!match.profile2_id
+    enabled: !!otherProfileId
   });
 
   const handleChatClick = async () => {
