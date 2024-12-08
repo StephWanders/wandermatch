@@ -27,6 +27,7 @@ const fetchPendingMatchesForUser = async (userId: string, profileField: 'profile
     .or('status.eq.pending_first,status.eq.pending_second');
 
   if (error) throw error;
+  console.log(`Fetched pending matches for ${profileField}:`, data);
   return data || [];
 };
 
@@ -44,19 +45,26 @@ export const usePendingMatches = (userId: string | undefined) => {
           fetchPendingMatchesForUser(userId, 'profile2_id')
         ]);
 
+        console.log('Raw pending matches before deduplication:', {
+          profile1Matches,
+          profile2Matches,
+          totalBeforeDedup: profile1Matches.length + profile2Matches.length
+        });
+
         // Combine matches and deduplicate by match ID
         const matchMap = new Map();
         [...profile1Matches, ...profile2Matches].forEach(match => {
           if (!matchMap.has(match.id)) {
-            matchMap.set(match.id, {
-              ...match,
-              profiles: match.profiles
-            });
+            matchMap.set(match.id, match);
           }
         });
 
         const allPendingMatches = Array.from(matchMap.values());
-        console.log('All pending matches:', allPendingMatches);
+        console.log('Deduplicated pending matches:', {
+          totalAfterDedup: allPendingMatches.length,
+          matches: allPendingMatches
+        });
+        
         return allPendingMatches;
       } catch (error) {
         console.error('Error fetching pending matches:', error);

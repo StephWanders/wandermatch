@@ -27,6 +27,7 @@ const fetchMatchesForUser = async (userId: string, profileField: 'profile1_id' |
     .eq('status', 'active');
 
   if (error) throw error;
+  console.log(`Fetched matches for ${profileField}:`, data);
   return data || [];
 };
 
@@ -44,19 +45,26 @@ export const useConfirmedMatches = (userId: string | undefined) => {
           fetchMatchesForUser(userId, 'profile2_id')
         ]);
 
+        console.log('Raw matches before deduplication:', {
+          profile1Matches,
+          profile2Matches,
+          totalBeforeDedup: profile1Matches.length + profile2Matches.length
+        });
+
         // Combine matches and deduplicate by match ID
         const matchMap = new Map();
         [...profile1Matches, ...profile2Matches].forEach(match => {
           if (!matchMap.has(match.id)) {
-            matchMap.set(match.id, {
-              ...match,
-              profiles: match.profiles
-            });
+            matchMap.set(match.id, match);
           }
         });
 
         const allConfirmedMatches = Array.from(matchMap.values());
-        console.log('All confirmed matches:', allConfirmedMatches);
+        console.log('Deduplicated matches:', {
+          totalAfterDedup: allConfirmedMatches.length,
+          matches: allConfirmedMatches
+        });
+        
         return allConfirmedMatches;
       } catch (error) {
         console.error('Error fetching confirmed matches:', error);
