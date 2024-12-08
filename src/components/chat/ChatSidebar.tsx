@@ -16,7 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useQuery } from "@tanstack/react-query";
+import { useLatestMessages } from "@/hooks/useMessageData";
 import { useEffect, useState } from "react";
 
 interface ChatSidebarProps {
@@ -37,43 +37,7 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     });
   }, []);
 
-  // Query to get the latest message for each match
-  const { data: latestMessages } = useQuery({
-    queryKey: ['latest-messages', matches?.map(m => m.id), currentUserId],
-    queryFn: async () => {
-      if (!matches?.length || !currentUserId) return {};
-      
-      const messagesPromises = matches.map(async (match) => {
-        const otherProfileId = match.profile1_id === currentUserId ? match.profile2_id : match.profile1_id;
-        
-        const { data } = await supabase
-          .from('messages')
-          .select('created_at, content')
-          .or(
-            `and(sender_id.in.(${otherProfileId},${currentUserId}),` +
-            `receiver_id.in.(${otherProfileId},${currentUserId}))`
-          )
-          .order('created_at', { ascending: false })
-          .limit(1);
-        
-        return {
-          matchId: match.id,
-          latestMessageTime: data?.[0]?.created_at || match.matched_at,
-          latestMessage: data?.[0]?.content
-        };
-      });
-
-      const results = await Promise.all(messagesPromises);
-      return results.reduce((acc, curr) => ({
-        ...acc,
-        [curr.matchId]: {
-          time: curr.latestMessageTime,
-          message: curr.latestMessage
-        }
-      }), {});
-    },
-    enabled: !!matches?.length && !!currentUserId
-  });
+  const { data: latestMessages } = useLatestMessages(currentUserId || undefined, matches);
 
   const handleUnmatch = async (matchId: string) => {
     try {
@@ -106,7 +70,6 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     const hasMatches = sortedMatches.length > 0;
     const showLatest = location.state?.showLatest;
     
-    // Navigate to most recent chat if we're on base route, have no match selected, or showLatest is true
     if ((isOnChatRoute || hasNoMatchSelected || showLatest) && hasMatches) {
       const mostRecentMatchId = sortedMatches[0].id;
       navigate(`/chat/${mostRecentMatchId}`, { 
@@ -145,7 +108,7 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
                   <div className="min-w-0 flex-1">
                     <h3 className="font-medium truncate">{chatProfile.full_name}</h3>
                     <p className="text-sm text-gray-500 truncate">
-                      {latestMessage || chatProfile.travel_style}
+                      {latestMessage}
                     </p>
                   </div>
                 </div>
