@@ -87,7 +87,7 @@ const SwipeCard = ({ profile, onSwipe, currentUserId }: SwipeCardProps) => {
               variant="outline"
               size="lg"
               onClick={() => handleSwipe('dislike')}
-              className="w-32"
+              className="w-32 bg-red-500 hover:bg-red-600 text-white border-red-500 hover:border-red-600"
               disabled={isTransitioning}
             >
               <ThumbsDown className="h-5 w-5 mr-2" />
