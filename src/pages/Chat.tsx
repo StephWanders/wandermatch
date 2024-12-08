@@ -49,13 +49,14 @@ const Chat = () => {
     return new Date(timeB).getTime() - new Date(timeA).getTime();
   });
 
-  // Navigate to most recent chat if no matchId is provided
+  // Navigate to most recent chat if on base chat route
   useEffect(() => {
-    if (!matchId && uniqueAndSortedMatches.length > 0) {
-      console.log('No matchId provided, navigating to most recent chat:', uniqueAndSortedMatches[0].id);
-      navigate(`/chat/${uniqueAndSortedMatches[0].id}`, { replace: true });
+    if (location.pathname === '/chat' && uniqueAndSortedMatches.length > 0) {
+      const mostRecentMatch = uniqueAndSortedMatches[0];
+      console.log('Navigating to most recent chat:', mostRecentMatch);
+      navigate(`/chat/${mostRecentMatch.id}`, { replace: true });
     }
-  }, [matchId, uniqueAndSortedMatches, navigate]);
+  }, [location.pathname, uniqueAndSortedMatches, navigate]);
 
   // Set other profile based on current match
   useEffect(() => {
@@ -64,15 +65,14 @@ const Chat = () => {
       return;
     }
 
-    // Find the match in the original matches array to ensure we don't miss any
-    const currentMatch = matches.find(m => m.id === matchId);
+    const currentMatch = uniqueAndSortedMatches.find(m => m.id === matchId);
     if (currentMatch) {
       console.log('Found match:', currentMatch);
       setOtherProfile(currentMatch.profiles);
     } else {
       console.log('Match not found:', matchId);
     }
-  }, [matchId, matches, session?.user?.id]);
+  }, [matchId, uniqueAndSortedMatches, session?.user?.id]);
 
   useChatSubscription(matchId, session?.user?.id, otherProfile?.id, queryClient);
 
