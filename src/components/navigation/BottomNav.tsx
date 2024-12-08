@@ -51,40 +51,53 @@ const BottomNav = ({ session, profile }: BottomNavProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const currentPath = location.pathname;
-  
+
   // Query to get the most recent chat
   const { data: recentChat } = useQuery({
-    queryKey: ['recent-chat', session?.user?.id],
+    queryKey: ['most-recent-chat', session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return null;
-      
-      const { data, error } = await supabase
-        .from('messages')
-        .select('id, created_at, sender_id, receiver_id')
-        .or(`sender_id.eq.${session.user.id},receiver_id.eq.${session.user.id}`)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-      
-      if (error || !data) return null;
 
-      // Get the match for this message
-      const otherUserId = data.sender_id === session.user.id ? data.receiver_id : data.sender_id;
-      const { data: matchData } = await supabase
+      // First get all active matches
+      const { data: matches } = await supabase
         .from('matches')
-        .select('id')
-        .eq('status', 'active')
-        .or(`and(profile1_id.eq.${session.user.id},profile2_id.eq.${otherUserId}),and(profile1_id.eq.${otherUserId},profile2_id.eq.${session.user.id})`)
-        .limit(1); // Add limit(1) to get just the first match
+        .select('id, profile1_id, profile2_id')
+        .or(`profile1_id.eq.${session.user.id},profile2_id.eq.${session.user.id}`)
+        .eq('status', 'active');
 
-      return matchData?.[0] || null; // Return the first match or null if no matches
+      if (!matches?.length) return null;
+
+      // Get the most recent message from any of these matches
+      const matchIds = matches.map(m => m.id);
+      const { data: messages } = await supabase
+        .from('messages')
+        .select('created_at, sender_id, receiver_id')
+        .or(
+          matches.map(m => 
+            `and(sender_id.in.(${m.profile1_id},${m.profile2_id}),receiver_id.in.(${m.profile1_id},${m.profile2_id}))`
+          ).join(',')
+        )
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (!messages?.length) {
+        // If no messages, return the most recent match
+        return matches[0].id;
+      }
+
+      // Find the match that corresponds to this message
+      const message = messages[0];
+      return matches.find(m => 
+        (m.profile1_id === message.sender_id && m.profile2_id === message.receiver_id) ||
+        (m.profile1_id === message.receiver_id && m.profile2_id === message.sender_id)
+      )?.id;
     },
     enabled: !!session?.user?.id
   });
 
   const handleChatClick = () => {
-    if (recentChat?.id) {
-      navigate(`/chat/${recentChat.id}`);
+    if (recentChat) {
+      navigate(`/chat/${recentChat}`);
     } else {
       navigate('/matches');
     }
