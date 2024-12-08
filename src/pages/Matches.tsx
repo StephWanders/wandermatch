@@ -10,8 +10,8 @@ import { useMatchQueries } from "@/hooks/useMatchQueries";
 const Matches = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [session, setSession] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const [session, setSession] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -24,14 +24,24 @@ const Matches = () => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data } = await supabase
+      console.log('Fetching profile for user:', userId);
+      const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", userId)
-        .single();
-      setProfile(data);
+        .eq("id", userId);
+
+      if (error) {
+        console.error("Error fetching profile:", error);
+        throw error;
+      }
+
+      // Handle the case where data is an array or might be empty
+      const profileData = data?.[0] || null;
+      console.log('Profile data:', profileData);
+      setProfile(profileData);
     } catch (error) {
       console.error("Error fetching profile:", error);
+      toast.error("Failed to load profile");
     }
   };
 
