@@ -53,7 +53,20 @@ const ProfileImageUpload = ({ userId, existingImages = [], onImagesUpdate }: Pro
         .from('profile-pictures')
         .getPublicUrl(filePath);
 
+      // Set is_default to true only if this is the first image
       const isFirstImage = images.length === 0;
+      
+      // First, update any existing default image if we're setting a new default
+      if (isFirstImage && images.some(img => img.is_default)) {
+        const { error: updateError } = await supabase
+          .from('profile_pictures')
+          .update({ is_default: false })
+          .eq('profile_id', userId)
+          .eq('is_default', true);
+
+        if (updateError) throw updateError;
+      }
+
       const { error: dbError, data: pictureData } = await supabase
         .from('profile_pictures')
         .insert({
@@ -84,11 +97,15 @@ const ProfileImageUpload = ({ userId, existingImages = [], onImagesUpdate }: Pro
     if (!userId) return;
 
     try {
-      await supabase
+      // First, remove default status from all images
+      const { error: updateError } = await supabase
         .from('profile_pictures')
         .update({ is_default: false })
         .eq('profile_id', userId);
 
+      if (updateError) throw updateError;
+
+      // Then set the new default image
       const { error } = await supabase
         .from('profile_pictures')
         .update({ is_default: true })
