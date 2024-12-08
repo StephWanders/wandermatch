@@ -1,5 +1,4 @@
 import { LucideIcon } from "lucide-react";
-import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface StatsCardProps {
@@ -9,10 +8,11 @@ interface StatsCardProps {
   to: string;
   bgColor: string;
   iconColor: string;
+  onClick?: () => void;
 }
 
-const StatsCard = ({ icon: Icon, title, stat, to, bgColor, iconColor }: StatsCardProps) => (
-  <Link to={to}>
+const StatsCard = ({ icon: Icon, title, stat, bgColor, iconColor, onClick }: StatsCardProps) => (
+  <div onClick={onClick} className="cursor-pointer">
     <Card className="hover:shadow-lg transition-shadow">
       <CardContent className={`p-6 ${bgColor}`}>
         <div className="flex items-center space-x-2">
@@ -22,7 +22,7 @@ const StatsCard = ({ icon: Icon, title, stat, to, bgColor, iconColor }: StatsCar
         <p className="mt-2 text-2xl font-semibold">{stat}</p>
       </CardContent>
     </Card>
-  </Link>
+  </div>
 );
 
 export default StatsCard;

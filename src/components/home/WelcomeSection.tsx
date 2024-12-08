@@ -26,15 +26,14 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
 
   const handleChatClick = () => {
     if (firstUnreadChat) {
-      // Navigate to the chat with the first unread message
-      navigate(`/chat/${firstUnreadChat}`, { 
-        state: { from: '/' }
-      });
+      navigate(`/chat/${firstUnreadChat}`);
     } else {
-      // If no unread messages, go to matches
       navigate('/matches');
     }
   };
+
+  // Format location to handle both city-only and city,country formats
+  const formattedLocation = profile?.location ? profile.location.split(',')[0].trim() : 'Unknown Location';
 
   return (
     <div className="relative max-w-6xl mx-auto px-4">
@@ -52,42 +51,37 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-in">
-        <Link to="/matches?tab=pending" className="no-underline">
-          <StatsCard
-            icon={Heart}
-            title="Pending Matches"
-            stat={`${pendingMatches?.length || 0} pending matches`}
-            to="/matches?tab=pending"
-            bgColor="bg-purple-100"
-            iconColor="text-purple-600"
-          />
-        </Link>
+        <StatsCard
+          icon={Heart}
+          title="Pending Matches"
+          stat={`${pendingMatches?.length || 0} pending matches`}
+          to="/matches?tab=pending"
+          bgColor="bg-purple-100"
+          iconColor="text-purple-600"
+        />
 
-        <Link to="/matches?tab=discover" className="no-underline">
-          <StatsCard
-            icon={Globe}
-            title="Discover"
-            stat="Find new travel buddies"
-            to="/matches?tab=discover"
-            bgColor="bg-green-100"
-            iconColor="text-green-600"
-          />
-        </Link>
+        <StatsCard
+          icon={Globe}
+          title="Discover"
+          stat="Find new travel buddies"
+          to="/matches?tab=discover"
+          bgColor="bg-green-100"
+          iconColor="text-green-600"
+        />
 
-        <div onClick={handleChatClick} className="cursor-pointer">
-          <StatsCard
-            icon={MessageCircle}
-            title="Messages"
-            stat={`${unreadMessages?.length || 0} unread messages`}
-            to={firstUnreadChat ? `/chat/${firstUnreadChat}` : '/matches'}
-            bgColor="bg-blue-100"
-            iconColor="text-blue-600"
-          />
-        </div>
+        <StatsCard
+          icon={MessageCircle}
+          title="Messages"
+          stat={`${unreadMessages?.length || 0} unread messages`}
+          to={firstUnreadChat ? `/chat/${firstUnreadChat}` : '/matches'}
+          bgColor="bg-blue-100"
+          iconColor="text-blue-600"
+          onClick={handleChatClick}
+        />
       </div>
 
-      {profile?.location && (
-        <LocalEventsSection location={profile.location} />
+      {formattedLocation && formattedLocation !== 'Unknown Location' && (
+        <LocalEventsSection location={formattedLocation} />
       )}
 
       <InspirationSection />
