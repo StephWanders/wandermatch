@@ -14,7 +14,8 @@ export const useMatchQueries = (userId: string | undefined) => {
         .from('matches')
         .select(`
           *,
-          profiles!matches_profile2_id_fkey(*)
+          profile2:profiles!matches_profile2_id_fkey(*),
+          profile1:profiles!matches_profile1_id_fkey(*)
         `)
         .eq('status', 'active')
         .or(`profile1_id.eq.${userId},profile2_id.eq.${userId}`);
@@ -26,9 +27,8 @@ export const useMatchQueries = (userId: string | undefined) => {
       
       return data.map(match => ({
         ...match,
-        profiles: match.profile1_id === userId ? 
-          match.profiles : 
-          match.profiles
+        // Select the profile that isn't the current user
+        profiles: match.profile1_id === userId ? match.profile2 : match.profile1
       }));
     },
     enabled: !!userId,
