@@ -10,6 +10,7 @@ import { useMessageData } from "@/hooks/useMessageData";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useChatSubscription } from "@/hooks/useChatSubscription";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import { Match } from "@/types/match";
 
 const Chat = () => {
   const { matchId } = useParams();
@@ -43,8 +44,8 @@ const Chat = () => {
   // If no matchId is provided, navigate to the most recent chat
   useEffect(() => {
     if (!matchId && matches.length > 0) {
-      const sortedMatches = [...matches].sort((a, b) => {
-        return new Date(b.matched_at).getTime() - new Date(a.matched_at).getTime();
+      const sortedMatches = [...(matches as Match[])].sort((a, b) => {
+        return new Date(b.matched_at || '').getTime() - new Date(a.matched_at || '').getTime();
       });
       navigate(`/chat/${sortedMatches[0].id}`);
     }

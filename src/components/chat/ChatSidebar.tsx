@@ -6,9 +6,10 @@ import { useLatestMessages } from "@/hooks/useMessageData";
 import { useEffect, useState } from "react";
 import ChatPreviewCard from "./ChatPreviewCard";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Match } from "@/types/match";
 
 interface ChatSidebarProps {
-  matches: any[];
+  matches: Match[];
   currentMatchId?: string;
 }
 
@@ -73,7 +74,7 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     }
   };
 
-  const uniqueMatches = matches.reduce((acc: any[], match) => {
+  const uniqueMatches = matches.reduce((acc: Match[], match) => {
     const otherProfileId = match.profile1_id === currentUserId ? match.profile2_id : match.profile1_id;
     const existingMatch = acc.find(m => {
       const existingOtherProfileId = m.profile1_id === currentUserId ? m.profile2_id : m.profile1_id;
@@ -88,8 +89,8 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
 
   // Sort matches by latest message time first, then by unread count
   const sortedMatches = [...uniqueMatches].sort((a, b) => {
-    const timeA = latestMessages?.[a.id]?.time || a.matched_at;
-    const timeB = latestMessages?.[b.id]?.time || b.matched_at;
+    const timeA = latestMessages?.[a.id]?.time || a.matched_at || '';
+    const timeB = latestMessages?.[b.id]?.time || b.matched_at || '';
     
     // Compare message times
     const timeComparison = new Date(timeB).getTime() - new Date(timeA).getTime();
