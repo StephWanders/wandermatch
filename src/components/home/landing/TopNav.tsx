@@ -1,15 +1,25 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useAuthState } from "@/hooks/useAuthState";
 
 const TopNav = () => {
   const navigate = useNavigate();
+  const { session } = useAuthState();
 
   const handleSignIn = () => {
-    navigate('/?view=sign_in');
+    if (session) {
+      navigate('/matches');
+    } else {
+      navigate('/?view=sign_in');
+    }
   };
 
   const handleSignUp = () => {
-    navigate('/?view=sign_up');
+    if (session) {
+      navigate('/matches');
+    } else {
+      navigate('/?view=sign_up');
+    }
   };
 
   return (

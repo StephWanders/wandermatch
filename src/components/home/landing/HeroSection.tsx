@@ -1,12 +1,17 @@
 import { Button } from "@/components/ui/button";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useAuthState } from "@/hooks/useAuthState";
 
 const HeroSection = () => {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { session } = useAuthState();
 
   const handleJoinNow = () => {
-    navigate('/?view=sign_up');
+    if (session) {
+      navigate('/matches');
+    } else {
+      navigate('/?view=sign_up');
+    }
   };
 
   return (
