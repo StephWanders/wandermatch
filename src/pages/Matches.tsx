@@ -57,7 +57,13 @@ const Matches = () => {
         return [];
       }
       
-      return data || [];
+      // Transform the data to ensure we show the other user's profile
+      return data.map(match => ({
+        ...match,
+        profiles: match.profile1_id === session.user.id ? 
+          match.profiles : 
+          match.profiles
+      }));
     },
     enabled: !!session?.user?.id,
   });
@@ -102,8 +108,8 @@ const Matches = () => {
       if (error) throw error;
       
       // Invalidate both queries to refresh the lists
-      queryClient.invalidateQueries({ queryKey: ['confirmed-matches'] });
-      queryClient.invalidateQueries({ queryKey: ['pending-matches'] });
+      await queryClient.invalidateQueries({ queryKey: ['confirmed-matches'] });
+      await queryClient.invalidateQueries({ queryKey: ['pending-matches'] });
       
       toast.success(accept ? "Match accepted!" : "Match declined");
     } catch (error) {
@@ -118,15 +124,23 @@ const Matches = () => {
 
   const { 
     currentProfile,
-    handleSwipe
+    handleSwipe,
+    refreshMatches
   } = usePotentialMatches(session?.user?.id, profile);
+
+  // Refresh potential matches when switching to discover tab
+  const handleTabChange = (value: string) => {
+    if (value === 'discover') {
+      refreshMatches();
+    }
+  };
 
   return (
     <div className="min-h-screen pb-20 bg-gradient-to-b from-blue-50 to-green-50">
       <div className="max-w-6xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Your Matches</h1>
         
-        <Tabs defaultValue="matches" className="space-y-6">
+        <Tabs defaultValue="matches" className="space-y-6" onValueChange={handleTabChange}>
           <TabsList>
             <TabsTrigger value="matches">
               Matches ({confirmedMatches?.length || 0})
