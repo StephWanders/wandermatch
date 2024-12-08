@@ -108,7 +108,7 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
 
   return (
     <div className="flex-1 overflow-hidden bg-white/30 backdrop-blur-sm">
-      <ScrollArea className="h-full p-4 scrollbar-none">
+      <ScrollArea className="h-full p-4">
         <div className="space-y-4">
           {Object.entries(messagesByDate).map(([dateKey, dateMessages]) => (
             <div key={dateKey} className="space-y-4">
