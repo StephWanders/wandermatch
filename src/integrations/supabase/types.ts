@@ -219,7 +219,6 @@ export type Database = {
       }
       trip_ratings: {
         Row: {
-          category: Database["public"]["Enums"]["rating_category"]
           created_at: string | null
           id: string
           is_anonymous: boolean | null
@@ -231,7 +230,6 @@ export type Database = {
           review_text: string | null
         }
         Insert: {
-          category: Database["public"]["Enums"]["rating_category"]
           created_at?: string | null
           id?: string
           is_anonymous?: boolean | null
@@ -243,7 +241,6 @@ export type Database = {
           review_text?: string | null
         }
         Update: {
-          category?: Database["public"]["Enums"]["rating_category"]
           created_at?: string | null
           id?: string
           is_anonymous?: boolean | null
@@ -323,6 +320,9 @@ export type Database = {
         | "communication"
         | "respectfulness"
         | "responsibility"
+        | "trustworthiness"
+        | "conflict_management"
+        | "preparedness"
         | "overall_safety"
     }
     CompositeTypes: {
