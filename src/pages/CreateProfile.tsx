@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import ProfileImageUpload from "@/components/profile/ProfileImageUpload";
-import ProfileHeader from "@/components/profile/ProfileHeader";
-import ProfileForm from "@/components/profile/ProfileForm";
-import BottomNav from "@/components/navigation/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import ProfileForm from "@/components/profile/ProfileForm";
+import { toast } from "sonner";
 
 const CreateProfile = () => {
-  const [session, setSession] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const navigate = useNavigate();
+  const [session, setSession] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,56 +15,62 @@ const CreateProfile = () => {
       setSession(session);
       if (session) {
         fetchProfile(session.user.id);
+      } else {
+        setLoading(false);
+        navigate("/");
       }
     });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session) {
-        fetchProfile(session.user.id);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", userId)
-        .single();
+        .eq("id", userId);
 
-      if (error) throw error;
-      setProfile(data);
+      if (error) {
+        throw error;
+      }
+
+      // Handle the case where data is an array
+      const profileData = data?.[0] || null;
+      console.log('Profile data:', profileData);
+      setProfile(profileData);
     } catch (error) {
       console.error("Error fetching profile:", error);
+      toast.error("Failed to load profile");
     } finally {
       setLoading(false);
     }
   };
 
+  const handleProfileUpdate = async () => {
+    await fetchProfile(session.user.id);
+    toast.success("Profile updated successfully!");
+  };
+
   if (loading) {
-    return <div className="p-4">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen pb-20 bg-gradient-to-b from-blue-50 to-green-50">
-      <div className="p-6 md:p-12">
-        <div className="mx-auto max-w-2xl space-y-6">
-          <ProfileHeader />
-          <ProfileImageUpload />
-          <ProfileForm 
-            session={session} 
-            profile={profile} 
-            onProfileUpdate={() => fetchProfile(session?.user?.id)}
-          />
-        </div>
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50 py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8">
+          {profile ? "Edit Your Profile" : "Create Your Profile"}
+        </h1>
+        <ProfileForm
+          session={session}
+          profile={profile}
+          onProfileUpdate={handleProfileUpdate}
+        />
       </div>
-      <BottomNav session={session} profile={profile} />
     </div>
   );
 };
