@@ -7,10 +7,12 @@ import BottomNav from "@/components/navigation/BottomNav";
 import TopNav from "@/components/navigation/TopNav";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import { useMatchQueries } from "@/hooks/useMatchQueries";
 
 const Matches = () => {
   const navigate = useNavigate();
   const { session, profile, loading } = useAuthState();
+  const { confirmedMatches, pendingMatches, handleMatchResponse } = useMatchQueries(session?.user?.id);
 
   useEffect(() => {
     if (!loading && !session) {
@@ -51,10 +53,15 @@ const Matches = () => {
               <TabsTrigger value="matches">My Matches</TabsTrigger>
             </TabsList>
             <TabsContent value="discover">
-              <DiscoverTab session={session} />
+              <DiscoverTab 
+                userId={session?.user?.id}
+                userProfile={profile}
+              />
             </TabsContent>
             <TabsContent value="matches">
-              <MatchList session={session} />
+              <MatchList 
+                matches={confirmedMatches || []}
+              />
             </TabsContent>
           </Tabs>
         </div>
