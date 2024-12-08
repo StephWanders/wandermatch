@@ -10,6 +10,7 @@ interface Profile {
   languages: string[];
   preferred_destinations: string[];
   bio: string;
+  profile_image_url?: string | null;
 }
 
 // Helper function to calculate text similarity using Jaccard similarity
@@ -53,10 +54,18 @@ export const calculateMatchScore = (profile1: Profile, profile2: Profile): numbe
     return 0;
   }
 
-  // Age compatibility (15 points)
+  // Age compatibility (10 points)
   const ageDiff = Math.abs(profile1.age - profile2.age);
-  const ageScore = Math.max(0, 15 - (ageDiff * 1.5));
+  const ageScore = Math.max(0, 10 - (ageDiff * 1.5));
   score += ageScore;
+
+  // Profile picture score (15 points)
+  const profilePictureScore = () => {
+    if (!profile1.profile_image_url && !profile2.profile_image_url) return 5;
+    if (!profile1.profile_image_url || !profile2.profile_image_url) return 7;
+    return 15;
+  };
+  score += profilePictureScore();
 
   // Travel style compatibility (20 points)
   if (profile1.travel_style === profile2.travel_style) {
@@ -66,7 +75,7 @@ export const calculateMatchScore = (profile1: Profile, profile2: Profile): numbe
     const style1Categories = travelStyleCategories[profile1.travel_style as keyof typeof travelStyleCategories] || [];
     const style2Categories = travelStyleCategories[profile2.travel_style as keyof typeof travelStyleCategories] || [];
     const styleSimilarity = calculateArraySimilarity(style1Categories, style2Categories);
-    score += styleSimilarity * 10; // Up to 10 points for related styles
+    score += styleSimilarity * 10;
   }
 
   // Common interests (25 points)
@@ -83,12 +92,6 @@ export const calculateMatchScore = (profile1: Profile, profile2: Profile): numbe
     profile2.preferred_destinations
   );
   score += destinationsSimilarity * 15;
-
-  // Bio text analysis (10 points)
-  if (profile1.bio && profile2.bio) {
-    const bioSimilarity = calculateTextSimilarity(profile1.bio, profile2.bio);
-    score += bioSimilarity * 10;
-  }
 
   // Ensure the final score is between 0 and 100
   return Math.min(Math.round(score), maxScore);

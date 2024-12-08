@@ -1,132 +1,98 @@
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-const travelStyles = ['backpacker', 'luxury', 'adventure', 'cultural', 'relaxation'];
-const languages = ['English', 'Spanish', 'French', 'German', 'Japanese', 'Mandarin', 'Portuguese', 'Italian'];
-const interests = [
-  'hiking', 'photography', 'food', 'culture', 'history', 'architecture', 'museums', 
-  'beaches', 'mountains', 'cities', 'nature', 'wildlife', 'art', 'music', 'festivals'
-];
-const destinations = [
-  'Japan', 'Italy', 'France', 'Spain', 'Thailand', 'New Zealand', 'Brazil', 
-  'Morocco', 'Iceland', 'Greece', 'Vietnam', 'Peru', 'Australia', 'India'
-];
-const locations = [
-  'New York, USA', 'London, UK', 'Tokyo, Japan', 'Paris, France', 'Sydney, Australia',
-  'Berlin, Germany', 'Toronto, Canada', 'Barcelona, Spain', 'Amsterdam, Netherlands',
-  'Singapore'
-];
-const firstNames = [
-  'Emma', 'Liam', 'Olivia', 'Noah', 'Ava', 'Ethan', 'Sophia', 'Mason',
-  'Isabella', 'William', 'Mia', 'James', 'Charlotte', 'Alexander', 'Amelia'
-];
-const lastNames = [
-  'Smith', 'Johnson', 'Brown', 'Taylor', 'Miller', 'Anderson', 'Wilson',
-  'Moore', 'Jackson', 'Martin', 'Lee', 'Perez', 'Thompson', 'White', 'Harris'
+// Profile pictures from Unsplash showing people (higher weight)
+const personImages = [
+  'https://images.unsplash.com/photo-1649972904349-6e44c42644a7',
+  'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d',
+  'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+  'https://images.unsplash.com/photo-1581092795360-fd1ca04f0952'
 ];
 
-const getRandomItems = (array: string[], count: number) => {
-  const shuffled = [...array].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
-};
+// Profile pictures from Unsplash NOT showing people (lower weight)
+const nonPersonImages = [
+  'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b',
+  'https://images.unsplash.com/photo-1518770660439-4636190af475',
+  'https://images.unsplash.com/photo-1461749280684-dccba630e2f6',
+  'https://images.unsplash.com/photo-1485827404703-89b55fcc595e',
+  'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5',
+  'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7'
+];
 
-const getRandomAge = (min: number, max: number) => {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-};
-
-const getRandomName = () => {
-  const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-  const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-  return `${firstName} ${lastName}`;
-};
-
-const generateRandomProfile = () => {
-  const fullName = getRandomName();
-  const gender = Math.random() > 0.5 ? 'male' : 'female';
+const getRandomProfileImage = (): string | null => {
+  // 20% chance of no profile picture
+  if (Math.random() < 0.2) return null;
   
-  return {
-    full_name: fullName,
-    age: getRandomAge(21, 45),
-    location: locations[Math.floor(Math.random() * locations.length)],
-    bio: `Travel enthusiast looking for amazing adventures! Love exploring new places and meeting new people.`,
-    travel_style: travelStyles[Math.floor(Math.random() * travelStyles.length)],
-    languages: getRandomItems(languages, Math.floor(Math.random() * 3) + 1),
-    interests: getRandomItems(interests, Math.floor(Math.random() * 5) + 3),
-    preferred_destinations: getRandomItems(destinations, Math.floor(Math.random() * 4) + 2),
-    gender,
-    preferred_gender: gender === 'male' ? ['female'] : ['male']
-  };
-};
-
-const createUserWithProfile = async (index: number) => {
-  try {
-    const timestamp = Date.now();
-    const email = `test.user${index}.${timestamp}@example.com`;
-    const password = 'password123';
-    const profile = generateRandomProfile();
-    
-    console.log(`Creating user ${index + 1}: ${email}`);
-
-    // Create the user first
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: profile.full_name
-        }
-      }
-    });
-
-    if (authError) {
-      console.error(`Error creating user ${index + 1}:`, authError);
-      return null;
-    }
-
-    const userId = authData.user?.id;
-    if (!userId) {
-      console.error('No user ID available for profile update');
-      return null;
-    }
-
-    // Wait for the trigger to create the initial profile
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // Use the RPC function to update the profile with additional data
-    const { error: rpcError } = await supabase.rpc('insert_test_profile', {
-      user_id: userId,
-      user_full_name: profile.full_name,
-      user_age: profile.age,
-      user_location: profile.location,
-      user_bio: profile.bio,
-      user_travel_style: profile.travel_style,
-      user_languages: profile.languages,
-      user_interests: profile.interests,
-      user_preferred_destinations: profile.preferred_destinations,
-      user_gender: profile.gender,
-      user_preferred_gender: profile.preferred_gender
-    });
-
-    if (rpcError) {
-      console.error('Profile update error:', rpcError);
-      return null;
-    }
-
-    console.log(`Created user ${index + 1} successfully: ${email}`);
-    return userId;
-  } catch (error) {
-    console.error(`Error creating user ${index + 1}:`, error);
-    return null;
-  }
+  // 60% chance of person image, 20% chance of non-person image
+  const usePersonImage = Math.random() < 0.75;
+  const imageArray = usePersonImage ? personImages : nonPersonImages;
+  const randomIndex = Math.floor(Math.random() * imageArray.length);
+  return imageArray[randomIndex];
 };
 
 export const createTestUsers = async () => {
-  console.log('Starting to create 5 test users...');
-  
-  const creationPromises = Array.from({ length: 5 }, (_, i) => createUserWithProfile(i));
-  const results = await Promise.all(creationPromises);
-  
-  const successCount = results.filter(Boolean).length;
-  console.log(`Finished creating test users. Successfully created: ${successCount}`);
-  
-  return successCount;
+  try {
+    console.log('Creating test users...');
+    
+    // Create 10 test users
+    for (let i = 0; i < 10; i++) {
+      const email = `test${i + 1}@example.com`;
+      const password = 'testpassword123';
+      
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (authError) throw authError;
+      
+      const userId = authData.user?.id;
+      if (!userId) continue;
+
+      const profileImage = getRandomProfileImage();
+      
+      // Insert test profile data
+      const { error: profileError } = await supabase.rpc('insert_test_profile', {
+        user_id: userId,
+        user_full_name: `Test User ${i + 1}`,
+        user_age: 20 + Math.floor(Math.random() * 40),
+        user_location: ['New York', 'London', 'Tokyo', 'Paris', 'Sydney'][Math.floor(Math.random() * 5)],
+        user_bio: `I'm test user ${i + 1}, excited to meet new travel companions!`,
+        user_travel_style: ['adventure', 'cultural', 'luxury', 'backpacker', 'relaxation'][Math.floor(Math.random() * 5)],
+        user_languages: ['English', 'Spanish', 'French', 'Japanese', 'German'].slice(0, 1 + Math.floor(Math.random() * 4)),
+        user_interests: ['hiking', 'photography', 'food', 'history', 'art'].slice(0, 2 + Math.floor(Math.random() * 3)),
+        user_preferred_destinations: ['Europe', 'Asia', 'Americas', 'Africa', 'Oceania'].slice(0, 2 + Math.floor(Math.random() * 3)),
+        user_gender: ['male', 'female'][Math.floor(Math.random() * 2)],
+        user_preferred_gender: ['male', 'female']
+      });
+
+      if (profileError) throw profileError;
+
+      if (profileImage) {
+        const { error: pictureError } = await supabase
+          .from('profile_pictures')
+          .insert({
+            profile_id: userId,
+            image_url: profileImage,
+            is_default: true
+          });
+
+        if (pictureError) throw pictureError;
+
+        // Update profile with the image URL
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ profile_image_url: profileImage })
+          .eq('id', userId);
+
+        if (updateError) throw updateError;
+      }
+    }
+
+    console.log('Test users created successfully');
+    return true;
+  } catch (error) {
+    console.error('Error creating test users:', error);
+    throw error;
+  }
 };
