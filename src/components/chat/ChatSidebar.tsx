@@ -78,10 +78,13 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     }
   };
 
-  // Filter matches to only show active ones where the current user is profile1
+  // Filter matches to only show active ones where the current user is involved
   const activeMatches = matches.filter(match => 
-    match.status === 'active'
+    match.status === 'active' && 
+    (match.profile1_id === currentUserId || match.profile2_id === currentUserId)
   );
+
+  console.log('Filtered active matches:', activeMatches);
 
   // Sort matches by latest message time
   const sortedMatches = [...activeMatches].sort((a, b) => {
@@ -108,7 +111,7 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
         <div className="py-2">
           {sortedMatches.map((match) => {
             const otherProfile = match.profiles;
-            const otherProfileId = match.profile2_id;
+            const otherProfileId = match.profile2_id === currentUserId ? match.profile1_id : match.profile2_id;
               
             return (
               <ChatPreviewCard
