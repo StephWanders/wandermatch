@@ -19,7 +19,7 @@ export const useMatchQueries = (userId: string | undefined) => {
           matched_at,
           profile1_id,
           profile2_id,
-          profiles:profiles!matches_profile2_id_fkey(
+          profiles:profiles!matches_profile1_id_fkey(
             id,
             full_name,
             age,
@@ -43,11 +43,7 @@ export const useMatchQueries = (userId: string | undefined) => {
       // Transform the data to ensure we get the other user's profile
       return data.map(match => ({
         ...match,
-        profiles: match.profile1_id === userId ? 
-          // If current user is profile1, get profile2's data
-          match.profiles :
-          // If current user is profile2, get profile1's data
-          match.profiles
+        profiles: match.profiles
       }));
     },
     enabled: !!userId,
@@ -68,7 +64,7 @@ export const useMatchQueries = (userId: string | undefined) => {
           matched_at,
           profile1_id,
           profile2_id,
-          profiles:profiles!matches_profile2_id_fkey(
+          profiles:profiles!matches_profile1_id_fkey(
             id,
             full_name,
             age,
@@ -92,11 +88,7 @@ export const useMatchQueries = (userId: string | undefined) => {
       // Transform the data to ensure we get the other user's profile
       return data.map(match => ({
         ...match,
-        profiles: match.profile1_id === userId ? 
-          // If current user is profile1, get profile2's data
-          match.profiles :
-          // If current user is profile2, get profile1's data
-          match.profiles
+        profiles: match.profiles
       }));
     },
     enabled: !!userId,
