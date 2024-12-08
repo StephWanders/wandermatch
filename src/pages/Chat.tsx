@@ -114,7 +114,11 @@ const Chat = () => {
 
       if (error) throw error;
       
+      // Invalidate all relevant queries
       queryClient.invalidateQueries({ queryKey: ['chat-messages', matchId] });
+      queryClient.invalidateQueries({ queryKey: ['latest-messages'] });
+      queryClient.invalidateQueries({ queryKey: ['confirmed-matches'] });
+      
       console.log('Message sent successfully');
     } catch (error) {
       console.error("Error sending message:", error);
