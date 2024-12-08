@@ -8,6 +8,7 @@ import TopNav from "@/components/navigation/TopNav";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { useMatchQueries } from "@/hooks/useMatchQueries";
+import PendingTab from "@/components/matches/tabs/PendingTab";
 
 const Matches = () => {
   const navigate = useNavigate();
@@ -48,14 +49,22 @@ const Matches = () => {
         
         <div className="container mx-auto px-4 pt-20">
           <Tabs defaultValue="discover" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsList className="grid w-full grid-cols-3 mb-8">
               <TabsTrigger value="discover">Discover</TabsTrigger>
+              <TabsTrigger value="pending">Pending</TabsTrigger>
               <TabsTrigger value="matches">My Matches</TabsTrigger>
             </TabsList>
             <TabsContent value="discover">
               <DiscoverTab 
                 userId={session?.user?.id}
                 userProfile={profile}
+              />
+            </TabsContent>
+            <TabsContent value="pending">
+              <PendingTab 
+                pendingMatches={pendingMatches}
+                onAccept={handleMatchResponse}
+                onDecline={handleMatchResponse}
               />
             </TabsContent>
             <TabsContent value="matches">
