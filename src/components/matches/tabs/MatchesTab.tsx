@@ -15,6 +15,7 @@ const MatchesTab = ({ confirmedMatches }: MatchesTabProps) => {
   const activeMatches = confirmedMatches.filter(match => {
     const isActive = match.status === 'active';
     const isUserInvolved = match.profile1_id === currentUserId || match.profile2_id === currentUserId;
+    const isUnmatched = match.status === 'unmatched';
     
     console.log('Match filtering details:', {
       matchId: match.id,
@@ -23,10 +24,11 @@ const MatchesTab = ({ confirmedMatches }: MatchesTabProps) => {
       profile2_id: match.profile2_id,
       currentUserId,
       isActive,
-      isUserInvolved
+      isUserInvolved,
+      isUnmatched
     });
 
-    return isActive && isUserInvolved;
+    return isActive && isUserInvolved && !isUnmatched;
   });
   
   console.log('Filtered active matches:', activeMatches);

@@ -71,20 +71,17 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
       if (matchError) throw matchError;
 
       // Find any other active match between the same users
-      const { data: otherMatch, error: otherMatchError } = await supabase
+      const { data: otherMatches, error: otherMatchError } = await supabase
         .from('matches')
         .select('id')
         .neq('id', matchId)
         .eq('status', 'active')
         .or(`profile1_id.eq.${currentMatch.profile1_id},profile1_id.eq.${currentMatch.profile2_id}`)
-        .or(`profile2_id.eq.${currentMatch.profile1_id},profile2_id.eq.${currentMatch.profile2_id}`)
-        .single();
+        .or(`profile2_id.eq.${currentMatch.profile1_id},profile2_id.eq.${currentMatch.profile2_id}`);
 
-      if (otherMatchError && !otherMatchError.message.includes('No rows found')) {
-        throw otherMatchError;
-      }
+      if (otherMatchError) throw otherMatchError;
 
-      // Update both matches if they exist
+      // Update all matches between these users
       const updates = [
         supabase
           .from('matches')
@@ -92,14 +89,16 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
           .eq('id', matchId)
       ];
 
-      if (otherMatch?.id) {
-        console.log('Found other active match:', otherMatch.id);
-        updates.push(
-          supabase
-            .from('matches')
-            .update({ status: 'unmatched' })
-            .eq('id', otherMatch.id)
-        );
+      if (otherMatches && otherMatches.length > 0) {
+        console.log('Found other active matches:', otherMatches);
+        otherMatches.forEach(match => {
+          updates.push(
+            supabase
+              .from('matches')
+              .update({ status: 'unmatched' })
+              .eq('id', match.id)
+          );
+        });
       }
 
       const results = await Promise.all(updates);
@@ -131,6 +130,7 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
   const activeMatches = matches.filter(match => {
     const isActive = match.status === 'active';
     const isUserInvolved = match.profile1_id === currentUserId || match.profile2_id === currentUserId;
+    const isUnmatched = match.status === 'unmatched';
     
     console.log('Match filtering details:', {
       matchId: match.id,
@@ -139,10 +139,11 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
       profile2_id: match.profile2_id,
       currentUserId,
       isActive,
-      isUserInvolved
+      isUserInvolved,
+      isUnmatched
     });
 
-    return isActive && isUserInvolved;
+    return isActive && isUserInvolved && !isUnmatched;
   });
 
   console.log('Filtered active matches:', activeMatches);
