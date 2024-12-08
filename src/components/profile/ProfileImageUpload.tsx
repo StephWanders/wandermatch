@@ -24,20 +24,36 @@ const ProfileImageUpload = ({ userId, existingImages = [], onImagesUpdate }: Pro
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       const file = event.target.files?.[0];
-      if (!file || !userId) return;
+      if (!file || !userId) {
+        toast.error("Please select a file to upload");
+        return;
+      }
 
       setUploading(true);
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error("Please upload an image file");
+        return;
+      }
+
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File size must be less than 5MB");
+        return;
+      }
       
       // Upload to Storage
       const fileExt = file.name.split('.').pop();
       const filePath = `${userId}/${crypto.randomUUID()}.${fileExt}`;
       
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('profile-pictures')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
+      // Get the public URL
       const { data: { publicUrl } } = supabase.storage
         .from('profile-pictures')
         .getPublicUrl(filePath);
@@ -59,7 +75,9 @@ const ProfileImageUpload = ({ userId, existingImages = [], onImagesUpdate }: Pro
       const updatedImages = [...images, pictureData];
       setImages(updatedImages);
       onImagesUpdate?.(updatedImages);
+      
       toast.success("Profile picture uploaded successfully!");
+      event.target.value = ''; // Reset file input
     } catch (error) {
       console.error('Error uploading image:', error);
       toast.error("Failed to upload profile picture");
@@ -155,20 +173,25 @@ const ProfileImageUpload = ({ userId, existingImages = [], onImagesUpdate }: Pro
           </div>
         ))}
         <div className="relative">
-          <Avatar className="h-24 w-24">
-            <AvatarFallback className="bg-blue-100">
-              <Camera className="h-8 w-8 text-blue-500" />
-            </AvatarFallback>
-          </Avatar>
-          <Button
-            variant="outline"
-            size="sm"
-            className="absolute bottom-0 right-0 rounded-full"
-            disabled={uploading}
-            onClick={() => document.getElementById('imageUpload')?.click()}
+          <label 
+            htmlFor="imageUpload" 
+            className="cursor-pointer block"
           >
-            <Camera className="h-4 w-4" />
-          </Button>
+            <Avatar className="h-24 w-24">
+              <AvatarFallback className="bg-blue-100">
+                <Camera className="h-8 w-8 text-blue-500" />
+              </AvatarFallback>
+            </Avatar>
+            <Button
+              variant="outline"
+              size="sm"
+              className="absolute bottom-0 right-0 rounded-full"
+              disabled={uploading}
+              type="button"
+            >
+              <Camera className="h-4 w-4" />
+            </Button>
+          </label>
           <input
             type="file"
             id="imageUpload"
@@ -181,6 +204,7 @@ const ProfileImageUpload = ({ userId, existingImages = [], onImagesUpdate }: Pro
       </div>
       <p className="text-sm text-muted-foreground">
         Upload profile pictures. The first image will be set as default automatically.
+        Maximum file size: 5MB.
       </p>
     </div>
   );
