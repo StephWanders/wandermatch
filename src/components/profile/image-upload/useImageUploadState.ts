@@ -52,16 +52,22 @@ export const useImageUploadState = (
       const isFirstImage = images.length === 0;
 
       try {
-        if (isFirstImage) {
+        // Get existing default image if any
+        const { data: existingDefault } = await supabase
+          .from('profile_pictures')
+          .select('id')
+          .eq('profile_id', userId)
+          .eq('is_default', true)
+          .maybeSingle(); // Use maybeSingle instead of single to handle no rows case
+
+        // If there's an existing default and this is first image, update it
+        if (existingDefault && isFirstImage) {
           const { error: updateError } = await supabase
             .from('profile_pictures')
             .update({ is_default: false })
-            .eq('profile_id', userId)
-            .eq('is_default', true);
+            .eq('id', existingDefault.id);
 
-          if (updateError && !updateError.message.includes('no rows')) {
-            throw updateError;
-          }
+          if (updateError) throw updateError;
         }
 
         const { error: dbError, data: pictureData } = await supabase
@@ -105,12 +111,23 @@ export const useImageUploadState = (
     try {
       console.log('Setting default image:', imageId);
       
-      const { error: updateError } = await supabase
+      // Get existing default image if any
+      const { data: existingDefault } = await supabase
         .from('profile_pictures')
-        .update({ is_default: false })
-        .eq('profile_id', userId);
+        .select('id')
+        .eq('profile_id', userId)
+        .eq('is_default', true)
+        .maybeSingle(); // Use maybeSingle instead of single
 
-      if (updateError) throw updateError;
+      // If there's an existing default, update it
+      if (existingDefault) {
+        const { error: updateError } = await supabase
+          .from('profile_pictures')
+          .update({ is_default: false })
+          .eq('id', existingDefault.id);
+
+        if (updateError) throw updateError;
+      }
 
       const { error } = await supabase
         .from('profile_pictures')
