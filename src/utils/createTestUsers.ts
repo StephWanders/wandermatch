@@ -110,19 +110,31 @@ export const createTestUsers = async () => {
   
   for (const user of testUsers) {
     try {
-      // Check if user already exists
-      const { data: existingUser } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('full_name', user.profile.full_name)
-        .single();
+      // Check if user already exists by email
+      const { data: existingAuth } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: user.password,
+      });
 
-      if (existingUser) {
-        console.log(`User ${user.email} already exists, skipping...`);
+      if (existingAuth.user) {
+        console.log(`User ${user.email} already exists, updating profile...`);
+        
+        // Update existing profile
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update(user.profile)
+          .eq('id', existingAuth.user.id);
+
+        if (updateError) {
+          console.error(`Error updating profile for ${user.email}:`, updateError);
+        } else {
+          console.log(`Updated profile for ${user.email}`);
+        }
+        
         continue;
       }
 
-      // Create the user
+      // Create new user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: user.email,
         password: user.password
@@ -140,27 +152,21 @@ export const createTestUsers = async () => {
 
       console.log(`Created user ${user.email} with ID ${authData.user.id}`);
 
-      // Insert the profile
-      const { error: rpcError } = await supabase.rpc('insert_test_profile', {
-        user_id: authData.user.id,
-        user_full_name: user.profile.full_name,
-        user_age: user.profile.age,
-        user_location: user.profile.location,
-        user_bio: user.profile.bio,
-        user_travel_style: user.profile.travel_style,
-        user_languages: user.profile.languages,
-        user_interests: user.profile.interests,
-        user_preferred_destinations: user.profile.preferred_destinations,
-        user_gender: user.profile.gender,
-        user_preferred_gender: user.profile.preferred_gender
-      });
+      // Wait a bit to ensure the trigger has time to create the profile
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      if (rpcError) {
-        console.error(`Error creating profile for ${user.email}:`, rpcError);
+      // Update the profile with additional data
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update(user.profile)
+        .eq('id', authData.user.id);
+
+      if (profileError) {
+        console.error(`Error updating profile for ${user.email}:`, profileError);
         continue;
       }
 
-      console.log(`Created profile for ${user.email}`);
+      console.log(`Created/updated profile for ${user.email}`);
     } catch (error) {
       console.error(`Unexpected error for ${user.email}:`, error);
     }
