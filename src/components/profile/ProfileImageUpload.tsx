@@ -21,11 +21,11 @@ const ProfileImageUpload = ({ userId, existingImages = [], onImagesUpdate }: Pro
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    if (session?.user?.id) {
-      console.log('Fetching profile pictures for user:', session.user.id);
+    if (userId) {
+      console.log('Fetching profile pictures for user:', userId);
       fetchProfilePictures();
     }
-  }, [session?.user?.id]);
+  }, [userId]);
 
   const fetchProfilePictures = async () => {
     try {
