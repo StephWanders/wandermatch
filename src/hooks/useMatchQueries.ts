@@ -60,21 +60,46 @@ export const useMatchQueries = (userId: string | undefined) => {
 
   const handleMatchResponse = async (matchId: string, accept: boolean) => {
     try {
-      console.log('Updating match:', matchId, 'with status:', accept ? 'accepted' : 'rejected');
+      console.log(`Handling match response - Match ID: ${matchId}, Accept: ${accept}`);
       
-      const { error } = await supabase
+      // First, verify the match exists
+      const { data: matchData, error: matchError } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('id', matchId)
+        .single();
+
+      if (matchError) {
+        console.error('Error fetching match:', matchError);
+        throw matchError;
+      }
+
+      console.log('Current match data:', matchData);
+
+      // Update the match status
+      const { data: updateData, error: updateError } = await supabase
         .from('matches')
         .update({ 
           status: accept ? 'accepted' : 'rejected',
           matched_at: accept ? new Date().toISOString() : null
         })
-        .eq('id', matchId);
+        .eq('id', matchId)
+        .select();
 
-      if (error) throw error;
+      if (updateError) {
+        console.error('Error updating match:', updateError);
+        throw updateError;
+      }
+
+      console.log('Update response:', updateData);
       
       // Invalidate both queries to refresh the data
-      await queryClient.invalidateQueries({ queryKey: ['confirmed-matches'] });
-      await queryClient.invalidateQueries({ queryKey: ['pending-matches'] });
+      await queryClient.invalidateQueries({ 
+        queryKey: ['confirmed-matches']
+      });
+      await queryClient.invalidateQueries({ 
+        queryKey: ['pending-matches']
+      });
       
       toast.success(accept ? "Match accepted!" : "Match declined");
     } catch (error) {
