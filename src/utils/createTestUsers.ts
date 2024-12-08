@@ -88,7 +88,19 @@ export const createTestUsers = async () => {
   
   for (const user of testUsers) {
     try {
-      // First create the user
+      // Check if user already exists
+      const { data: existingUser } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('full_name', user.profile.full_name)
+        .single();
+
+      if (existingUser) {
+        console.log(`User ${user.email} already exists, skipping...`);
+        continue;
+      }
+
+      // Create the user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: user.email,
         password: user.password
@@ -106,7 +118,7 @@ export const createTestUsers = async () => {
 
       console.log(`Created user ${user.email} with ID ${authData.user.id}`);
 
-      // Then call our function to insert the profile
+      // Insert the profile
       const { error: rpcError } = await supabase.rpc('insert_test_profile', {
         user_id: authData.user.id,
         user_full_name: user.profile.full_name,
