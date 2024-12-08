@@ -10,7 +10,6 @@ import { useMessageData } from "@/hooks/useMessageData";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useChatSubscription } from "@/hooks/useChatSubscription";
 import LoadingSpinner from "@/components/ui/loading-spinner";
-import { Match } from "@/types/match";
 import { useLatestMessages } from "@/hooks/useMessageData";
 
 const Chat = () => {
@@ -90,7 +89,8 @@ const Chat = () => {
   }
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen pb-20 relative">
+      {/* Background Image with Overlay */}
       <div className="fixed inset-0 z-0">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -102,18 +102,21 @@ const Chat = () => {
         </div>
       </div>
 
+      {/* Content */}
       <div className="relative z-10">
         <TopNav session={session} profile={profile} />
-        <div className="h-[calc(100vh-128px)] flex mt-16">
-          <ChatSidebar matches={sortedMatches} currentMatchId={matchId} />
-          {matchId && otherProfile && (
-            <ChatContainer 
-              matchId={matchId}
-              otherProfile={otherProfile}
-              session={session}
-              messages={messages}
-            />
-          )}
+        <div className="pt-16 h-[calc(100vh-9rem)]">
+          <div className="h-full flex">
+            <ChatSidebar matches={sortedMatches} currentMatchId={matchId} />
+            {matchId && otherProfile && (
+              <ChatContainer 
+                matchId={matchId}
+                otherProfile={otherProfile}
+                session={session}
+                messages={messages}
+              />
+            )}
+          </div>
         </div>
         <BottomNav session={session} profile={profile} />
       </div>
