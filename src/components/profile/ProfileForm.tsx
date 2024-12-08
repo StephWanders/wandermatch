@@ -35,9 +35,40 @@ const ProfileForm = ({ session, profile, onProfileUpdate }: ProfileFormProps) =>
     },
   });
 
+  const hasChanges = (values: ProfileFormValues) => {
+    const currentValues = {
+      full_name: values.name,
+      age: parseInt(values.age),
+      location: values.location,
+      travel_style: values.travelStyle,
+      bio: values.bio,
+      interests: values.interests.split(",").map(i => i.trim()),
+      languages: values.languages.split(",").map(l => l.trim()),
+      preferred_destinations: values.preferredDestinations.split(",").map(d => d.trim()),
+      gender: values.gender,
+      preferred_gender: values.preferredGender.split(",").map(g => g.trim()),
+    };
+
+    return Object.keys(currentValues).some(key => {
+      const currentValue = currentValues[key as keyof typeof currentValues];
+      const profileValue = profile[key];
+
+      if (Array.isArray(currentValue) && Array.isArray(profileValue)) {
+        return JSON.stringify(currentValue) !== JSON.stringify(profileValue);
+      }
+      return currentValue !== profileValue;
+    });
+  };
+
   const onSubmit = async (values: ProfileFormValues) => {
     if (!session?.user?.id) {
       toast.error("You must be logged in to update your profile");
+      return;
+    }
+
+    if (!hasChanges(values)) {
+      toast.info("No changes detected");
+      navigate("/");
       return;
     }
 
@@ -60,12 +91,20 @@ const ProfileForm = ({ session, profile, onProfileUpdate }: ProfileFormProps) =>
         .eq("id", session.user.id);
 
       if (error) throw error;
-      toast.success("Profile updated successfully!");
+      
+      const toastId = toast.success("Profile updated successfully!");
+      setTimeout(() => {
+        toast.dismiss(toastId);
+      }, 2000);
+      
       onProfileUpdate();
       navigate("/");
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast.error("Error updating profile");
+      const toastId = toast.error("Error updating profile");
+      setTimeout(() => {
+        toast.dismiss(toastId);
+      }, 2000);
     }
   };
 
