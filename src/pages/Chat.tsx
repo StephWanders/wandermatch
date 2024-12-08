@@ -6,24 +6,25 @@ import ChatContainer from "@/components/chat/ChatContainer";
 import BottomNav from "@/components/navigation/BottomNav";
 import { useMatchData } from "@/hooks/useMatchData";
 import { useMessageData } from "@/hooks/useMessageData";
-import { useChatState } from "@/hooks/useChatState";
+import { useAuthState } from "@/hooks/useAuthState";
 import { useChatSubscription } from "@/hooks/useChatSubscription";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 
 const Chat = () => {
   const { matchId } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { session, profile } = useChatState();
+  const { session, profile, loading } = useAuthState();
   const [otherProfile, setOtherProfile] = useState(null);
 
   const { data: matches = [], isError: matchesError } = useMatchData(session?.user?.id);
   const { data: messages = [] } = useMessageData(session?.user?.id, matchId, otherProfile?.id);
 
   useEffect(() => {
-    if (!session) {
+    if (!loading && !session) {
       navigate('/');
     }
-  }, [session, navigate]);
+  }, [session, navigate, loading]);
 
   useEffect(() => {
     const updateOtherProfile = async () => {
@@ -40,8 +41,12 @@ const Chat = () => {
 
   useChatSubscription(matchId, session?.user?.id, otherProfile?.id, queryClient);
 
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
   if (!session) {
-    return <div>Loading...</div>;
+    return null;
   }
 
   if (matchesError) {
