@@ -11,7 +11,7 @@ const TopNav = () => {
       navigate('/matches');
     } else {
       // Show sign in form
-      navigate('/', { state: { view: 'sign_in' } });
+      navigate('/?view=sign_in');
     }
   };
 
@@ -20,7 +20,7 @@ const TopNav = () => {
       navigate('/matches');
     } else {
       // Show sign up form
-      navigate('/', { state: { view: 'sign_up' } });
+      navigate('/?view=sign_up');
     }
   };
 

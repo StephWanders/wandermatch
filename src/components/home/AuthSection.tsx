@@ -9,6 +9,8 @@ const AuthSection = () => {
   const [searchParams] = useSearchParams();
   const view = searchParams.get('view');
 
+  if (!view) return null;
+
   return (
     <Card className="max-w-md mx-auto bg-white/95 backdrop-blur-sm">
       <CardHeader>

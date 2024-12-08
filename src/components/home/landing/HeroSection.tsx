@@ -11,7 +11,7 @@ const HeroSection = () => {
       navigate('/matches');
     } else {
       // Always show sign up form for Join Now button
-      navigate('/', { state: { view: 'sign_up' } });
+      navigate('/?view=sign_up');
     }
   };
 
