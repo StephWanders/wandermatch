@@ -33,39 +33,50 @@ const Chat = () => {
   useEffect(() => {
     if (!matchId && matches.length > 0) {
       console.log('No matchId provided, navigating to most recent chat');
-      const sortedMatches = [...matches].sort((a, b) => {
-        return new Date(b.matched_at || '').getTime() - new Date(a.matched_at || '').getTime();
-      });
-      navigate(`/chat/${sortedMatches[0].id}`, { replace: true });
+      const mostRecentMatch = matches.reduce((latest, current) => {
+        const latestTime = new Date(latest.matched_at || '').getTime();
+        const currentTime = new Date(current.matched_at || '').getTime();
+        return currentTime > latestTime ? current : latest;
+      }, matches[0]);
+      
+      console.log('Most recent match:', mostRecentMatch);
+      navigate(`/chat/${mostRecentMatch.id}`, { replace: true });
     }
   }, [matchId, matches, navigate]);
 
   // Set other profile based on current match
   useEffect(() => {
-    if (!session?.user?.id || !matchId || !matches?.length) {
-      console.log('Missing required data for setting other profile:', {
-        userId: session?.user?.id,
-        matchId,
-        matchesLength: matches?.length
-      });
+    if (!session?.user?.id || !matchId) {
+      console.log('Missing session or matchId:', { userId: session?.user?.id, matchId });
+      return;
+    }
+
+    if (!matches?.length) {
+      console.log('No matches available yet');
       return;
     }
     
-    console.log('Setting other profile for match:', matchId);
+    console.log('Finding match:', matchId);
     const currentMatch = matches.find(m => m.id === matchId);
     
     if (currentMatch) {
-      const otherProfileId = currentMatch.profile1_id === session.user.id 
-        ? currentMatch.profile2_id 
-        : currentMatch.profile1_id;
-      
-      console.log('Other profile ID determined:', otherProfileId);
-      
-      // The profiles field in the match contains the other user's profile data
-      if (currentMatch.profiles) {
-        console.log('Setting other profile from match:', currentMatch.profiles);
-        setOtherProfile(currentMatch.profiles);
+      console.log('Found match:', currentMatch);
+      // If the current user is profile1, we want profile2's data and vice versa
+      if (currentMatch.profile1_id === session.user.id) {
+        const otherProfileMatch = matches.find(m => m.profiles.id === currentMatch.profile2_id);
+        if (otherProfileMatch) {
+          console.log('Setting other profile (from profile2):', otherProfileMatch.profiles);
+          setOtherProfile(otherProfileMatch.profiles);
+        }
+      } else {
+        const otherProfileMatch = matches.find(m => m.profiles.id === currentMatch.profile1_id);
+        if (otherProfileMatch) {
+          console.log('Setting other profile (from profile1):', otherProfileMatch.profiles);
+          setOtherProfile(otherProfileMatch.profiles);
+        }
       }
+    } else {
+      console.log('Match not found:', matchId);
     }
   }, [matchId, matches, session?.user?.id]);
 
