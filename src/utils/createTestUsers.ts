@@ -53,8 +53,7 @@ const generateRandomProfile = () => {
     interests: getRandomItems(interests, Math.floor(Math.random() * 5) + 3),
     preferred_destinations: getRandomItems(destinations, Math.floor(Math.random() * 4) + 2),
     gender,
-    preferred_gender: gender === 'male' ? ['female'] : ['male'],
-    email_verified: true
+    preferred_gender: gender === 'male' ? ['female'] : ['male']
   };
 };
 
