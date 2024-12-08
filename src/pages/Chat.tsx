@@ -1,62 +1,29 @@
-import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import ChatHeader from "@/components/chat/ChatHeader";
-import ChatInput from "@/components/chat/ChatInput";
-import ChatMessages from "@/components/chat/ChatMessages";
+import { useState, useEffect } from "react";
 import ChatSidebar from "@/components/chat/ChatSidebar";
+import ChatContainer from "@/components/chat/ChatContainer";
 import BottomNav from "@/components/navigation/BottomNav";
 import { useMatchData } from "@/hooks/useMatchData";
 import { useMessageData } from "@/hooks/useMessageData";
+import { useChatState } from "@/hooks/useChatState";
+import { useChatSubscription } from "@/hooks/useChatSubscription";
 
 const Chat = () => {
   const { matchId } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [session, setSession] = useState(null);
+  const { session, profile } = useChatState();
   const [otherProfile, setOtherProfile] = useState(null);
-  const [profile, setProfile] = useState(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        fetchProfile(session.user.id);
-      }
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (!session) {
-        navigate('/');
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-
-  const fetchProfile = async (userId) => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-        
-      if (error) throw error;
-      setProfile(data);
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-      toast.error("Failed to load profile");
-    }
-  };
 
   const { data: matches = [], isError: matchesError } = useMatchData(session?.user?.id);
   const { data: messages = [] } = useMessageData(session?.user?.id, matchId, otherProfile?.id);
+
+  useEffect(() => {
+    if (!session) {
+      navigate('/');
+    }
+  }, [session, navigate]);
 
   useEffect(() => {
     const updateOtherProfile = async () => {
@@ -71,60 +38,7 @@ const Chat = () => {
     updateOtherProfile();
   }, [matchId, matches, session?.user?.id]);
 
-  useEffect(() => {
-    if (!session?.user?.id || !matchId || !otherProfile?.id) return;
-
-    const channel = supabase
-      .channel(`chat:${matchId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'messages',
-          filter: `receiver_id=eq.${session.user.id}`,
-        },
-        (payload) => {
-          console.log('Message change received:', payload);
-          if (payload.eventType === 'INSERT') {
-            queryClient.invalidateQueries({ queryKey: ['chat-messages', matchId] });
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, [matchId, session?.user?.id, otherProfile?.id, queryClient]);
-
-  const sendMessage = async (content: string) => {
-    if (!session?.user?.id || !otherProfile?.id) {
-      console.error('Missing user or recipient information');
-      return;
-    }
-
-    try {
-      console.log('Sending message to:', otherProfile.id);
-      const { error } = await supabase.from("messages").insert({
-        content,
-        sender_id: session.user.id,
-        receiver_id: otherProfile.id,
-      });
-
-      if (error) throw error;
-      
-      // Invalidate all relevant queries
-      queryClient.invalidateQueries({ queryKey: ['chat-messages', matchId] });
-      queryClient.invalidateQueries({ queryKey: ['latest-messages'] });
-      queryClient.invalidateQueries({ queryKey: ['confirmed-matches'] });
-      
-      console.log('Message sent successfully');
-    } catch (error) {
-      console.error("Error sending message:", error);
-      toast.error("Failed to send message");
-    }
-  };
+  useChatSubscription(matchId, session?.user?.id, otherProfile?.id, queryClient);
 
   if (!session) {
     return <div>Loading...</div>;
@@ -149,11 +63,12 @@ const Chat = () => {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50">
       <div className="h-[calc(100vh-64px)] flex">
         <ChatSidebar matches={matches || []} currentMatchId={matchId} />
-        <div className="flex-1 flex flex-col">
-          <ChatHeader profile={otherProfile} />
-          <ChatMessages messages={messages} currentUserId={session?.user?.id} />
-          <ChatInput onSendMessage={sendMessage} />
-        </div>
+        <ChatContainer 
+          matchId={matchId!}
+          otherProfile={otherProfile}
+          session={session}
+          messages={messages}
+        />
       </div>
       <BottomNav session={session} profile={profile} />
     </div>
