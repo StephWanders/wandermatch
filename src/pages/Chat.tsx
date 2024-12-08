@@ -11,6 +11,7 @@ import { useAuthState } from "@/hooks/useAuthState";
 import { useChatSubscription } from "@/hooks/useChatSubscription";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { Match } from "@/types/match";
+import { useLatestMessages } from "@/hooks/useMessageData";
 
 const Chat = () => {
   const { matchId } = useParams();
@@ -19,8 +20,9 @@ const Chat = () => {
   const { session, profile, loading } = useAuthState();
   const [otherProfile, setOtherProfile] = useState(null);
 
-  const { data: matches = [], isError: matchesError } = useMatchData(session?.user?.id);
+  const { data: matches = [] } = useMatchData(session?.user?.id);
   const { data: messages = [] } = useMessageData(session?.user?.id, matchId, otherProfile?.id);
+  const { data: latestMessages } = useLatestMessages(session?.user?.id, matches);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -29,13 +31,20 @@ const Chat = () => {
     }
   }, [session, navigate, loading]);
 
-  // Navigate to first chat if no matchId is provided
+  // Sort matches by latest message time
+  const sortedMatches = [...matches].sort((a, b) => {
+    const timeA = latestMessages?.[a.id]?.time || a.matched_at || '';
+    const timeB = latestMessages?.[b.id]?.time || b.matched_at || '';
+    return new Date(timeB).getTime() - new Date(timeA).getTime();
+  });
+
+  // Navigate to most recent chat if no matchId is provided
   useEffect(() => {
-    if (!matchId && matches.length > 0) {
-      console.log('No matchId provided, navigating to first chat');
-      navigate(`/chat/${matches[0].id}`, { replace: true });
+    if (!matchId && sortedMatches.length > 0) {
+      console.log('No matchId provided, navigating to most recent chat:', sortedMatches[0].id);
+      navigate(`/chat/${sortedMatches[0].id}`, { replace: true });
     }
-  }, [matchId, matches, navigate]);
+  }, [matchId, sortedMatches, navigate]);
 
   // Set other profile based on current match
   useEffect(() => {
@@ -44,14 +53,14 @@ const Chat = () => {
       return;
     }
 
-    const currentMatch = matches.find(m => m.id === matchId);
+    const currentMatch = sortedMatches.find(m => m.id === matchId);
     if (currentMatch) {
       console.log('Found match:', currentMatch);
       setOtherProfile(currentMatch.profiles);
     } else {
       console.log('Match not found:', matchId);
     }
-  }, [matchId, matches, session?.user?.id]);
+  }, [matchId, sortedMatches, session?.user?.id]);
 
   useChatSubscription(matchId, session?.user?.id, otherProfile?.id, queryClient);
 
@@ -65,21 +74,6 @@ const Chat = () => {
 
   if (!session) {
     return null;
-  }
-
-  if (matchesError) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-secondary-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-display font-semibold text-accent-800 mb-2">
-            Unable to load chat
-          </h2>
-          <p className="font-body text-accent-600">
-            Please try refreshing the page
-          </p>
-        </div>
-      </div>
-    );
   }
 
   return (
@@ -98,7 +92,7 @@ const Chat = () => {
       <div className="relative z-10">
         <TopNav session={session} profile={profile} />
         <div className="h-[calc(100vh-128px)] flex mt-16">
-          <ChatSidebar matches={matches as Match[]} currentMatchId={matchId} />
+          <ChatSidebar matches={sortedMatches} currentMatchId={matchId} />
           {matchId && otherProfile && (
             <ChatContainer 
               matchId={matchId}
