@@ -75,9 +75,9 @@ const BottomNav = ({ session, profile }: BottomNavProps) => {
         .select('id')
         .eq('status', 'active')
         .or(`and(profile1_id.eq.${session.user.id},profile2_id.eq.${otherUserId}),and(profile1_id.eq.${otherUserId},profile2_id.eq.${session.user.id})`)
-        .single();
+        .limit(1); // Add limit(1) to get just the first match
 
-      return matchData;
+      return matchData?.[0] || null; // Return the first match or null if no matches
     },
     enabled: !!session?.user?.id
   });
