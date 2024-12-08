@@ -16,13 +16,8 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
   const { pendingMatches, unreadMessages, firstUnreadChat } = useWelcomeData(session?.user?.id);
 
   const handleChatClick = () => {
-    if (firstUnreadChat) {
-      console.log('Navigating to chat:', firstUnreadChat);
-      navigate(`/chat/${firstUnreadChat}`);
-    } else {
-      console.log('No active chat found, navigating to matches page');
-      navigate('/chat');
-    }
+    console.log('Navigating to chat');
+    navigate('/chat');
   };
 
   const handlePendingMatchesClick = () => {
