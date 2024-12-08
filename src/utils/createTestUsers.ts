@@ -10,6 +10,19 @@ const destinations = [
   'Japan', 'Italy', 'France', 'Spain', 'Thailand', 'New Zealand', 'Brazil', 
   'Morocco', 'Iceland', 'Greece', 'Vietnam', 'Peru', 'Australia', 'India'
 ];
+const locations = [
+  'New York, USA', 'London, UK', 'Tokyo, Japan', 'Paris, France', 'Sydney, Australia',
+  'Berlin, Germany', 'Toronto, Canada', 'Barcelona, Spain', 'Amsterdam, Netherlands',
+  'Singapore'
+];
+const firstNames = [
+  'Emma', 'Liam', 'Olivia', 'Noah', 'Ava', 'Ethan', 'Sophia', 'Mason',
+  'Isabella', 'William', 'Mia', 'James', 'Charlotte', 'Alexander', 'Amelia'
+];
+const lastNames = [
+  'Smith', 'Johnson', 'Brown', 'Taylor', 'Miller', 'Anderson', 'Wilson',
+  'Moore', 'Jackson', 'Martin', 'Lee', 'Perez', 'Thompson', 'White', 'Harris'
+];
 
 const getRandomItems = (array: string[], count: number) => {
   const shuffled = [...array].sort(() => 0.5 - Math.random());
@@ -20,14 +33,43 @@ const getRandomAge = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
-const createUserWithProfile = async (email: string, profile: any) => {
+const getRandomName = () => {
+  const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+  const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+  return `${firstName} ${lastName}`;
+};
+
+const generateRandomProfile = () => {
+  const fullName = getRandomName();
+  const gender = Math.random() > 0.5 ? 'male' : 'female';
+  
+  return {
+    full_name: fullName,
+    age: getRandomAge(21, 45),
+    location: locations[Math.floor(Math.random() * locations.length)],
+    bio: `Travel enthusiast looking for amazing adventures! Love exploring new places and meeting new people.`,
+    travel_style: travelStyles[Math.floor(Math.random() * travelStyles.length)],
+    languages: getRandomItems(languages, Math.floor(Math.random() * 3) + 1),
+    interests: getRandomItems(interests, Math.floor(Math.random() * 5) + 3),
+    preferred_destinations: getRandomItems(destinations, Math.floor(Math.random() * 4) + 2),
+    gender,
+    preferred_gender: gender === 'male' ? ['female'] : ['male'],
+    email_verified: true
+  };
+};
+
+const createUserWithProfile = async (index: number) => {
   try {
-    console.log(`Attempting to create/update user with email: ${email}`);
+    const email = `test.user${index}@example.com`;
+    const password = 'password123';
+    const profile = generateRandomProfile();
     
+    console.log(`Creating user ${index + 1}: ${email}`);
+
     // Try to sign up the user
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
-      password: 'password123',
+      password,
       options: {
         data: {
           full_name: profile.full_name
@@ -35,33 +77,15 @@ const createUserWithProfile = async (email: string, profile: any) => {
       }
     });
 
-    let userId;
-
     if (authError) {
-      // Check if error is due to existing user
       if (authError.message === "User already registered") {
-        console.log(`User ${email} already exists, proceeding with profile update...`);
-        // Get existing user data
-        const { data: userData, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password: 'password123',
-        });
-
-        if (signInError) {
-          console.error('Error signing in existing user:', signInError);
-          throw signInError;
-        }
-
-        userId = userData.user?.id;
-      } else {
-        console.error('Auth error:', authError);
-        throw authError;
+        console.log(`User ${email} already exists, skipping...`);
+        return null;
       }
-    } else {
-      userId = authData.user?.id;
-      console.log(`Created new auth user ${email} with ID ${userId}`);
+      throw authError;
     }
 
+    const userId = authData.user?.id;
     if (!userId) {
       throw new Error('No user ID available for profile update');
     }
@@ -80,72 +104,22 @@ const createUserWithProfile = async (email: string, profile: any) => {
       throw profileError;
     }
 
-    console.log(`Updated profile for ${email}`);
+    console.log(`Created user ${index + 1} successfully: ${email}`);
     return userId;
   } catch (error) {
-    console.error(`Error creating/updating user ${email}:`, error);
-    throw error;
+    console.error(`Error creating user ${index + 1}:`, error);
+    return null;
   }
 };
 
-const testUsers = [
-  {
-    email: 'test.user1@example.com',
-    profile: {
-      full_name: 'Alex Thompson',
-      age: getRandomAge(25, 35),
-      location: 'London, UK',
-      bio: 'Adventure seeker with a passion for photography',
-      travel_style: travelStyles[Math.floor(Math.random() * travelStyles.length)],
-      languages: getRandomItems(languages, 3),
-      interests: getRandomItems(interests, 5),
-      preferred_destinations: getRandomItems(destinations, 4),
-      gender: 'other',
-      preferred_gender: ['male', 'female', 'other']
-    }
-  },
-  {
-    email: 'test.user2@example.com',
-    profile: {
-      full_name: 'Maria Garcia',
-      age: getRandomAge(28, 38),
-      location: 'Barcelona, Spain',
-      bio: 'Cultural explorer and foodie',
-      travel_style: travelStyles[Math.floor(Math.random() * travelStyles.length)],
-      languages: getRandomItems(languages, 3),
-      interests: getRandomItems(interests, 5),
-      preferred_destinations: getRandomItems(destinations, 4),
-      gender: 'female',
-      preferred_gender: ['male']
-    }
-  },
-  {
-    email: 'test.user3@example.com',
-    profile: {
-      full_name: 'James Wilson',
-      age: getRandomAge(23, 33),
-      location: 'Sydney, Australia',
-      bio: 'Backpacker seeking authentic experiences',
-      travel_style: travelStyles[Math.floor(Math.random() * travelStyles.length)],
-      languages: getRandomItems(languages, 2),
-      interests: getRandomItems(interests, 4),
-      preferred_destinations: getRandomItems(destinations, 3),
-      gender: 'male',
-      preferred_gender: ['female']
-    }
-  }
-];
-
 export const createTestUsers = async () => {
-  console.log('Starting to create test users...');
+  console.log('Starting to create 5 test users...');
   
-  for (const user of testUsers) {
-    try {
-      await createUserWithProfile(user.email, user.profile);
-    } catch (error) {
-      console.error(`Failed to create test user ${user.email}:`, error);
-    }
-  }
-
-  console.log('Finished creating test users');
+  const creationPromises = Array.from({ length: 5 }, (_, i) => createUserWithProfile(i));
+  const results = await Promise.all(creationPromises);
+  
+  const successCount = results.filter(Boolean).length;
+  console.log(`Finished creating test users. Successfully created: ${successCount}`);
+  
+  return successCount;
 };
