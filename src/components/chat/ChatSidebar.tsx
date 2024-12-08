@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useLatestMessages } from "@/hooks/useMessageData";
 import { useEffect, useState } from "react";
 import ChatPreviewCard from "./ChatPreviewCard";
+import { useQuery } from "@tanstack/react-query";
 
 interface ChatSidebarProps {
   matches: any[];
@@ -26,6 +27,30 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
 
   const { data: latestMessages } = useLatestMessages(currentUserId || undefined, matches);
 
+  // Query to get unread message counts for each match
+  const { data: unreadCounts = {} } = useQuery({
+    queryKey: ['unread-counts', currentUserId],
+    queryFn: async () => {
+      if (!currentUserId) return {};
+      
+      const { data: messages } = await supabase
+        .from('messages')
+        .select('sender_id, receiver_id')
+        .eq('receiver_id', currentUserId)
+        .is('read_at', null);
+
+      if (!messages) return {};
+
+      // Count unread messages per sender
+      return messages.reduce((acc: Record<string, number>, msg) => {
+        const senderId = msg.sender_id;
+        acc[senderId] = (acc[senderId] || 0) + 1;
+        return acc;
+      }, {});
+    },
+    enabled: !!currentUserId
+  });
+
   const handleUnmatch = async (matchId: string) => {
     try {
       const { error } = await supabase
@@ -43,14 +68,21 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     }
   };
 
-  // Sort matches by latest message time
+  // Sort matches by unread messages first, then by latest message time
   const sortedMatches = [...(matches || [])].sort((a, b) => {
+    const unreadA = unreadCounts[a.profiles.id] || 0;
+    const unreadB = unreadCounts[b.profiles.id] || 0;
+    
+    if (unreadA !== unreadB) {
+      return unreadB - unreadA; // Sort by unread count first
+    }
+    
     const timeA = latestMessages?.[a.id]?.time || a.matched_at;
     const timeB = latestMessages?.[b.id]?.time || b.matched_at;
     return new Date(timeB).getTime() - new Date(timeA).getTime();
   });
 
-  // Select most recent chat when navigating to /chat
+  // Select most recent chat with unread messages when navigating to /chat
   useEffect(() => {
     const isOnChatRoute = location.pathname === '/chat';
     const hasNoMatchSelected = !currentMatchId;
@@ -80,6 +112,7 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
             latestMessage={latestMessages?.[match.id]?.message}
             onClick={() => navigate(`/chat/${match.id}`)}
             onUnmatch={() => handleUnmatch(match.id)}
+            unreadCount={unreadCounts[match.profiles.id] || 0}
           />
         ))}
       </ScrollArea>

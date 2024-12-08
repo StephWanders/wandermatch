@@ -42,12 +42,16 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
       
       if (unreadMessages.length > 0) {
         try {
-          console.log('Attempting to mark messages as read:', unreadMessages.map(m => m.id));
+          const messageIds = unreadMessages.map(m => m.id);
+          console.log('Attempting to mark messages as read:', messageIds);
           
           const { data, error } = await supabase
             .from('messages')
-            .update({ read_at: new Date().toISOString() })
-            .in('id', unreadMessages.map(m => m.id))
+            .update({ 
+              read_at: new Date().toISOString() 
+            })
+            .in('id', messageIds)
+            .eq('receiver_id', currentUserId)  // Add this to ensure we only update messages for current user
             .select();
 
           if (error) {

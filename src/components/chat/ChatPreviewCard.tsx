@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 
 interface ChatPreviewCardProps {
   profile: any;
@@ -19,6 +20,7 @@ interface ChatPreviewCardProps {
   latestMessage?: string;
   onClick: () => void;
   onUnmatch: () => void;
+  unreadCount?: number;
 }
 
 const ChatPreviewCard = ({
@@ -26,7 +28,8 @@ const ChatPreviewCard = ({
   isActive,
   latestMessage,
   onClick,
-  onUnmatch
+  onUnmatch,
+  unreadCount = 0
 }: ChatPreviewCardProps) => {
   return (
     <div
@@ -44,9 +47,16 @@ const ChatPreviewCard = ({
             name={profile.full_name}
           />
           <div className="min-w-0 flex-1">
-            <h3 className="font-display text-lg font-medium text-accent-800 truncate">
-              {profile.full_name}
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-display text-lg font-medium text-accent-800 truncate">
+                {profile.full_name}
+              </h3>
+              {unreadCount > 0 && (
+                <Badge variant="secondary" className="ml-2 bg-primary-100">
+                  {unreadCount}
+                </Badge>
+              )}
+            </div>
             <p className="text-sm font-body text-accent-600 truncate">
               {latestMessage}
             </p>
