@@ -19,19 +19,21 @@ const AuthSection = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <Card className="max-w-md w-full mx-4 bg-white/95 backdrop-blur-sm relative">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in">
+      <Card className="max-w-md w-full mx-4 bg-white/95 backdrop-blur-sm relative animate-scale-in">
         <Button
           variant="ghost"
           size="icon"
-          className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+          className="absolute right-2 top-2 text-accent-400 hover:text-accent-600 transition-colors"
           onClick={handleClose}
         >
           <X className="h-4 w-4" />
         </Button>
-        <CardHeader>
-          <CardTitle>{view === 'sign_up' ? 'Create an Account' : 'Welcome Back'}</CardTitle>
-          <CardDescription>
+        <CardHeader className="space-y-2">
+          <CardTitle className="text-2xl font-display text-accent-700">
+            {view === 'sign_up' ? 'Create an Account' : 'Welcome Back'}
+          </CardTitle>
+          <CardDescription className="text-accent-500 font-body">
             {view === 'sign_up' 
               ? 'Sign up to start finding your perfect travel companion' 
               : 'Sign in to continue your journey'}
@@ -45,10 +47,49 @@ const AuthSection = () => {
               variables: {
                 default: {
                   colors: {
-                    brand: '#2563eb',
-                    brandAccent: '#1d4ed8',
+                    brand: '#00BFA6',
+                    brandAccent: '#008F7D',
+                    brandButtonText: 'white',
+                    defaultButtonBackground: 'white',
+                    defaultButtonBackgroundHover: '#F5F5F5',
+                    defaultButtonBorder: '#E6E6E6',
+                    defaultButtonText: '#424242',
+                    dividerBackground: '#E6E6E6',
+                    inputBackground: 'white',
+                    inputBorder: '#E6E6E6',
+                    inputBorderHover: '#00BFA6',
+                    inputBorderFocus: '#00BFA6',
+                    inputText: '#424242',
+                    inputLabelText: '#424242',
+                    inputPlaceholder: '#999999',
+                  },
+                  borderWidths: {
+                    buttonBorderWidth: '1px',
+                    inputBorderWidth: '1px',
+                  },
+                  radii: {
+                    borderRadiusButton: '8px',
+                    buttonBorderRadius: '8px',
+                    inputBorderRadius: '8px',
+                  },
+                  space: {
+                    inputPadding: '12px',
+                    buttonPadding: '12px',
+                  },
+                  fonts: {
+                    bodyFontFamily: `'Roboto', sans-serif`,
+                    buttonFontFamily: `'Roboto', sans-serif`,
+                    inputFontFamily: `'Roboto', sans-serif`,
+                    labelFontFamily: `'Roboto', sans-serif`,
                   },
                 },
+              },
+              className: {
+                container: 'space-y-4',
+                button: 'font-medium',
+                label: 'font-medium',
+                input: 'font-normal',
+                divider: 'my-4',
               },
             }}
             view={view === 'sign_up' ? 'sign_up' : 'sign_in'}
