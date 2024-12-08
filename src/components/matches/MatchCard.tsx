@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import ProfileModal from "./ProfileModal";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface MatchCardProps {
   match: any;
@@ -19,8 +21,29 @@ const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: Match
   const matchedProfile = match.profiles;
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
-  const handleChatClick = () => {
-    navigate(`/chat/${match.id}`);
+  const handleChatClick = async () => {
+    try {
+      console.log('Initializing chat with match:', match.id);
+      
+      // Update match status to ensure it's marked as active
+      const { error: updateError } = await supabase
+        .from('matches')
+        .update({ status: 'active' })
+        .eq('id', match.id)
+        .single();
+
+      if (updateError) {
+        console.error('Error updating match status:', updateError);
+        toast.error("Failed to initialize chat");
+        return;
+      }
+
+      console.log('Chat initialized successfully');
+      navigate(`/chat/${match.id}`);
+    } catch (error) {
+      console.error('Error initializing chat:', error);
+      toast.error("Failed to initialize chat");
+    }
   };
 
   const handleProfileClick = () => {
