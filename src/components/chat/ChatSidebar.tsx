@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useLatestMessages } from "@/hooks/useMessageData";
 import { useEffect, useState } from "react";
 import ChatPreviewCard from "./ChatPreviewCard";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface ChatSidebarProps {
   matches: any[];
@@ -15,6 +15,7 @@ interface ChatSidebarProps {
 const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,23 +33,33 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     queryKey: ['unread-counts', currentUserId],
     queryFn: async () => {
       if (!currentUserId) return {};
+      console.log('Fetching unread counts for user:', currentUserId);
       
-      const { data: messages } = await supabase
+      const { data: messages, error } = await supabase
         .from('messages')
         .select('sender_id, receiver_id')
         .eq('receiver_id', currentUserId)
         .is('read_at', null);
 
-      if (!messages) return {};
+      if (error) {
+        console.error('Error fetching unread counts:', error);
+        return {};
+      }
+
+      console.log('Unread messages:', messages);
 
       // Count unread messages per sender
-      return messages.reduce((acc: Record<string, number>, msg) => {
+      const counts = messages?.reduce((acc: Record<string, number>, msg) => {
         const senderId = msg.sender_id;
         acc[senderId] = (acc[senderId] || 0) + 1;
         return acc;
-      }, {});
+      }, {}) || {};
+
+      console.log('Unread counts:', counts);
+      return counts;
     },
-    enabled: !!currentUserId
+    enabled: !!currentUserId,
+    refetchInterval: 5000 // Refetch every 5 seconds
   });
 
   const handleUnmatch = async (matchId: string) => {

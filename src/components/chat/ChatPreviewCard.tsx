@@ -62,7 +62,7 @@ const ChatPreviewCard = ({
               )}
             </div>
             <p className="text-sm font-body text-accent-600 truncate">
-              {latestMessage}
+              {latestMessage || "No messages yet"}
             </p>
           </div>
         </div>
