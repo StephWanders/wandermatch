@@ -37,7 +37,7 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
       
       const { data: messages, error } = await supabase
         .from('messages')
-        .select('sender_id, receiver_id')
+        .select('sender_id')
         .eq('receiver_id', currentUserId)
         .is('read_at', null);
 
@@ -127,17 +127,24 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
         <h2 className="font-display text-xl font-semibold text-accent-800">Your Chats</h2>
       </div>
       <ScrollArea className="h-[calc(100vh-64px)]">
-        {sortedMatches?.map((match) => (
-          <ChatPreviewCard
-            key={match.id}
-            profile={match.profiles}
-            isActive={match.id === currentMatchId}
-            latestMessage={latestMessages?.[match.id]?.message}
-            onClick={() => navigate(`/chat/${match.id}`)}
-            onUnmatch={() => handleUnmatch(match.id)}
-            unreadCount={unreadCounts[match.profiles.id] || 0}
-          />
-        ))}
+        {sortedMatches?.map((match) => {
+          // Get the other user's profile ID
+          const otherProfileId = match.profile1_id === currentUserId 
+            ? match.profile2_id 
+            : match.profile1_id;
+            
+          return (
+            <ChatPreviewCard
+              key={match.id}
+              profile={match.profiles}
+              isActive={match.id === currentMatchId}
+              latestMessage={latestMessages?.[match.id]?.message}
+              onClick={() => navigate(`/chat/${match.id}`)}
+              onUnmatch={() => handleUnmatch(match.id)}
+              unreadCount={unreadCounts[otherProfileId] || 0}
+            />
+          );
+        })}
       </ScrollArea>
     </div>
   );
