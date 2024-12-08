@@ -74,38 +74,24 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     }
   };
 
-  const uniqueMatches = matches.reduce((acc: Match[], match) => {
-    const otherProfileId = match.profile1_id === currentUserId ? match.profile2_id : match.profile1_id;
-    const existingMatch = acc.find(m => {
-      const existingOtherProfileId = m.profile1_id === currentUserId ? m.profile2_id : m.profile1_id;
-      return existingOtherProfileId === otherProfileId;
-    });
+  // Filter matches to only show active ones where the current user is profile1
+  const activeMatches = matches.filter(match => 
+    match.status === 'active' && 
+    match.profile1_id === currentUserId
+  );
 
-    if (!existingMatch) {
-      acc.push(match);
-    }
-    return acc;
-  }, []);
-
-  // Sort matches by latest message time first, then by unread count
-  const sortedMatches = [...uniqueMatches].sort((a, b) => {
+  // Sort matches by latest message time
+  const sortedMatches = [...activeMatches].sort((a, b) => {
     const timeA = latestMessages?.[a.id]?.time || a.matched_at || '';
     const timeB = latestMessages?.[b.id]?.time || b.matched_at || '';
-    
-    // Compare message times
-    const timeComparison = new Date(timeB).getTime() - new Date(timeA).getTime();
-    if (timeComparison !== 0) return timeComparison;
-    
-    // If times are equal, sort by unread count
-    const unreadA = unreadCounts[a.profiles.id] || 0;
-    const unreadB = unreadCounts[b.profiles.id] || 0;
-    return unreadB - unreadA;
+    return new Date(timeB).getTime() - new Date(timeA).getTime();
   });
 
   // Navigate to most recent chat if on base chat route
   useEffect(() => {
     if (location.pathname === '/chat' && sortedMatches.length > 0) {
       const mostRecentMatch = sortedMatches[0];
+      console.log('Navigating to most recent active match:', mostRecentMatch);
       navigate(`/chat/${mostRecentMatch.id}`, { replace: true });
     }
   }, [location.pathname, sortedMatches, navigate]);
@@ -116,11 +102,9 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
         <h2 className="font-display text-xl font-semibold text-accent-800">Your Chats</h2>
       </div>
       <ScrollArea className="h-[calc(100vh-64px)] scrollbar-none">
-        {sortedMatches?.map((match) => {
+        {sortedMatches.map((match) => {
           const otherProfile = match.profiles;
-          const otherProfileId = match.profile1_id === currentUserId 
-            ? match.profile2_id 
-            : match.profile1_id;
+          const otherProfileId = match.profile2_id;
             
           return (
             <ChatPreviewCard

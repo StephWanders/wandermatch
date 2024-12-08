@@ -32,26 +32,14 @@ const Chat = () => {
     }
   }, [session, navigate, loading]);
 
-  // Deduplicate matches by other user's profile ID and sort by latest message
-  const uniqueAndSortedMatches = matches.reduce((acc: Match[], match) => {
-    const otherProfileId = match.profile1_id === session?.user?.id ? match.profile2_id : match.profile1_id;
-    const existingMatchIndex = acc.findIndex(m => {
-      const existingOtherProfileId = m.profile1_id === session?.user?.id ? m.profile2_id : m.profile1_id;
-      return existingOtherProfileId === otherProfileId;
-    });
+  // Filter to only show active matches where the current user is profile1
+  const activeMatches = matches.filter(match => 
+    match.status === 'active' && 
+    match.profile1_id === session?.user?.id
+  );
 
-    // Keep the match with the most recent message or matched_at time
-    if (existingMatchIndex === -1) {
-      acc.push(match);
-    } else {
-      const existingTime = latestMessages?.[acc[existingMatchIndex].id]?.time || acc[existingMatchIndex].matched_at;
-      const newTime = latestMessages?.[match.id]?.time || match.matched_at;
-      if (new Date(newTime) > new Date(existingTime)) {
-        acc[existingMatchIndex] = match;
-      }
-    }
-    return acc;
-  }, []).sort((a, b) => {
+  // Sort matches by latest message
+  const sortedMatches = [...activeMatches].sort((a, b) => {
     const timeA = latestMessages?.[a.id]?.time || a.matched_at;
     const timeB = latestMessages?.[b.id]?.time || b.matched_at;
     return new Date(timeB).getTime() - new Date(timeA).getTime();
@@ -59,12 +47,12 @@ const Chat = () => {
 
   // Navigate to most recent chat if on base chat route
   useEffect(() => {
-    if (location.pathname === '/chat' && uniqueAndSortedMatches.length > 0) {
-      const mostRecentMatch = uniqueAndSortedMatches[0];
+    if (location.pathname === '/chat' && sortedMatches.length > 0) {
+      const mostRecentMatch = sortedMatches[0];
       console.log('Navigating to most recent match:', mostRecentMatch);
       navigate(`/chat/${mostRecentMatch.id}`, { replace: true });
     }
-  }, [location.pathname, uniqueAndSortedMatches, navigate]);
+  }, [location.pathname, sortedMatches, navigate]);
 
   // Set other profile based on current match
   useEffect(() => {
@@ -73,22 +61,19 @@ const Chat = () => {
       return;
     }
 
-    const currentMatch = uniqueAndSortedMatches.find(m => m.id === matchId);
+    const currentMatch = sortedMatches.find(m => m.id === matchId);
     if (currentMatch) {
-      const otherProfileId = currentMatch.profile1_id === session.user.id 
-        ? currentMatch.profile2_id 
-        : currentMatch.profile1_id;
-      console.log('Found match:', currentMatch, 'Setting other profile for:', otherProfileId);
+      console.log('Found match:', currentMatch, 'Setting other profile');
       setOtherProfile(currentMatch.profiles);
     } else {
       console.log('Match not found:', matchId);
       // If match not found, navigate to the most recent match
-      if (uniqueAndSortedMatches.length > 0) {
+      if (sortedMatches.length > 0) {
         console.log('Redirecting to most recent match');
-        navigate(`/chat/${uniqueAndSortedMatches[0].id}`, { replace: true });
+        navigate(`/chat/${sortedMatches[0].id}`, { replace: true });
       }
     }
-  }, [matchId, uniqueAndSortedMatches, session?.user?.id, navigate]);
+  }, [matchId, sortedMatches, session?.user?.id, navigate]);
 
   useChatSubscription(matchId, session?.user?.id, otherProfile?.id, queryClient);
 
@@ -120,7 +105,7 @@ const Chat = () => {
       <div className="relative z-10">
         <TopNav session={session} profile={profile} />
         <div className="h-[calc(100vh-128px)] flex mt-16">
-          <ChatSidebar matches={uniqueAndSortedMatches} currentMatchId={matchId} />
+          <ChatSidebar matches={sortedMatches} currentMatchId={matchId} />
           {matchId && otherProfile && (
             <ChatContainer 
               matchId={matchId}
