@@ -6,7 +6,7 @@ const HeroSection = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const handleJoinNow = () => {
-    setSearchParams({ view: 'sign_up' });
+    navigate('/?view=sign_up');
   };
 
   return (

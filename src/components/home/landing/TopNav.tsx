@@ -1,15 +1,15 @@
 import { Button } from "@/components/ui/button";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const TopNav = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const handleSignIn = () => {
-    setSearchParams({ view: 'sign_in' });
+    navigate('/?view=sign_in');
   };
 
   const handleSignUp = () => {
-    setSearchParams({ view: 'sign_up' });
+    navigate('/?view=sign_up');
   };
 
   return (
