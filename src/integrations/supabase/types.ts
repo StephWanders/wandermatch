@@ -12,23 +12,23 @@ export type Database = {
       matches: {
         Row: {
           id: string
-          matched_at: string | null
-          profile1_id: string | null
-          profile2_id: string | null
+          matched_at: string
+          profile1_id: string
+          profile2_id: string
           status: string
         }
         Insert: {
           id?: string
-          matched_at?: string | null
-          profile1_id?: string | null
-          profile2_id?: string | null
+          matched_at?: string
+          profile1_id: string
+          profile2_id: string
           status: string
         }
         Update: {
           id?: string
-          matched_at?: string | null
-          profile1_id?: string | null
-          profile2_id?: string | null
+          matched_at?: string
+          profile1_id?: string
+          profile2_id?: string
           status?: string
         }
         Relationships: [

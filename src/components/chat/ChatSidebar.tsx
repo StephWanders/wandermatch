@@ -1,6 +1,21 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { UserMinus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ChatSidebarProps {
   matches: any[];
@@ -9,6 +24,23 @@ interface ChatSidebarProps {
 
 const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
   const navigate = useNavigate();
+
+  const handleUnmatch = async (matchId: string) => {
+    try {
+      const { error } = await supabase
+        .from('matches')
+        .update({ status: 'unmatched' })
+        .eq('id', matchId);
+
+      if (error) throw error;
+
+      toast.success("Successfully unmatched");
+      navigate('/matches');
+    } catch (error) {
+      console.error("Error unmatching:", error);
+      toast.error("Failed to unmatch");
+    }
+  };
 
   return (
     <div className="w-80 bg-white border-r">
@@ -21,22 +53,55 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
           return (
             <div
               key={match.id}
-              className={`p-4 hover:bg-gray-50 cursor-pointer ${
+              className={`p-4 hover:bg-gray-50 ${
                 match.id === currentMatchId ? "bg-blue-50" : ""
               }`}
-              onClick={() => navigate(`/chat/${match.id}`)}
             >
-              <div className="flex items-center space-x-3">
-                <ProfileAvatar
-                  imageUrl={chatProfile.profile_image_url}
-                  name={chatProfile.full_name}
-                />
-                <div>
-                  <h3 className="font-medium">{chatProfile.full_name}</h3>
-                  <p className="text-sm text-gray-500 truncate">
-                    {chatProfile.travel_style}
-                  </p>
+              <div className="flex items-center justify-between">
+                <div 
+                  className="flex items-center space-x-3 cursor-pointer flex-1"
+                  onClick={() => navigate(`/chat/${match.id}`)}
+                >
+                  <ProfileAvatar
+                    imageUrl={chatProfile.profile_image_url}
+                    name={chatProfile.full_name}
+                  />
+                  <div>
+                    <h3 className="font-medium">{chatProfile.full_name}</h3>
+                    <p className="text-sm text-gray-500 truncate">
+                      {chatProfile.travel_style}
+                    </p>
+                  </div>
                 </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                    >
+                      <UserMinus className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Unmatch User</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to unmatch with {chatProfile.full_name}? 
+                        This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleUnmatch(match.id)}
+                        className="bg-red-500 hover:bg-red-600"
+                      >
+                        Unmatch
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
           );
