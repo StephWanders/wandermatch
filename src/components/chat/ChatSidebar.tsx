@@ -97,11 +97,11 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
   }, [location.pathname, sortedMatches, navigate]);
 
   return (
-    <div className="w-80 bg-white/40 backdrop-blur-md border-r border-primary-100">
+    <div className="w-80 bg-white/40 backdrop-blur-md border-r border-primary-100 flex flex-col">
       <div className="p-4 border-b border-primary-100">
         <h2 className="font-display text-xl font-semibold text-accent-800">Your Chats</h2>
       </div>
-      <ScrollArea className="h-[calc(100vh-64px)] scrollbar-none">
+      <ScrollArea className="flex-1">
         {sortedMatches.map((match) => {
           const otherProfile = match.profiles;
           const otherProfileId = match.profile2_id;

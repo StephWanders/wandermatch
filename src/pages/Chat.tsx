@@ -89,7 +89,7 @@ const Chat = () => {
   }
 
   return (
-    <div className="min-h-screen pb-20 relative">
+    <div className="h-screen flex flex-col">
       {/* Background Image with Overlay */}
       <div className="fixed inset-0 z-0">
         <div 
@@ -103,20 +103,18 @@ const Chat = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10">
+      <div className="relative z-10 flex flex-col h-full">
         <TopNav session={session} profile={profile} />
-        <div className="pt-16 h-[calc(100vh-9rem)]">
-          <div className="h-full flex">
-            <ChatSidebar matches={sortedMatches} currentMatchId={matchId} />
-            {matchId && otherProfile && (
-              <ChatContainer 
-                matchId={matchId}
-                otherProfile={otherProfile}
-                session={session}
-                messages={messages}
-              />
-            )}
-          </div>
+        <div className="flex-1 flex overflow-hidden">
+          <ChatSidebar matches={sortedMatches} currentMatchId={matchId} />
+          {matchId && otherProfile && (
+            <ChatContainer 
+              matchId={matchId}
+              otherProfile={otherProfile}
+              session={session}
+              messages={messages}
+            />
+          )}
         </div>
         <BottomNav session={session} profile={profile} />
       </div>
