@@ -31,7 +31,7 @@ const NavButton = ({ icon: Icon, label, to, onClick, active }: NavButtonProps) =
           active ? "text-primary-600" : "text-accent-500 hover:text-accent-700"
         }`}>
           <Icon className="w-6 h-6" />
-          <span className="text-xs font-medium font-display">{label}</span>
+          <span className="text-xs font-medium font-display tracking-wide">{label}</span>
         </div>
       </Link>
     );
@@ -46,7 +46,7 @@ const NavButton = ({ icon: Icon, label, to, onClick, active }: NavButtonProps) =
         active ? "text-primary-600" : "text-accent-500 hover:text-accent-700"
       }`}>
         <Icon className="w-6 h-6" />
-        <span className="text-xs font-medium font-display">{label}</span>
+        <span className="text-xs font-medium font-display tracking-wide">{label}</span>
       </div>
     </button>
   );

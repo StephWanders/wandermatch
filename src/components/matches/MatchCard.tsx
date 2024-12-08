@@ -16,7 +16,6 @@ interface MatchCardProps {
   isPending?: boolean;
   onAccept?: (matchId: string) => void;
   onDecline?: (matchId: string) => void;
-  onChatClick?: (matchId: string) => void;
 }
 
 const MatchCard = ({ match, isPending, onAccept, onDecline }: MatchCardProps) => {
@@ -47,7 +46,9 @@ const MatchCard = ({ match, isPending, onAccept, onDecline }: MatchCardProps) =>
   const handleChatClick = async () => {
     try {
       console.log('Initializing chat with match:', match.id);
-      navigate(`/chat/${match.id}`);
+      navigate(`/chat/${match.id}`, { 
+        state: { from: location.pathname, showLatest: true }
+      });
     } catch (error) {
       console.error('Error initializing chat:', error);
       toast.error("Failed to initialize chat");
@@ -106,7 +107,7 @@ const MatchCard = ({ match, isPending, onAccept, onDecline }: MatchCardProps) =>
               </div>
             ) : (
               <MatchActions 
-                onChatClick={handleChatClick}
+                matchId={match.id}
                 onRateClick={() => setIsRatingModalOpen(true)}
               />
             )}
