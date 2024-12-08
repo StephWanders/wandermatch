@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import ChatHeader from "@/components/chat/ChatHeader";
 import ChatInput from "@/components/chat/ChatInput";
@@ -12,8 +12,8 @@ import BottomNav from "@/components/navigation/BottomNav";
 const Chat = () => {
   const { matchId } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [session, setSession] = useState(null);
-  const [messages, setMessages] = useState([]);
   const [otherProfile, setOtherProfile] = useState(null);
   const [profile, setProfile] = useState(null);
 
@@ -69,58 +69,63 @@ const Chat = () => {
         return [];
       }
       
-      if (matchId && data) {
-        const currentMatch = data.find(m => m.id === matchId);
-        if (currentMatch) {
-          const otherProfileId = currentMatch.profile1_id === session.user.id 
-            ? currentMatch.profile2_id 
-            : currentMatch.profile1_id;
-          
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', otherProfileId)
-            .single();
-            
-          if (profileData) {
-            console.log('Setting other profile:', profileData);
-            setOtherProfile(profileData);
-          }
-        }
-      }
-      
       return data || [];
     },
     enabled: !!session?.user?.id,
   });
 
+  // Separate query for messages
+  const { data: messages = [] } = useQuery({
+    queryKey: ['chat-messages', matchId],
+    queryFn: async () => {
+      if (!session?.user?.id || !matchId || !otherProfile?.id) return [];
+      console.log('Fetching messages for match:', matchId);
+      const { data, error } = await supabase
+        .from("messages")
+        .select("*")
+        .or(
+          `and(sender_id.eq.${session.user.id},receiver_id.eq.${otherProfile.id}),` +
+          `and(sender_id.eq.${otherProfile.id},receiver_id.eq.${session.user.id})`
+        )
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!session?.user?.id && !!matchId && !!otherProfile?.id,
+  });
+
+  // Effect to update otherProfile when matchId changes
   useEffect(() => {
-    if (!session?.user?.id || !matchId || !otherProfile?.id) return;
-
-    const fetchMessages = async () => {
-      try {
-        console.log('Fetching messages for match:', matchId);
-        const { data, error } = await supabase
-          .from("messages")
-          .select("*")
-          .or(
-            `and(sender_id.eq.${session.user.id},receiver_id.eq.${otherProfile.id}),` +
-            `and(sender_id.eq.${otherProfile.id},receiver_id.eq.${session.user.id})`
-          )
-          .order("created_at", { ascending: true });
-
-        if (error) throw error;
-        console.log('Messages fetched:', data);
-        setMessages(data || []);
-      } catch (error) {
-        console.error("Error fetching messages:", error);
-        toast.error("Failed to load messages");
+    const updateOtherProfile = async () => {
+      if (!session?.user?.id || !matchId || !matches) return;
+      
+      const currentMatch = matches.find(m => m.id === matchId);
+      if (currentMatch) {
+        const otherProfileId = currentMatch.profile1_id === session.user.id 
+          ? currentMatch.profile2_id 
+          : currentMatch.profile1_id;
+        
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', otherProfileId)
+          .single();
+          
+        if (profileData) {
+          console.log('Setting other profile:', profileData);
+          setOtherProfile(profileData);
+        }
       }
     };
 
-    fetchMessages();
+    updateOtherProfile();
+  }, [matchId, matches, session?.user?.id]);
 
-    // Subscribe to new messages
+  // Subscribe to new messages
+  useEffect(() => {
+    if (!session?.user?.id || !matchId || !otherProfile?.id) return;
+
     const channel = supabase
       .channel(`chat:${matchId}`)
       .on(
@@ -134,7 +139,8 @@ const Chat = () => {
         (payload) => {
           console.log('Message change received:', payload);
           if (payload.eventType === 'INSERT') {
-            setMessages((current) => [...current, payload.new]);
+            // Invalidate and refetch messages query
+            queryClient.invalidateQueries({ queryKey: ['chat-messages', matchId] });
           }
         }
       )
@@ -143,7 +149,7 @@ const Chat = () => {
     return () => {
       channel.unsubscribe();
     };
-  }, [matchId, session?.user?.id, otherProfile?.id]);
+  }, [matchId, session?.user?.id, otherProfile?.id, queryClient]);
 
   const sendMessage = async (content: string) => {
     if (!session?.user?.id || !otherProfile?.id) {
@@ -160,6 +166,9 @@ const Chat = () => {
       });
 
       if (error) throw error;
+      
+      // Invalidate and refetch messages after sending
+      queryClient.invalidateQueries({ queryKey: ['chat-messages', matchId] });
       console.log('Message sent successfully');
     } catch (error) {
       console.error("Error sending message:", error);
