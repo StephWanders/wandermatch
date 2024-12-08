@@ -32,13 +32,15 @@ const getRandomProfileImage = (): string | null => {
 
 export const createTestUsers = async () => {
   try {
-    console.log('Creating test users...');
+    console.log('Starting test user creation process...');
     
     // Create 10 test users
     for (let i = 0; i < 10; i++) {
       const email = `test${i + 1}@example.com`;
       const password = 'testpassword123';
       
+      console.log(`Creating test user ${i + 1} with email: ${email}`);
+
       // First check if user exists
       const { data: existingUser } = await supabase
         .from('profiles')
@@ -49,6 +51,7 @@ export const createTestUsers = async () => {
       let userId;
       
       if (!existingUser) {
+        console.log(`User ${i + 1} doesn't exist, creating new user...`);
         // Only create new user if they don't exist
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
@@ -56,11 +59,13 @@ export const createTestUsers = async () => {
         });
 
         if (authError) {
+          console.error(`Auth error for user ${i + 1}:`, authError);
           // If error is not "user already exists", throw it
           if (!authError.message.includes('User already registered')) {
             throw authError;
           }
           // If user exists in auth but not in profiles, get their ID
+          console.log(`User ${i + 1} exists in auth, signing in to get ID...`);
           const { data: existingAuthUser } = await supabase.auth.signInWithPassword({
             email,
             password,
@@ -78,9 +83,12 @@ export const createTestUsers = async () => {
         continue;
       }
 
+      console.log(`Got user ID for user ${i + 1}: ${userId}`);
+
       const profileImage = getRandomProfileImage();
       
       // Update or insert test profile data
+      console.log(`Updating profile data for user ${i + 1}...`);
       const { error: profileError } = await supabase.rpc('insert_test_profile', {
         user_id: userId,
         user_full_name: `Test User ${i + 1}`,
@@ -95,9 +103,13 @@ export const createTestUsers = async () => {
         user_preferred_gender: ['male', 'female']
       });
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error(`Profile error for user ${i + 1}:`, profileError);
+        throw profileError;
+      }
 
       if (profileImage) {
+        console.log(`Adding profile picture for user ${i + 1}...`);
         // Check if profile picture already exists
         const { data: existingPicture } = await supabase
           .from('profile_pictures')
@@ -115,7 +127,10 @@ export const createTestUsers = async () => {
               is_default: true
             });
 
-          if (pictureError) throw pictureError;
+          if (pictureError) {
+            console.error(`Picture error for user ${i + 1}:`, pictureError);
+            throw pictureError;
+          }
 
           // Update profile with the image URL
           const { error: updateError } = await supabase
@@ -123,15 +138,22 @@ export const createTestUsers = async () => {
             .update({ profile_image_url: profileImage })
             .eq('id', userId);
 
-          if (updateError) throw updateError;
+          if (updateError) {
+            console.error(`Profile update error for user ${i + 1}:`, updateError);
+            throw updateError;
+          }
         }
       }
+
+      console.log(`Successfully created/updated test user ${i + 1}`);
     }
 
-    console.log('Test users created/updated successfully');
+    console.log('All test users created/updated successfully');
+    toast.success('Test users created successfully!');
     return true;
-  } catch (error) {
-    console.error('Error creating test users:', error);
+  } catch (error: any) {
+    console.error('Error in createTestUsers:', error);
+    toast.error(error.message || 'Failed to create test users');
     throw error;
   }
 };
