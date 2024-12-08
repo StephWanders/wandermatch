@@ -1,8 +1,7 @@
 import { useAuthState } from "@/hooks/useAuthState";
 import { toast } from "sonner";
 import Hero from "@/components/home/Hero";
-import Features from "@/components/home/Features";
-import CallToAction from "@/components/home/CallToAction";
+import LandingPage from "@/components/home/landing/LandingPage";
 import { Button } from "@/components/ui/button";
 import { createTestUsers } from "@/utils/createTestUsers";
 import BottomNav from "@/components/navigation/BottomNav";
@@ -25,15 +24,13 @@ const Index = () => {
     return <LoadingSpinner />;
   }
 
+  if (!session) {
+    return <LandingPage />;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50 pb-20">
       <Hero session={session} profile={profile} />
-      {!session && (
-        <>
-          <Features />
-          <CallToAction />
-        </>
-      )}
       
       {/* Temporary button for creating test users - remove in production */}
       <div className="fixed bottom-20 right-4">
@@ -46,7 +43,7 @@ const Index = () => {
         </Button>
       </div>
 
-      {session && <BottomNav session={session} profile={profile} />}
+      <BottomNav session={session} profile={profile} />
     </div>
   );
 };
