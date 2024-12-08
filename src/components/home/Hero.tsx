@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import AuthSection from "./AuthSection";
@@ -36,28 +35,6 @@ const Hero = ({ session, profile }: HeroProps) => {
       <div className="relative z-10 container mx-auto px-4 pt-24 pb-20">
         {session && profile ? (
           <div className="animate-fade-in">
-            <div className="absolute top-4 right-4 flex items-center space-x-4 bg-white/90 backdrop-blur-md rounded-lg p-3 shadow-sm border border-primary-100">
-              <div className="text-right">
-                <h3 className="text-lg font-semibold text-accent-700 font-display">
-                  Welcome, {profile.full_name}!
-                </h3>
-                <p className="text-accent-500 text-sm">Ready to explore?</p>
-              </div>
-              <ProfileAvatar 
-                imageUrl={profile.profile_image_url} 
-                name={profile.full_name} 
-              />
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleSignOut}
-                className="text-accent-600 hover:text-accent-900 hover:bg-primary-50"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
-            
             <WelcomeSection session={session} profile={profile} />
           </div>
         ) : (

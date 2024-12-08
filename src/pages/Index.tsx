@@ -1,5 +1,6 @@
 import { useAuthState } from "@/hooks/useAuthState";
 import { toast } from "sonner";
+import Hero from "@/components/home/Hero";
 import LandingPage from "@/components/home/landing/LandingPage";
 import { Button } from "@/components/ui/button";
 import { createTestUsers } from "@/utils/createTestUsers";
@@ -45,6 +46,7 @@ const Index = () => {
       {/* Content */}
       <div className="relative z-10">
         <TopNav session={session} profile={profile} />
+        <Hero session={session} profile={profile} />
         
         {/* Temporary button for creating test users - remove in production */}
         <div className="fixed bottom-20 right-4">
