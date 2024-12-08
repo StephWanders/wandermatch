@@ -7,7 +7,7 @@ interface StatsCardProps {
   icon: LucideIcon;
   title: ReactNode;
   stat: string;
-  to: string;
+  to?: string; // Made optional
   bgColor: string;
   iconColor: string;
   className?: string;
@@ -51,6 +51,10 @@ const StatsCard = ({
 
   if (onClick) {
     return <div onClick={onClick} className="cursor-pointer">{content}</div>;
+  }
+
+  if (!to) {
+    return content;
   }
 
   return <Link to={to}>{content}</Link>;
