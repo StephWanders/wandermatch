@@ -21,7 +21,7 @@ const steps = [
 
 const HowItWorksSection = () => {
   return (
-    <section className="py-24 px-4 bg-white">
+    <section className="py-24 px-4">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-4xl font-bold text-center mb-16 text-gray-900">
           How WanderMatch Works
@@ -29,7 +29,7 @@ const HowItWorksSection = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {steps.map((step, index) => (
-            <Card key={index} className="relative overflow-hidden hover:shadow-lg transition-shadow duration-300">
+            <Card key={index} className="relative overflow-hidden bg-white/80 backdrop-blur-sm hover:shadow-lg transition-shadow duration-300">
               <div className="absolute top-0 left-0 w-12 h-12 bg-orange-500 text-white flex items-center justify-center text-xl font-bold rounded-br-lg">
                 {index + 1}
               </div>
