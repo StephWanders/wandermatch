@@ -63,7 +63,7 @@ const Chat = () => {
           profile1:profiles!matches_profile1_id_fkey(*)
         `)
         .eq('status', 'active')
-        .or(`profile1_id.eq.${session.user.id},profile2_id.eq.${session.user.id}`);
+        .eq('profile1_id', session.user.id);
       
       if (error) {
         console.error('Error fetching matches:', error);
@@ -72,8 +72,7 @@ const Chat = () => {
       
       return data.map(match => ({
         ...match,
-        // Select the profile that isn't the current user
-        profiles: match.profile1_id === session.user.id ? match.profile2 : match.profile1
+        profiles: match.profile2 // Since we're only getting matches where user is profile1, other profile is always profile2
       }));
     },
     enabled: !!session?.user?.id,
