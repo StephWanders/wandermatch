@@ -1,63 +1,66 @@
-import BottomNav from "@/components/navigation/BottomNav";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import MatchesTab from "@/components/matches/tabs/MatchesTab";
-import PendingTab from "@/components/matches/tabs/PendingTab";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuthState } from "@/hooks/useAuthState";
+import MatchList from "@/components/matches/MatchList";
 import DiscoverTab from "@/components/matches/DiscoverTab";
-import { useMatchQueries } from "@/hooks/useMatchQueries";
-import { useMatchState } from "@/hooks/useMatchState";
-import { useSearchParams } from "react-router-dom";
+import BottomNav from "@/components/navigation/BottomNav";
+import TopNav from "@/components/navigation/TopNav";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 
 const Matches = () => {
-  const [searchParams] = useSearchParams();
-  const { session, profile } = useMatchState();
-  const { confirmedMatches, pendingMatches, handleMatchResponse } = useMatchQueries(session?.user?.id);
+  const navigate = useNavigate();
+  const { session, profile, loading } = useAuthState();
 
-  // Get the initial tab from URL or default to "matches"
-  const initialTab = searchParams.get("tab") || "matches";
+  useEffect(() => {
+    if (!loading && !session) {
+      navigate("/");
+    }
+  }, [session, navigate, loading]);
 
-  // Calculate actual counts from the data
-  const confirmedCount = confirmedMatches?.length || 0;
-  const pendingCount = pendingMatches?.length || 0;
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  if (!session) {
+    return null;
+  }
 
   return (
-    <div className="min-h-screen pb-20 bg-gradient-to-b from-blue-50 to-green-50">
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Your Matches</h1>
-        
-        <Tabs defaultValue={initialTab} className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="matches">
-              Matches ({confirmedCount})
-            </TabsTrigger>
-            <TabsTrigger value="pending">
-              Pending ({pendingCount})
-            </TabsTrigger>
-            <TabsTrigger value="discover">
-              Discover
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="matches">
-            <MatchesTab confirmedMatches={confirmedMatches} />
-          </TabsContent>
-
-          <TabsContent value="pending">
-            <PendingTab 
-              pendingMatches={pendingMatches}
-              onAccept={(id) => handleMatchResponse(id, true)}
-              onDecline={(id) => handleMatchResponse(id, false)}
-            />
-          </TabsContent>
-
-          <TabsContent value="discover">
-            <DiscoverTab 
-              userId={session?.user?.id}
-              userProfile={profile}
-            />
-          </TabsContent>
-        </Tabs>
+    <div className="min-h-screen pb-20 relative">
+      {/* Background Image with Overlay */}
+      <div className="fixed inset-0 z-0">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ 
+            backgroundImage: "url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80')",
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-white/85 to-white/90 backdrop-blur-[1px]" />
+        </div>
       </div>
-      <BottomNav session={session} profile={profile} />
+
+      {/* Content */}
+      <div className="relative z-10">
+        <TopNav session={session} profile={profile} />
+        
+        <div className="container mx-auto px-4 pt-20">
+          <Tabs defaultValue="discover" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-8">
+              <TabsTrigger value="discover">Discover</TabsTrigger>
+              <TabsTrigger value="matches">My Matches</TabsTrigger>
+            </TabsList>
+            <TabsContent value="discover">
+              <DiscoverTab session={session} />
+            </TabsContent>
+            <TabsContent value="matches">
+              <MatchList session={session} />
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        <BottomNav session={session} profile={profile} />
+      </div>
     </div>
   );
 };
