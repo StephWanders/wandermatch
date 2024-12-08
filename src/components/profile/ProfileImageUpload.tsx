@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ImagePreview from "./image-upload/ImagePreview";
@@ -19,6 +19,34 @@ interface ProfileImageUploadProps {
 const ProfileImageUpload = ({ userId, existingImages = [], onImagesUpdate }: ProfileImageUploadProps) => {
   const [images, setImages] = useState<ProfilePicture[]>(existingImages);
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      console.log('Fetching profile pictures for user:', session.user.id);
+      fetchProfilePictures();
+    }
+  }, [session?.user?.id]);
+
+  const fetchProfilePictures = async () => {
+    try {
+      if (!userId) return;
+      console.log('Fetching profile pictures for user:', userId);
+      
+      const { data, error } = await supabase
+        .from('profile_pictures')
+        .select('*')
+        .eq('profile_id', userId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      console.log('Fetched profile pictures:', data);
+      setImages(data || []);
+      onImagesUpdate?.(data || []);
+    } catch (error) {
+      console.error('Error fetching profile pictures:', error);
+      toast.error("Failed to load profile pictures");
+    }
+  };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -82,6 +110,7 @@ const ProfileImageUpload = ({ userId, existingImages = [], onImagesUpdate }: Pro
 
         if (dbError) throw dbError;
 
+        console.log('New profile picture added:', pictureData);
         const updatedImages = [...images, pictureData];
         setImages(updatedImages);
         onImagesUpdate?.(updatedImages);
@@ -109,6 +138,8 @@ const ProfileImageUpload = ({ userId, existingImages = [], onImagesUpdate }: Pro
     if (!userId) return;
 
     try {
+      console.log('Setting default image:', imageId);
+      
       // First, remove default status from all images
       const { error: updateError } = await supabase
         .from('profile_pictures')
@@ -130,6 +161,7 @@ const ProfileImageUpload = ({ userId, existingImages = [], onImagesUpdate }: Pro
         is_default: img.id === imageId
       }));
 
+      console.log('Updated images after setting default:', updatedImages);
       setImages(updatedImages);
       onImagesUpdate?.(updatedImages);
       toast.success("Default profile picture updated!");
@@ -143,6 +175,7 @@ const ProfileImageUpload = ({ userId, existingImages = [], onImagesUpdate }: Pro
     if (!userId) return;
 
     try {
+      console.log('Deleting image:', imageId);
       const { error } = await supabase
         .from('profile_pictures')
         .delete()
@@ -151,6 +184,7 @@ const ProfileImageUpload = ({ userId, existingImages = [], onImagesUpdate }: Pro
       if (error) throw error;
 
       const updatedImages = images.filter(img => img.id !== imageId);
+      console.log('Updated images after deletion:', updatedImages);
       setImages(updatedImages);
       onImagesUpdate?.(updatedImages);
       toast.success("Profile picture deleted successfully!");
