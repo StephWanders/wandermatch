@@ -21,11 +21,12 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
       navigate(`/chat/${firstUnreadChat}`);
     } else {
       console.log('No active chat found, navigating to matches page');
-      navigate('/matches');
+      navigate('/chat');
     }
   };
 
   const handlePendingMatchesClick = () => {
+    console.log('Navigating to pending matches tab');
     navigate('/matches?tab=pending');
   };
 

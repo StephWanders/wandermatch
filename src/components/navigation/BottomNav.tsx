@@ -80,6 +80,7 @@ const BottomNav = ({ session }: BottomNavProps) => {
 
   const handleChatClick = () => {
     if (session) {
+      console.log('Navigating to chat');
       navigate('/chat');
     }
   };
@@ -88,6 +89,7 @@ const BottomNav = ({ session }: BottomNavProps) => {
     if (session) {
       // If coming from pending matches notification, go to pending tab
       if (pendingMatches?.length > 0) {
+        console.log('Navigating to pending matches tab');
         navigate('/matches?tab=pending');
       } else {
         navigate('/matches');
