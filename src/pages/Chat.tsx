@@ -105,7 +105,7 @@ const Chat = () => {
       {/* Content */}
       <div className="relative z-10 flex flex-col h-full">
         <TopNav session={session} profile={profile} />
-        <div className="flex-1 flex overflow-hidden">
+        <main className="flex-1 flex overflow-hidden pt-16 pb-16"> {/* Added padding to account for nav bars */}
           <ChatSidebar matches={sortedMatches} currentMatchId={matchId} />
           {matchId && otherProfile && (
             <ChatContainer 
@@ -115,7 +115,7 @@ const Chat = () => {
               messages={messages}
             />
           )}
-        </div>
+        </main>
         <BottomNav session={session} profile={profile} />
       </div>
     </div>

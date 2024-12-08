@@ -97,27 +97,29 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
   }, [location.pathname, sortedMatches, navigate]);
 
   return (
-    <div className="w-80 bg-white/40 backdrop-blur-md border-r border-primary-100 flex flex-col">
+    <div className="w-80 bg-white/40 backdrop-blur-md border-r border-primary-100 flex flex-col h-full">
       <div className="p-4 border-b border-primary-100">
         <h2 className="font-display text-xl font-semibold text-accent-800">Your Chats</h2>
       </div>
       <ScrollArea className="flex-1">
-        {sortedMatches.map((match) => {
-          const otherProfile = match.profiles;
-          const otherProfileId = match.profile2_id;
-            
-          return (
-            <ChatPreviewCard
-              key={match.id}
-              profile={otherProfile}
-              isActive={match.id === currentMatchId}
-              latestMessage={latestMessages?.[match.id]?.message}
-              onClick={() => navigate(`/chat/${match.id}`)}
-              onUnmatch={() => handleUnmatch(match.id)}
-              unreadCount={unreadCounts[otherProfileId] || 0}
-            />
-          );
-        })}
+        <div className="py-2">
+          {sortedMatches.map((match) => {
+            const otherProfile = match.profiles;
+            const otherProfileId = match.profile2_id;
+              
+            return (
+              <ChatPreviewCard
+                key={match.id}
+                profile={otherProfile}
+                isActive={match.id === currentMatchId}
+                latestMessage={latestMessages?.[match.id]?.message}
+                onClick={() => navigate(`/chat/${match.id}`)}
+                onUnmatch={() => handleUnmatch(match.id)}
+                unreadCount={unreadCounts[otherProfileId] || 0}
+              />
+            );
+          })}
+        </div>
       </ScrollArea>
     </div>
   );
