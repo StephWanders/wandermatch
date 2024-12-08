@@ -101,25 +101,9 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     return new Date(b.matched_at).getTime() - new Date(a.matched_at).getTime();
   });
 
-  // Navigate to most recent chat or chat with unread messages
-  useEffect(() => {
-    const isOnChatRoute = location.pathname === '/chat';
-    const hasNoMatchSelected = !currentMatchId;
-    const hasMatches = sortedMatches.length > 0;
-    const showLatest = location.state?.showLatest;
-    
-    if ((isOnChatRoute || hasNoMatchSelected) && hasMatches && showLatest) {
-      // Only navigate to latest if explicitly requested
-      const matchToShow = sortedMatches[0];
-      if (matchToShow?.id !== currentMatchId) {
-        console.log('Navigating to latest match:', matchToShow.id);
-        navigate(`/chat/${matchToShow.id}`, { 
-          replace: true,
-          state: { showLatest: false }
-        });
-      }
-    }
-  }, [location.pathname, location.state, currentMatchId, sortedMatches, navigate]);
+  console.log('Current matches:', matches);
+  console.log('Current match ID:', currentMatchId);
+  console.log('Sorted matches:', sortedMatches);
 
   return (
     <div className="w-80 bg-white/95 backdrop-blur-md border-r border-primary-100">

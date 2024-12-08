@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 interface MatchActionsProps {
   matchId: string;
@@ -9,15 +9,11 @@ interface MatchActionsProps {
 
 const MatchActions = ({ matchId, onRateClick }: MatchActionsProps) => {
   const navigate = useNavigate();
-  const location = useLocation();
 
   const handleChatClick = () => {
     console.log('Navigating to chat with match:', matchId);
     // Navigate to chat with this specific match
-    navigate(`/chat/${matchId}`, { 
-      state: { showLatest: false }, // Don't show latest, show this specific chat
-      replace: true
-    });
+    navigate(`/chat/${matchId}`);
   };
 
   return (
