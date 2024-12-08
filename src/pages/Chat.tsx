@@ -61,7 +61,7 @@ const Chat = () => {
           *,
           profiles!matches_profile2_id_fkey(*)
         `)
-        .or(`profile1_id.eq.${session.user.id},profile2_id.eq.${session.user.id}`)
+        .or(`profile1_id.eq.${session.user.id}`)
         .eq('status', 'accepted');
       
       if (error) {
