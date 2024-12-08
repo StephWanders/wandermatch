@@ -1,17 +1,52 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const TICKETMASTER_API_KEY = Deno.env.get('TICKETMASTER_API_KEY');
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 interface LocationData {
-  latitude: number;
-  longitude: number;
   city?: string;
 }
+
+const getPlaceholderEvents = (cityName: string) => [
+  {
+    title: `Live Jazz & Wine Tasting`,
+    type: "Music & Culture",
+    time: "7:00 PM - 10:00 PM",
+    location: `The ${cityName} Jazz Club`,
+    price: "$45",
+    description: "An evening of smooth jazz paired with curated wine selections from local vineyards",
+    tags: ["Live Music", "Wine", "Jazz"]
+  },
+  {
+    title: `${cityName} Food & Culture Festival`,
+    type: "Community Event",
+    time: "4:00 PM - 11:00 PM",
+    location: `${cityName} Central Park`,
+    price: "Free Entry",
+    description: "Celebrate diversity with international cuisine, cultural performances, and local artisans",
+    tags: ["Food", "Culture", "Family-Friendly"]
+  },
+  {
+    title: "Photography Workshop & Gallery",
+    type: "Art & Learning",
+    time: "6:30 PM - 9:00 PM",
+    location: `${cityName} Creative Space`,
+    price: "$35",
+    description: "Learn night photography techniques followed by a gallery showcase of local talent",
+    tags: ["Workshop", "Photography", "Art"]
+  },
+  {
+    title: "Interactive Art Exhibition",
+    type: "Art & Entertainment",
+    time: "5:00 PM - 10:00 PM",
+    location: `${cityName} Modern Art Museum`,
+    price: "$20",
+    description: "Experience cutting-edge digital art installations with interactive elements",
+    tags: ["Art", "Interactive", "Modern"]
+  }
+];
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -20,61 +55,14 @@ serve(async (req) => {
   }
 
   try {
-    const { latitude, longitude, city } = await req.json() as LocationData;
-    console.log('Received request with data:', { latitude, longitude, city });
+    const { city } = await req.json() as LocationData;
+    console.log('Received request with city:', city);
 
-    if (!TICKETMASTER_API_KEY) {
-      console.log('Ticketmaster API key not configured');
-      return new Response(
-        JSON.stringify({
-          fallback: true,
-          error: "Ticketmaster API key not configured"
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        }
-      );
-    }
-
-    // Use city name if provided, otherwise use lat/long
-    const locationQuery = city 
-      ? `&city=${encodeURIComponent(city)}`
-      : `&latlong=${latitude},${longitude}`;
-
-    const apiUrl = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${TICKETMASTER_API_KEY}${locationQuery}&size=4&sort=date,asc&startDateTime=${new Date().toISOString()}`;
-    console.log('Fetching events from:', apiUrl);
-
-    const response = await fetch(apiUrl);
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('Ticketmaster API error:', data);
-      throw new Error(data.message || 'Failed to fetch events');
-    }
-
-    const events = data._embedded?.events || [];
-    const formattedEvents = events.map((event: any) => ({
-      title: event.name,
-      type: event.classifications?.[0]?.segment?.name || "Event",
-      time: `${new Date(event.dates.start.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
-      location: event._embedded?.venues?.[0]?.name || "Venue TBA",
-      price: event.priceRanges 
-        ? `$${Math.floor(event.priceRanges[0].min)} - $${Math.ceil(event.priceRanges[0].max)}`
-        : "Price TBA",
-      description: event.info || event.name,
-      tags: [
-        event.classifications?.[0]?.segment?.name,
-        event.classifications?.[0]?.genre?.name,
-        event.classifications?.[0]?.subGenre?.name
-      ].filter(Boolean),
-      url: event.url
-    }));
-
-    console.log('Returning formatted events:', formattedEvents);
+    const events = getPlaceholderEvents(city || 'Your City');
+    console.log('Returning placeholder events for:', city);
 
     return new Response(
-      JSON.stringify({ events: formattedEvents }),
+      JSON.stringify({ events }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,

@@ -1,4 +1,4 @@
-import { Users, Camera, Palette, Music, Theater, Calendar } from "lucide-react";
+import { Music, Theater, Calendar } from "lucide-react";
 
 export const getEventIcon = (type: string) => {
   type = type.toLowerCase();
@@ -11,7 +11,6 @@ export const getPlaceholderEvents = (cityName: string) => [
   {
     title: `Live Jazz & Wine Tasting`,
     type: "Music & Culture",
-    icon: <Music className="h-6 w-6 text-purple-500" />,
     time: "7:00 PM - 10:00 PM",
     location: `The ${cityName} Jazz Club`,
     price: "$45",
@@ -21,7 +20,6 @@ export const getPlaceholderEvents = (cityName: string) => [
   {
     title: `${cityName} Food & Culture Festival`,
     type: "Community Event",
-    icon: <Users className="h-6 w-6 text-blue-500" />,
     time: "4:00 PM - 11:00 PM",
     location: `${cityName} Central Park`,
     price: "Free Entry",
@@ -31,7 +29,6 @@ export const getPlaceholderEvents = (cityName: string) => [
   {
     title: "Photography Workshop & Gallery",
     type: "Art & Learning",
-    icon: <Camera className="h-6 w-6 text-green-500" />,
     time: "6:30 PM - 9:00 PM",
     location: `${cityName} Creative Space`,
     price: "$35",
@@ -41,7 +38,6 @@ export const getPlaceholderEvents = (cityName: string) => [
   {
     title: "Interactive Art Exhibition",
     type: "Art & Entertainment",
-    icon: <Palette className="h-6 w-6 text-red-500" />,
     time: "5:00 PM - 10:00 PM",
     location: `${cityName} Modern Art Museum`,
     price: "$20",
