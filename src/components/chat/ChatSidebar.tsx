@@ -46,8 +46,6 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
         return {};
       }
 
-      console.log('Unread messages:', messages);
-
       // Count unread messages per sender
       const counts = messages?.reduce((acc: Record<string, number>, msg) => {
         const senderId = msg.sender_id;
@@ -59,7 +57,7 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
       return counts;
     },
     enabled: !!currentUserId,
-    refetchInterval: 5000 // Refetch every 5 seconds
+    refetchInterval: 3000 // Refetch every 3 seconds
   });
 
   const handleUnmatch = async (matchId: string) => {
@@ -103,7 +101,7 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     return new Date(b.matched_at).getTime() - new Date(a.matched_at).getTime();
   });
 
-  // Select most recent chat or chat with unread messages when navigating to /chat
+  // Navigate to most recent chat or chat with unread messages
   useEffect(() => {
     const isOnChatRoute = location.pathname === '/chat';
     const hasNoMatchSelected = !currentMatchId;
@@ -113,12 +111,13 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     if ((isOnChatRoute || hasNoMatchSelected || showLatest) && hasMatches) {
       // Find first match with unread messages or most recent match
       const matchToShow = sortedMatches[0];
-      console.log('Navigating to match:', matchToShow.id);
-      
-      navigate(`/chat/${matchToShow.id}`, { 
-        replace: true,
-        state: { ...location.state, showLatest: false }
-      });
+      if (matchToShow?.id !== currentMatchId) {
+        console.log('Navigating to match:', matchToShow.id);
+        navigate(`/chat/${matchToShow.id}`, { 
+          replace: true,
+          state: { ...location.state, showLatest: false }
+        });
+      }
     }
   }, [location.pathname, location.state, currentMatchId, sortedMatches, navigate]);
 
