@@ -60,7 +60,9 @@ const generateRandomProfile = () => {
 
 const createUserWithProfile = async (index: number) => {
   try {
-    const email = `test.user${index}@example.com`;
+    // Generate a unique timestamp-based email to avoid conflicts
+    const timestamp = Date.now();
+    const email = `test.user${index}.${timestamp}@example.com`;
     const password = 'password123';
     const profile = generateRandomProfile();
     
@@ -78,16 +80,14 @@ const createUserWithProfile = async (index: number) => {
     });
 
     if (authError) {
-      if (authError.message === "User already registered") {
-        console.log(`User ${email} already exists, skipping...`);
-        return null;
-      }
-      throw authError;
+      console.error(`Error creating user ${index + 1}:`, authError);
+      return null;
     }
 
     const userId = authData.user?.id;
     if (!userId) {
-      throw new Error('No user ID available for profile update');
+      console.error('No user ID available for profile update');
+      return null;
     }
 
     // Wait a bit to ensure the trigger has time to create the profile
@@ -101,7 +101,7 @@ const createUserWithProfile = async (index: number) => {
 
     if (profileError) {
       console.error('Profile update error:', profileError);
-      throw profileError;
+      return null;
     }
 
     console.log(`Created user ${index + 1} successfully: ${email}`);
