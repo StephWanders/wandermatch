@@ -17,6 +17,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 
 interface ChatSidebarProps {
   matches: any[];
@@ -25,20 +26,32 @@ interface ChatSidebarProps {
 
 const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
   const navigate = useNavigate();
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Get the current user's ID
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.id) {
+        setCurrentUserId(session.user.id);
+      }
+    });
+  }, []);
 
   // Query to get the latest message for each match
   const { data: latestMessages } = useQuery({
-    queryKey: ['latest-messages', matches?.map(m => m.id)],
+    queryKey: ['latest-messages', matches?.map(m => m.id), currentUserId],
     queryFn: async () => {
-      if (!matches?.length) return {};
+      if (!matches?.length || !currentUserId) return {};
       
       const messagesPromises = matches.map(async (match) => {
+        const otherProfileId = match.profile1_id === currentUserId ? match.profile2_id : match.profile1_id;
+        
         const { data } = await supabase
           .from('messages')
           .select('created_at')
           .or(
-            `and(sender_id.in.(${match.profiles.id},${match.current_user_id}),` +
-            `receiver_id.in.(${match.profiles.id},${match.current_user_id}))`
+            `and(sender_id.in.(${otherProfileId},${currentUserId}),` +
+            `receiver_id.in.(${otherProfileId},${currentUserId}))`
           )
           .order('created_at', { ascending: false })
           .limit(1);
@@ -55,7 +68,7 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
         [curr.matchId]: curr.latestMessageTime
       }), {});
     },
-    enabled: !!matches?.length
+    enabled: !!matches?.length && !!currentUserId
   });
 
   const handleUnmatch = async (matchId: string) => {
@@ -83,10 +96,12 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
   });
 
   // If no match is selected, automatically select the most recent one
-  if (!currentMatchId && sortedMatches.length > 0) {
-    const mostRecentMatch = sortedMatches[0];
-    navigate(`/chat/${mostRecentMatch.id}`);
-  }
+  useEffect(() => {
+    if (!currentMatchId && sortedMatches.length > 0) {
+      const mostRecentMatch = sortedMatches[0];
+      navigate(`/chat/${mostRecentMatch.id}`);
+    }
+  }, [currentMatchId, sortedMatches, navigate]);
 
   return (
     <div className="w-80 bg-white border-r">
