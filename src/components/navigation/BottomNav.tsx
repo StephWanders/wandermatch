@@ -1,6 +1,7 @@
 import { Home, Heart, MessageCircle } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useWelcomeData } from "@/hooks/useWelcomeData";
+import { Badge } from "@/components/ui/badge";
 
 interface NavButtonProps {
   icon: React.ElementType;
@@ -8,9 +9,10 @@ interface NavButtonProps {
   to?: string;
   onClick?: () => void;
   active?: boolean;
+  badge?: number;
 }
 
-const NavButton = ({ icon: Icon, label, to, onClick, active }: NavButtonProps) => {
+const NavButton = ({ icon: Icon, label, to, onClick, active, badge }: NavButtonProps) => {
   if (to) {
     return (
       <Link 
@@ -20,7 +22,17 @@ const NavButton = ({ icon: Icon, label, to, onClick, active }: NavButtonProps) =
         <div className={`flex flex-col items-center space-y-1 ${
           active ? "text-primary-600" : "text-accent-500 hover:text-accent-700"
         }`}>
-          <Icon className="w-6 h-6" />
+          <div className="relative">
+            <Icon className="w-6 h-6" />
+            {badge !== undefined && badge > 0 && (
+              <Badge 
+                variant="secondary" 
+                className="absolute -top-2 -right-2 bg-primary-500 text-white px-1.5 min-w-[1.2rem] h-[1.2rem] flex items-center justify-center text-xs rounded-full"
+              >
+                {badge}
+              </Badge>
+            )}
+          </div>
           <span className="text-xs font-medium font-display tracking-wide">{label}</span>
         </div>
       </Link>
@@ -35,7 +47,17 @@ const NavButton = ({ icon: Icon, label, to, onClick, active }: NavButtonProps) =
       <div className={`flex flex-col items-center space-y-1 ${
         active ? "text-primary-600" : "text-accent-500 hover:text-accent-700"
       }`}>
-        <Icon className="w-6 h-6" />
+        <div className="relative">
+          <Icon className="w-6 h-6" />
+          {badge !== undefined && badge > 0 && (
+            <Badge 
+              variant="secondary" 
+              className="absolute -top-2 -right-2 bg-primary-500 text-white px-1.5 min-w-[1.2rem] h-[1.2rem] flex items-center justify-center text-xs rounded-full"
+            >
+              {badge}
+            </Badge>
+          )}
+        </div>
         <span className="text-xs font-medium font-display tracking-wide">{label}</span>
       </div>
     </button>
@@ -51,19 +73,25 @@ const BottomNav = ({ session }: BottomNavProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const currentPath = location.pathname;
-
-  // Get the latest chat information
-  const { latestChat } = useWelcomeData(session?.user?.id);
+  
+  // Get unread messages count and pending matches
+  const { unreadMessages, pendingMatches } = useWelcomeData(session?.user?.id);
+  const unreadCount = unreadMessages?.length || 0;
 
   const handleChatClick = () => {
-    if (latestChat) {
-      console.log('Navigating to chat:', latestChat);
-      navigate(`/chat/${latestChat}`, { 
-        state: { from: location.pathname, showLatest: true }
-      });
-    } else {
-      console.log('No active chat found, navigating to matches page');
-      navigate('/matches');
+    if (session) {
+      navigate('/chat');
+    }
+  };
+
+  const handleMatchesClick = () => {
+    if (session) {
+      // If coming from pending matches notification, go to pending tab
+      if (pendingMatches?.length > 0) {
+        navigate('/matches?tab=pending');
+      } else {
+        navigate('/matches');
+      }
     }
   };
 
@@ -79,8 +107,9 @@ const BottomNav = ({ session }: BottomNavProps) => {
         <NavButton 
           icon={Heart} 
           label="Matches" 
-          to="/matches" 
+          onClick={handleMatchesClick}
           active={currentPath === '/matches'} 
+          badge={pendingMatches?.length}
         />
       )}
       {session && (
@@ -89,6 +118,7 @@ const BottomNav = ({ session }: BottomNavProps) => {
           label="Chat" 
           onClick={handleChatClick}
           active={currentPath.startsWith('/chat')} 
+          badge={unreadCount}
         />
       )}
     </nav>

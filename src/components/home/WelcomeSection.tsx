@@ -25,6 +25,10 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
     }
   };
 
+  const handlePendingMatchesClick = () => {
+    navigate('/matches?tab=pending');
+  };
+
   // Format location to handle both city-only and city,country formats
   const formattedLocation = profile?.location ? profile.location.split(',')[0].trim() : 'Unknown Location';
 
@@ -38,7 +42,7 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
             icon={Heart}
             title={<span className="font-display">Pending Matches</span>}
             stat={`${pendingMatches?.length || 0} pending matches`}
-            to="/matches?tab=pending"
+            onClick={handlePendingMatchesClick}
             bgColor="bg-primary-100"
             iconColor="text-primary-600"
             className="border-none"
@@ -58,11 +62,10 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
             icon={MessageCircle}
             title={<span className="font-display">Messages</span>}
             stat={`${unreadMessages?.length || 0} unread messages`}
-            to={firstUnreadChat ? `/chat/${firstUnreadChat}` : '/matches'}
+            onClick={handleChatClick}
             bgColor="bg-accent-100"
             iconColor="text-accent-600"
             className="border-none"
-            onClick={handleChatClick}
           />
         </div>
 
