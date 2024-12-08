@@ -52,21 +52,17 @@ const BottomNav = ({ session }: BottomNavProps) => {
   const navigate = useNavigate();
   const currentPath = location.pathname;
 
-  // Query to get active matches and their latest messages
-  const { activeMatches } = useWelcomeData(session?.user?.id);
+  // Get the latest chat information
+  const { latestChat } = useWelcomeData(session?.user?.id);
 
   const handleChatClick = () => {
-    console.log('Handling chat click, active matches:', activeMatches);
-    
-    if (activeMatches && activeMatches.length > 0) {
-      const mostRecentMatch = activeMatches[0];
-      console.log('Navigating to most recent match:', mostRecentMatch.id);
-      
-      navigate(`/chat/${mostRecentMatch.id}`, { 
+    if (latestChat) {
+      console.log('Navigating to chat:', latestChat);
+      navigate(`/chat/${latestChat}`, { 
         state: { from: location.pathname, showLatest: true }
       });
     } else {
-      console.log('No active matches found, navigating to matches page');
+      console.log('No active chat found, navigating to matches page');
       navigate('/matches');
     }
   };
