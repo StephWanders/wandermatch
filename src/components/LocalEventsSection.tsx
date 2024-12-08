@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Theater, Ticket, MapPin, Calendar, Link as LinkIcon } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
+import EventCard from "./events/EventCard";
+import { getPlaceholderEvents } from "@/utils/eventUtils";
 
 const LocalEventsSection = ({ location: defaultLocation }: { location: string }) => {
   const [currentLocation, setCurrentLocation] = useState<string>(defaultLocation);
@@ -100,56 +100,6 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
     }
   }, [defaultLocation]);
 
-  const getPlaceholderEvents = (cityName: string) => [
-    {
-      title: `Live Jazz & Wine Tasting`,
-      type: "Music & Culture",
-      icon: <Music className="h-6 w-6 text-purple-500" />,
-      time: "7:00 PM - 10:00 PM",
-      location: `The ${cityName} Jazz Club`,
-      price: "$45",
-      description: "An evening of smooth jazz paired with curated wine selections from local vineyards",
-      tags: ["Live Music", "Wine", "Jazz"]
-    },
-    {
-      title: `${cityName} Food & Culture Festival`,
-      type: "Community Event",
-      icon: <Users className="h-6 w-6 text-blue-500" />,
-      time: "4:00 PM - 11:00 PM",
-      location: `${cityName} Central Park`,
-      price: "Free Entry",
-      description: "Celebrate diversity with international cuisine, cultural performances, and local artisans",
-      tags: ["Food", "Culture", "Family-Friendly"]
-    },
-    {
-      title: "Photography Workshop & Gallery",
-      type: "Art & Learning",
-      icon: <Camera className="h-6 w-6 text-green-500" />,
-      time: "6:30 PM - 9:00 PM",
-      location: `${cityName} Creative Space`,
-      price: "$35",
-      description: "Learn night photography techniques followed by a gallery showcase of local talent",
-      tags: ["Workshop", "Photography", "Art"]
-    },
-    {
-      title: "Interactive Art Exhibition",
-      type: "Art & Entertainment",
-      icon: <Palette className="h-6 w-6 text-red-500" />,
-      time: "5:00 PM - 10:00 PM",
-      location: `${cityName} Modern Art Museum`,
-      price: "$20",
-      description: "Experience cutting-edge digital art installations with interactive elements",
-      tags: ["Art", "Interactive", "Modern"]
-    }
-  ];
-
-  const getEventIcon = (type: string) => {
-    type = type.toLowerCase();
-    if (type.includes('music')) return <Music className="h-6 w-6 text-purple-500" />;
-    if (type.includes('theatre') || type.includes('theater')) return <Theater className="h-6 w-6 text-blue-500" />;
-    return <Calendar className="h-6 w-6 text-green-500" />;
-  };
-
   if (loading) {
     return (
       <section className="mt-16">
@@ -172,46 +122,7 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {events.map((event, index) => (
-          <Card key={index} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-center gap-2 mb-2">
-                {getEventIcon(event.type)}
-                <span className="text-sm font-medium text-gray-600">{event.type}</span>
-              </div>
-              <CardTitle className="text-lg">{event.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <p className="text-sm text-gray-600">{event.description}</p>
-                <div className="flex flex-wrap gap-2">
-                  {event.tags.map((tag: string, tagIndex: number) => (
-                    <span
-                      key={tagIndex}
-                      className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{event.time}</span>
-                  <span className="text-primary">{event.price}</span>
-                </div>
-                <p className="text-sm text-gray-500">{event.location}</p>
-                {event.url && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full mt-2"
-                    onClick={() => window.open(event.url, '_blank')}
-                  >
-                    <LinkIcon className="h-4 w-4 mr-2" />
-                    Get Tickets
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <EventCard key={index} event={event} />
         ))}
       </div>
     </section>

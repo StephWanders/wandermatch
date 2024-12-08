@@ -1,7 +1,11 @@
-import { serve } from "https://deno.fresh.run/std@0.168.0/http/server.ts";
-import { corsHeaders } from "../_shared/cors.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const TICKETMASTER_API_KEY = Deno.env.get('TICKETMASTER_API_KEY');
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 interface LocationData {
   latitude: number;
@@ -11,13 +15,14 @@ interface LocationData {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { latitude, longitude, city } = await req.json() as LocationData;
 
     if (!TICKETMASTER_API_KEY) {
+      console.log('Ticketmaster API key not configured');
       return new Response(
         JSON.stringify({
           fallback: true,
@@ -71,6 +76,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    console.error('Error in get-events function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {
