@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthState } from "@/hooks/useAuthState";
 import MatchList from "@/components/matches/MatchList";
 import DiscoverTab from "@/components/matches/DiscoverTab";
@@ -12,8 +12,12 @@ import PendingTab from "@/components/matches/tabs/PendingTab";
 
 const Matches = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { session, profile, loading } = useAuthState();
   const { confirmedMatches, pendingMatches, handleMatchResponse } = useMatchQueries(session?.user?.id);
+
+  // Get the tab from URL parameters, default to "discover"
+  const currentTab = searchParams.get("tab") || "discover";
 
   useEffect(() => {
     if (!loading && !session) {
@@ -21,7 +25,10 @@ const Matches = () => {
     }
   }, [session, navigate, loading]);
 
-  // Create wrapper functions with the correct signatures
+  const handleTabChange = (value: string) => {
+    navigate(`/matches?tab=${value}`);
+  };
+
   const handleAccept = (id: string) => {
     handleMatchResponse(id, true);
   };
@@ -60,7 +67,7 @@ const Matches = () => {
         <TopNav session={session} profile={profile} />
         
         <div className="container mx-auto px-4 pt-20">
-          <Tabs defaultValue="discover" className="w-full">
+          <Tabs defaultValue={currentTab} value={currentTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-3 mb-8">
               <TabsTrigger value="discover">Discover</TabsTrigger>
               <TabsTrigger value="pending" className="relative">
