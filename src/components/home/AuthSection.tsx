@@ -95,15 +95,6 @@ const AuthSection = () => {
             view={view === 'sign_up' ? 'sign_up' : 'sign_in'}
             providers={[]}
             redirectTo={window.location.origin}
-            onError={(error) => {
-              console.error('Auth error:', error);
-              if (error.message === 'User already registered') {
-                toast.error('This email is already registered. Please sign in instead.');
-                navigate('/?view=sign_in');
-              } else {
-                toast.error(error.message);
-              }
-            }}
             localization={{
               variables: {
                 sign_in: {
