@@ -26,8 +26,16 @@ const RATING_CATEGORIES: { id: RatingCategory; label: string }[] = [
   { id: 'overall_safety', label: 'Overall Experience' },
 ];
 
+const initialRatings: Record<RatingCategory, number> = {
+  punctuality: 0,
+  communication: 0,
+  respectfulness: 0,
+  responsibility: 0,
+  overall_safety: 0,
+};
+
 const RatingForm = ({ isOpen, onClose, matchId, ratedUserId }: RatingFormProps) => {
-  const [ratings, setRatings] = useState<Record<RatingCategory, number>>({});
+  const [ratings, setRatings] = useState<Record<RatingCategory, number>>(initialRatings);
   const [review, setReview] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
