@@ -1,20 +1,42 @@
 import { supabase } from "@/integrations/supabase/client";
 
+const travelStyles = ['backpacker', 'luxury', 'adventure', 'cultural', 'relaxation'];
+const languages = ['English', 'Spanish', 'French', 'German', 'Japanese', 'Mandarin', 'Portuguese', 'Italian'];
+const interests = [
+  'hiking', 'photography', 'food', 'culture', 'history', 'architecture', 'museums', 
+  'beaches', 'mountains', 'cities', 'nature', 'wildlife', 'art', 'music', 'festivals',
+  'local markets', 'adventure sports', 'yoga', 'meditation', 'cooking'
+];
+const destinations = [
+  'Japan', 'Italy', 'France', 'Spain', 'Thailand', 'New Zealand', 'Brazil', 
+  'Morocco', 'Iceland', 'Greece', 'Vietnam', 'Peru', 'Australia', 'India', 
+  'South Africa', 'Canada', 'Portugal', 'Croatia', 'Mexico', 'Switzerland'
+];
+
+const getRandomItems = (array: string[], count: number) => {
+  const shuffled = [...array].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+};
+
+const getRandomAge = (min: number, max: number) => {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
 const testUsers = [
   {
     email: 'alice.test@example.com',
     password: 'password123',
     profile: {
       full_name: 'Alice Chen',
-      age: 28,
-      location: 'San Francisco',
-      bio: 'Adventure seeker looking for travel buddies! Love hiking and photography.',
-      travel_style: 'adventure',
-      languages: ['English', 'Mandarin'] as string[],
-      interests: ['hiking', 'photography', 'food', 'culture'] as string[],
-      preferred_destinations: ['Japan', 'New Zealand', 'Thailand'] as string[],
+      age: getRandomAge(25, 35),
+      location: 'San Francisco, USA',
+      bio: 'Adventure seeker with a passion for capturing moments through my lens. Always ready for the next expedition!',
+      travel_style: travelStyles[Math.floor(Math.random() * travelStyles.length)],
+      languages: getRandomItems(languages, 3),
+      interests: getRandomItems(interests, 5),
+      preferred_destinations: getRandomItems(destinations, 4),
       gender: 'female',
-      preferred_gender: ['male', 'female'] as string[]
+      preferred_gender: ['male', 'female']
     }
   },
   {
@@ -22,15 +44,15 @@ const testUsers = [
     password: 'password123',
     profile: {
       full_name: 'Marco Silva',
-      age: 32,
-      location: 'Barcelona',
-      bio: 'Cultural explorer and foodie. Always ready for the next adventure!',
-      travel_style: 'cultural',
-      languages: ['English', 'Spanish', 'Portuguese'] as string[],
-      interests: ['food', 'history', 'architecture', 'museums'] as string[],
-      preferred_destinations: ['Italy', 'France', 'Portugal'] as string[],
+      age: getRandomAge(28, 38),
+      location: 'Barcelona, Spain',
+      bio: 'Cultural explorer and foodie. Living life one destination at a time. Let\'s share travel stories!',
+      travel_style: travelStyles[Math.floor(Math.random() * travelStyles.length)],
+      languages: getRandomItems(languages, 4),
+      interests: getRandomItems(interests, 6),
+      preferred_destinations: getRandomItems(destinations, 5),
       gender: 'male',
-      preferred_gender: ['female'] as string[]
+      preferred_gender: ['female']
     }
   },
   {
@@ -38,15 +60,15 @@ const testUsers = [
     password: 'password123',
     profile: {
       full_name: 'Sophie Martin',
-      age: 25,
-      location: 'Paris',
-      bio: 'Luxury travel enthusiast with a passion for art and fine dining.',
-      travel_style: 'luxury',
-      languages: ['French', 'English'] as string[],
-      interests: ['art', 'fine dining', 'shopping', 'wine tasting'] as string[],
-      preferred_destinations: ['Maldives', 'Dubai', 'Switzerland'] as string[],
+      age: getRandomAge(23, 30),
+      location: 'Paris, France',
+      bio: 'Luxury travel enthusiast with a love for art and fine dining. Always seeking unique experiences.',
+      travel_style: travelStyles[Math.floor(Math.random() * travelStyles.length)],
+      languages: getRandomItems(languages, 2),
+      interests: getRandomItems(interests, 4),
+      preferred_destinations: getRandomItems(destinations, 3),
       gender: 'female',
-      preferred_gender: ['male'] as string[]
+      preferred_gender: ['male']
     }
   },
   {
@@ -54,15 +76,15 @@ const testUsers = [
     password: 'password123',
     profile: {
       full_name: 'Alex Thompson',
-      age: 30,
-      location: 'London',
-      bio: 'Backpacker who loves meeting new people and exploring off-the-beaten-path destinations.',
-      travel_style: 'backpacker',
-      languages: ['English', 'German'] as string[],
-      interests: ['backpacking', 'hostels', 'street food', 'hiking'] as string[],
-      preferred_destinations: ['Vietnam', 'Cambodia', 'Peru'] as string[],
+      age: getRandomAge(27, 37),
+      location: 'London, UK',
+      bio: 'Digital nomad and backpacker. Finding beauty in off-the-beaten-path destinations.',
+      travel_style: travelStyles[Math.floor(Math.random() * travelStyles.length)],
+      languages: getRandomItems(languages, 3),
+      interests: getRandomItems(interests, 5),
+      preferred_destinations: getRandomItems(destinations, 4),
       gender: 'other',
-      preferred_gender: ['male', 'female', 'other'] as string[]
+      preferred_gender: ['male', 'female', 'other']
     }
   },
   {
@@ -70,15 +92,15 @@ const testUsers = [
     password: 'password123',
     profile: {
       full_name: 'Yuki Tanaka',
-      age: 27,
-      location: 'Tokyo',
-      bio: 'Looking for travel companions who enjoy both city life and nature retreats.',
-      travel_style: 'cultural',
-      languages: ['Japanese', 'English'] as string[],
-      interests: ['temples', 'nature', 'city exploration', 'traditional arts'] as string[],
-      preferred_destinations: ['South Korea', 'Taiwan', 'Australia'] as string[],
+      age: getRandomAge(24, 32),
+      location: 'Tokyo, Japan',
+      bio: 'Seeking authentic experiences through travel. Love connecting with fellow adventurers!',
+      travel_style: travelStyles[Math.floor(Math.random() * travelStyles.length)],
+      languages: getRandomItems(languages, 3),
+      interests: getRandomItems(interests, 5),
+      preferred_destinations: getRandomItems(destinations, 4),
       gender: 'female',
-      preferred_gender: ['female'] as string[]
+      preferred_gender: ['female']
     }
   }
 ];
