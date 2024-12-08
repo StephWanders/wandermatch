@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import BottomNav from "@/components/navigation/BottomNav";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,6 +11,7 @@ import { calculateMatchScore } from "@/utils/matching";
 
 const Matches = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [potentialMatches, setPotentialMatches] = useState([]);
@@ -41,19 +42,33 @@ const Matches = () => {
 
   const fetchPotentialMatches = async (userId: string) => {
     try {
-      // Get all profiles except current user and already swiped profiles
+      // Get all profiles that:
+      // 1. Are not the current user
+      // 2. Haven't been swiped on
+      // 3. Haven't matched with the user
       const { data: existingSwipes } = await supabase
         .from('potential_matches')
         .select('target_id')
         .eq('user_id', userId);
 
+      const { data: existingMatches } = await supabase
+        .from('matches')
+        .select('profile1_id, profile2_id')
+        .or(`profile1_id.eq.${userId},profile2_id.eq.${userId}`);
+
+      // Collect all IDs to exclude
       const swipedIds = existingSwipes?.map(swipe => swipe.target_id) || [];
+      const matchedIds = existingMatches?.flatMap(match => [
+        match.profile1_id,
+        match.profile2_id
+      ]).filter(id => id !== userId) || [];
+      const excludeIds = [...new Set([...swipedIds, ...matchedIds, userId])];
 
       const { data: profiles } = await supabase
         .from('profiles')
         .select('*')
-        .neq('id', userId)
-        .not('id', 'in', `(${swipedIds.join(',')})`);
+        .not('id', 'in', `(${excludeIds.join(',')})`)
+        .gt('id', '0'); // Ensure we have valid profiles
 
       if (profiles && profile) {
         // Sort profiles by match score
@@ -73,7 +88,7 @@ const Matches = () => {
     }
   };
 
-  const { data: confirmedMatches, isLoading: isLoadingConfirmed, refetch: refetchConfirmed } = useQuery({
+  const { data: confirmedMatches, isLoading: isLoadingConfirmed } = useQuery({
     queryKey: ['confirmed-matches', session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return [];
@@ -94,7 +109,6 @@ const Matches = () => {
   const { 
     data: pendingMatches, 
     isLoading: isLoadingPending,
-    refetch: refetchPending 
   } = useQuery({
     queryKey: ['pending-matches', session?.user?.id],
     queryFn: async () => {
@@ -123,11 +137,11 @@ const Matches = () => {
 
       if (error) throw error;
       
+      // Invalidate both queries to refresh the lists
+      queryClient.invalidateQueries({ queryKey: ['confirmed-matches'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-matches'] });
+      
       toast.success(accept ? "Match accepted!" : "Match declined");
-      refetchPending();
-      if (accept) {
-        refetchConfirmed();
-      }
     } catch (error) {
       console.error("Error updating match:", error);
       toast.error("Failed to update match status");
@@ -140,6 +154,10 @@ const Matches = () => {
 
   const handleSwipe = () => {
     setCurrentMatchIndex(prev => prev + 1);
+    // Refresh potential matches if we're running low
+    if (currentMatchIndex >= potentialMatches.length - 3) {
+      fetchPotentialMatches(session.user.id);
+    }
   };
 
   const currentProfile = potentialMatches[currentMatchIndex];
