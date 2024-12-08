@@ -18,18 +18,27 @@ export const useMatchQueries = (userId: string | undefined) => {
           profile1:profiles!matches_profile1_id_fkey(*)
         `)
         .eq('status', 'active')
-        .or(`profile1_id.eq.${userId},profile2_id.eq.${userId}`);
+        .or(`profile1_id.eq.${userId},profile2_id.eq.${userId}`)
+        .order('matched_at', { ascending: false });
       
       if (error) {
         console.error('Error fetching confirmed matches:', error);
         return [];
       }
       
-      return data.map(match => ({
-        ...match,
-        // Select the profile that isn't the current user
-        profiles: match.profile1_id === userId ? match.profile2 : match.profile1
-      }));
+      // Deduplicate matches based on match ID
+      const uniqueMatches = new Map();
+      data.forEach(match => {
+        if (!uniqueMatches.has(match.id)) {
+          uniqueMatches.set(match.id, {
+            ...match,
+            // Select the profile that isn't the current user
+            profiles: match.profile1_id === userId ? match.profile2 : match.profile1
+          });
+        }
+      });
+      
+      return Array.from(uniqueMatches.values());
     },
     enabled: !!userId,
   });
@@ -46,14 +55,23 @@ export const useMatchQueries = (userId: string | undefined) => {
           profiles!matches_profile2_id_fkey(*)
         `)
         .eq('profile2_id', userId)
-        .eq('status', 'pending');
+        .eq('status', 'pending')
+        .order('matched_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching pending matches:', error);
         return [];
       }
       
-      return data || [];
+      // Deduplicate pending matches based on match ID
+      const uniqueMatches = new Map();
+      data?.forEach(match => {
+        if (!uniqueMatches.has(match.id)) {
+          uniqueMatches.set(match.id, match);
+        }
+      });
+      
+      return Array.from(uniqueMatches.values());
     },
     enabled: !!userId,
   });
