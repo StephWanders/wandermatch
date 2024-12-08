@@ -6,7 +6,7 @@ import SeasonalSection from "../SeasonalSection";
 import InspirationSection from "../InspirationSection";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface WelcomeSectionProps {
   session: any;
@@ -15,14 +15,25 @@ interface WelcomeSectionProps {
 
 const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
   const queryClient = useQueryClient();
-  const { pendingMatches, unreadMessages, latestChat } = useWelcomeData(session?.user?.id);
-
-  const chatPath = latestChat ? `/chat/${latestChat}` : '/matches';
+  const navigate = useNavigate();
+  const { pendingMatches, unreadMessages, firstUnreadChat } = useWelcomeData(session?.user?.id);
 
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['welcomeData'] });
     queryClient.invalidateQueries({ queryKey: ['matches'] });
     queryClient.invalidateQueries({ queryKey: ['messages'] });
+  };
+
+  const handleChatClick = () => {
+    if (firstUnreadChat) {
+      // Navigate to the chat with the first unread message
+      navigate(`/chat/${firstUnreadChat}`, { 
+        state: { from: '/' }
+      });
+    } else {
+      // If no unread messages, go to matches
+      navigate('/matches');
+    }
   };
 
   return (
@@ -63,16 +74,16 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
           />
         </Link>
 
-        <Link to={chatPath} className="no-underline">
+        <div onClick={handleChatClick} className="cursor-pointer">
           <StatsCard
             icon={MessageCircle}
             title="Messages"
             stat={`${unreadMessages?.length || 0} unread messages`}
-            to={chatPath}
+            to={firstUnreadChat ? `/chat/${firstUnreadChat}` : '/matches'}
             bgColor="bg-blue-100"
             iconColor="text-blue-600"
           />
-        </Link>
+        </div>
       </div>
 
       {profile?.location && (
