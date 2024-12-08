@@ -61,12 +61,53 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     try {
       console.log('Unmatching match:', matchId);
       
-      const { error } = await supabase
+      // Get the current match details
+      const { data: currentMatch, error: matchError } = await supabase
         .from('matches')
-        .update({ status: 'unmatched' })
-        .eq('id', matchId);
+        .select('profile1_id, profile2_id')
+        .eq('id', matchId)
+        .single();
 
-      if (error) throw error;
+      if (matchError) throw matchError;
+
+      // Find any other active match between the same users
+      const { data: otherMatch, error: otherMatchError } = await supabase
+        .from('matches')
+        .select('id')
+        .neq('id', matchId)
+        .eq('status', 'active')
+        .or(`profile1_id.eq.${currentMatch.profile1_id},profile1_id.eq.${currentMatch.profile2_id}`)
+        .or(`profile2_id.eq.${currentMatch.profile1_id},profile2_id.eq.${currentMatch.profile2_id}`)
+        .single();
+
+      if (otherMatchError && !otherMatchError.message.includes('No rows found')) {
+        throw otherMatchError;
+      }
+
+      // Update both matches if they exist
+      const updates = [
+        supabase
+          .from('matches')
+          .update({ status: 'unmatched' })
+          .eq('id', matchId)
+      ];
+
+      if (otherMatch?.id) {
+        console.log('Found other active match:', otherMatch.id);
+        updates.push(
+          supabase
+            .from('matches')
+            .update({ status: 'unmatched' })
+            .eq('id', otherMatch.id)
+        );
+      }
+
+      const results = await Promise.all(updates);
+      const errors = results.filter(result => result.error);
+      
+      if (errors.length > 0) {
+        throw errors[0].error;
+      }
 
       toast.success("Successfully unmatched");
       navigate('/matches');
