@@ -21,6 +21,15 @@ const Matches = () => {
     }
   }, [session, navigate, loading]);
 
+  // Create wrapper functions with the correct signatures
+  const handleAccept = (id: string) => {
+    handleMatchResponse(id, true);
+  };
+
+  const handleDecline = (id: string) => {
+    handleMatchResponse(id, false);
+  };
+
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -63,8 +72,8 @@ const Matches = () => {
             <TabsContent value="pending">
               <PendingTab 
                 pendingMatches={pendingMatches}
-                onAccept={handleMatchResponse}
-                onDecline={handleMatchResponse}
+                onAccept={handleAccept}
+                onDecline={handleDecline}
               />
             </TabsContent>
             <TabsContent value="matches">
