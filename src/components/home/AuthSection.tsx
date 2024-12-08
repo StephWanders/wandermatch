@@ -9,18 +9,6 @@ const AuthSection = () => {
   const [searchParams] = useSearchParams();
   const view = searchParams.get('view');
 
-  const handleError = (error: Error) => {
-    console.error("Auth error occurred:", error);
-    
-    if (error.message.includes("invalid_credentials")) {
-      toast.error("Invalid email or password. Please check your credentials and try again.");
-    } else if (error.message.includes("Email not confirmed")) {
-      toast.error("Please verify your email address before signing in.");
-    } else {
-      toast.error("An error occurred during authentication. Please try again.");
-    }
-  };
-
   return (
     <Card className="max-w-md mx-auto bg-white/95 backdrop-blur-sm">
       <CardHeader>
@@ -48,7 +36,6 @@ const AuthSection = () => {
           view={view === 'sign_up' ? 'sign_up' : 'sign_in'}
           providers={[]}
           redirectTo={window.location.origin}
-          onError={handleError}
           localization={{
             variables: {
               sign_in: {
@@ -70,6 +57,9 @@ const AuthSection = () => {
                 loading_button_label: "Signing up ...",
                 social_provider_text: "Sign up with {{provider}}",
                 link_text: "Don't have an account? Sign up",
+              },
+              forgotten_password: {
+                link_text: "Forgot your password?",
               },
             },
           }}
