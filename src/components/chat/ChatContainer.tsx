@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import ChatHeader from "./ChatHeader";
 import ChatMessages from "./ChatMessages";
 import ChatInput from "./ChatInput";
+import { useEffect } from "react";
 
 interface ChatContainerProps {
   matchId: string;
@@ -14,6 +15,43 @@ interface ChatContainerProps {
 
 const ChatContainer = ({ matchId, otherProfile, session, messages }: ChatContainerProps) => {
   const queryClient = useQueryClient();
+
+  // Mark messages as read when the chat is opened
+  useEffect(() => {
+    const markMessagesAsRead = async () => {
+      if (!session?.user?.id || !otherProfile?.id || !messages?.length) return;
+
+      const unreadMessageIds = messages
+        .filter(msg => 
+          msg.sender_id === otherProfile.id && 
+          msg.receiver_id === session.user.id && 
+          !msg.read_at
+        )
+        .map(msg => msg.id);
+
+      if (unreadMessageIds.length === 0) return;
+
+      console.log('Marking messages as read:', unreadMessageIds);
+
+      try {
+        const { error } = await supabase.rpc('mark_messages_as_read', {
+          p_message_ids: unreadMessageIds,
+          p_user_id: session.user.id
+        });
+
+        if (error) throw error;
+
+        // Invalidate queries to update UI
+        queryClient.invalidateQueries({ queryKey: ['chat-messages', matchId] });
+        queryClient.invalidateQueries({ queryKey: ['unread-counts'] });
+        queryClient.invalidateQueries({ queryKey: ['latest-messages'] });
+      } catch (error) {
+        console.error('Error marking messages as read:', error);
+      }
+    };
+
+    markMessagesAsRead();
+  }, [matchId, messages, otherProfile?.id, session?.user?.id, queryClient]);
 
   const sendMessage = async (content: string) => {
     if (!session?.user?.id || !otherProfile?.id) {
