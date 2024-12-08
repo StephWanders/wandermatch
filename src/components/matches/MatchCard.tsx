@@ -3,7 +3,7 @@ import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import { MessageCircle, X, Check, Heart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProfileModal from "./ProfileModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -21,25 +21,20 @@ const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: Match
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  // Get the current user's ID when the component mounts
-  useState(() => {
+  useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setCurrentUserId(session.user.id);
       }
     });
-  });
+  }, []);
 
-  // Determine which profile to show based on the current user's ID
-  const matchedProfile = currentUserId === match.profile1_id ? 
-    match.profile2 : // If current user is profile1, show profile2's data
-    match.profile1; // If current user is profile2, show profile1's data
+  const matchedProfile = match.profiles;
 
   const handleChatClick = async () => {
     try {
       console.log('Initializing chat with match:', match.id);
       
-      // Update match status to ensure it's marked as active
       const { error: updateError } = await supabase
         .from('matches')
         .update({ status: 'active' })
@@ -63,6 +58,10 @@ const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: Match
   const handleProfileClick = () => {
     setIsProfileModalOpen(true);
   };
+
+  if (!matchedProfile) {
+    return null;
+  }
 
   return (
     <>
