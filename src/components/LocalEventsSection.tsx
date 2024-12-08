@@ -26,17 +26,21 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
             });
 
             if (error) {
+              console.error('Supabase function error:', error);
               throw error;
             }
 
             console.log('Reverse geocode response:', data);
             
-            if (data.results && data.results[0]) {
+            if (data?.results?.[0]?.components) {
               const city = data.results[0].components.city || 
                           data.results[0].components.town ||
                           data.results[0].components.village ||
                           defaultLocation.split(',')[0].trim();
               setCurrentLocation(city);
+            } else {
+              console.warn('No location data in response:', data);
+              toast.error("Could not determine location. Using default location.");
             }
           } catch (error) {
             console.error("Error getting location:", error);
