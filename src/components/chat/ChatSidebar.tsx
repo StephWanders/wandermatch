@@ -28,7 +28,6 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
 
   const { data: latestMessages } = useLatestMessages(currentUserId || undefined, matches);
 
-  // Query to get unread message counts for each match
   const { data: unreadCounts = {} } = useQuery({
     queryKey: ['unread-counts', currentUserId],
     queryFn: async () => {
@@ -46,7 +45,6 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
         return {};
       }
 
-      // Count unread messages per sender
       const counts = messages?.reduce((acc: Record<string, number>, msg) => {
         const senderId = msg.sender_id;
         acc[senderId] = (acc[senderId] || 0) + 1;
@@ -57,7 +55,7 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
       return counts;
     },
     enabled: !!currentUserId,
-    refetchInterval: 3000 // Refetch every 3 seconds
+    refetchInterval: 3000
   });
 
   const handleUnmatch = async (matchId: string) => {
@@ -77,7 +75,6 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     }
   };
 
-  // Deduplicate matches by the other user's profile ID
   const uniqueMatches = matches.reduce((acc: any[], match) => {
     const otherProfileId = match.profile1_id === currentUserId ? match.profile2_id : match.profile1_id;
     const existingMatch = acc.find(m => {
@@ -91,17 +88,14 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     return acc;
   }, []);
 
-  // Sort matches by unread messages first, then by latest message time
   const sortedMatches = [...uniqueMatches].sort((a, b) => {
     const unreadA = unreadCounts[a.profiles.id] || 0;
     const unreadB = unreadCounts[b.profiles.id] || 0;
     
-    // First sort by unread messages
     if (unreadA !== unreadB) {
       return unreadB - unreadA;
     }
     
-    // Then sort by latest message time
     const timeA = latestMessages?.[a.id]?.time;
     const timeB = latestMessages?.[b.id]?.time;
     
@@ -115,16 +109,12 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     return new Date(b.matched_at).getTime() - new Date(a.matched_at).getTime();
   });
 
-  console.log('Current matches:', matches);
-  console.log('Current match ID:', currentMatchId);
-  console.log('Sorted matches:', sortedMatches);
-
   return (
-    <div className="w-80 bg-white/95 backdrop-blur-md border-r border-primary-100">
+    <div className="w-80 bg-white/40 backdrop-blur-md border-r border-primary-100">
       <div className="p-4 border-b border-primary-100">
         <h2 className="font-display text-xl font-semibold text-accent-800">Your Chats</h2>
       </div>
-      <ScrollArea className="h-[calc(100vh-64px)]">
+      <ScrollArea className="h-[calc(100vh-64px)] scrollbar-none">
         {sortedMatches?.map((match) => {
           const otherProfile = match.profiles;
           const otherProfileId = match.profile1_id === currentUserId 

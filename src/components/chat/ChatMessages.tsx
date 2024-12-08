@@ -2,8 +2,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { format, isToday, isYesterday, isSameDay } from "date-fns";
-import { Separator } from "@/components/ui/separator";
+import { format, isToday, isYesterday } from "date-fns";
 
 interface Message {
   id: string;
@@ -105,8 +104,8 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
   }, {});
 
   return (
-    <div className="flex-1 overflow-hidden bg-[#e5ded8]" ref={scrollRef}>
-      <ScrollArea className="h-full p-4">
+    <div className="flex-1 overflow-hidden bg-white/30 backdrop-blur-sm" ref={scrollRef}>
+      <ScrollArea className="h-full p-4 scrollbar-none">
         <div className="space-y-4">
           {Object.entries(messagesByDate).map(([dateKey, dateMessages]) => (
             <div key={dateKey} className="space-y-4">
@@ -126,8 +125,8 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
                       <div
                         className={`max-w-[70%] rounded-lg p-3 shadow ${
                           isSentByMe
-                            ? "bg-[#dcf8c6] mr-2"
-                            : "bg-white ml-2"
+                            ? "bg-primary-100/90 mr-2"
+                            : "bg-white/90 ml-2"
                         }`}
                       >
                         <p className="text-gray-800">{message.content}</p>

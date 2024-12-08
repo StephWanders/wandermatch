@@ -17,8 +17,10 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
 
   const handleChatClick = () => {
     if (firstUnreadChat) {
+      console.log('Navigating to chat:', firstUnreadChat);
       navigate(`/chat/${firstUnreadChat}`);
     } else {
+      console.log('No active chat found, navigating to matches page');
       navigate('/matches');
     }
   };
