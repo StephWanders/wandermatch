@@ -143,6 +143,8 @@ const ProfileForm = ({ session, profile, onProfileUpdate }: ProfileFormProps) =>
 
       if (error) throw error;
       
+      await fetchProfilePictures();
+      
       const toastId = toast.success("Profile updated successfully!");
       setTimeout(() => {
         toast.dismiss(toastId);
