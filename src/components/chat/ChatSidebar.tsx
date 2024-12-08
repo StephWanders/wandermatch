@@ -16,6 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useQuery } from "@tanstack/react-query";
 
 interface ChatSidebarProps {
   matches: any[];
@@ -24,6 +25,35 @@ interface ChatSidebarProps {
 
 const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
   const navigate = useNavigate();
+
+  // Query to get the latest message for each match
+  const { data: latestMessages } = useQuery({
+    queryKey: ['latest-messages', matches?.map(m => m.id)],
+    queryFn: async () => {
+      if (!matches?.length) return {};
+      
+      const messagesPromises = matches.map(async (match) => {
+        const { data } = await supabase
+          .from('messages')
+          .select('created_at')
+          .or(`sender_id.eq.${match.profiles.id},receiver_id.eq.${match.profiles.id}`)
+          .order('created_at', { ascending: false })
+          .limit(1);
+        
+        return {
+          matchId: match.id,
+          latestMessageTime: data?.[0]?.created_at || match.matched_at
+        };
+      });
+
+      const results = await Promise.all(messagesPromises);
+      return results.reduce((acc, curr) => ({
+        ...acc,
+        [curr.matchId]: curr.latestMessageTime
+      }), {});
+    },
+    enabled: !!matches?.length
+  });
 
   const handleUnmatch = async (matchId: string) => {
     try {
@@ -42,13 +72,20 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     }
   };
 
+  // Sort matches by latest message time
+  const sortedMatches = [...(matches || [])].sort((a, b) => {
+    const timeA = latestMessages?.[a.id] || a.matched_at;
+    const timeB = latestMessages?.[b.id] || b.matched_at;
+    return new Date(timeB).getTime() - new Date(timeA).getTime();
+  });
+
   return (
     <div className="w-80 bg-white border-r">
       <div className="p-4 border-b">
         <h2 className="font-semibold">Your Chats</h2>
       </div>
       <ScrollArea className="h-[calc(100vh-64px)]">
-        {matches?.map((match) => {
+        {sortedMatches?.map((match) => {
           const chatProfile = match.profiles;
           return (
             <div
