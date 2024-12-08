@@ -1,65 +1,24 @@
-import { Button } from "@/components/ui/button";
-import ProfileAvatar from "@/components/profile/ProfileAvatar";
-import { MessageCircle, X, Check, Heart } from "lucide-react";
+import { Heart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import ProfileModal from "./ProfileModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import UserRating from "./UserRating";
+import ProfileModal from "./ProfileModal";
 import RatingForm from "./RatingForm";
+import UserInfo from "./UserInfo";
+import MatchActions from "./MatchActions";
 
 interface MatchCardProps {
   match: any;
-  isPending?: boolean;
-  onAccept?: (matchId: string) => void;
-  onDecline?: (matchId: string) => void;
   onChatClick?: (matchId: string) => void;
 }
 
-const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: MatchCardProps) => {
+const MatchCard = ({ match, onChatClick }: MatchCardProps) => {
   const navigate = useNavigate();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setCurrentUserId(session.user.id);
-      }
-    });
-  }, []);
-
-  const handleChatClick = async () => {
-    try {
-      console.log('Initializing chat with match:', match.id);
-      
-      const { error: updateError } = await supabase
-        .from('matches')
-        .update({ status: 'active' })
-        .eq('id', match.id)
-        .single();
-
-      if (updateError) {
-        console.error('Error updating match status:', updateError);
-        toast.error("Failed to initialize chat");
-        return;
-      }
-
-      console.log('Chat initialized successfully');
-      navigate(`/chat/${match.id}`);
-    } catch (error) {
-      console.error('Error initializing chat:', error);
-      toast.error("Failed to initialize chat");
-    }
-  };
-
-  const handleProfileClick = () => {
-    setIsProfileModalOpen(true);
-  };
 
   // Get the profile of the other user (profile2)
   const { data: matchedProfile } = useQuery({
@@ -77,29 +36,13 @@ const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: Match
     enabled: !!match.profile2_id
   });
 
-  // Check if the match is completed
-  const isCompleted = match.status === 'completed';
-
-  // Function to complete the match
-  const handleCompleteMatch = async () => {
+  const handleChatClick = async () => {
     try {
-      const { error } = await supabase
-        .from('matches')
-        .update({ status: 'completed' })
-        .eq('id', match.id);
-
-      if (error) {
-        console.error('Error completing match:', error);
-        toast.error("Failed to complete match");
-        return;
-      }
-
-      toast.success("Match completed! You can now rate your travel partner.");
-      // Refresh the page to show updated status
-      window.location.reload();
+      console.log('Initializing chat with match:', match.id);
+      navigate(`/chat/${match.id}`);
     } catch (error) {
-      console.error('Error completing match:', error);
-      toast.error("Failed to complete match");
+      console.error('Error initializing chat:', error);
+      toast.error("Failed to initialize chat");
     }
   };
 
@@ -112,42 +55,10 @@ const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: Match
       <Card className="hover:shadow-lg transition-shadow animate-fade-in">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
-            <div 
-              className="flex items-center space-x-4 cursor-pointer"
-              onClick={handleProfileClick}
-            >
-              <ProfileAvatar
-                imageUrl={matchedProfile.profile_image_url}
-                name={matchedProfile.full_name}
-              />
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold">{matchedProfile.full_name}</h3>
-                  <UserRating userId={matchedProfile.id} />
-                </div>
-                <p className="text-sm text-gray-500">{matchedProfile.location}</p>
-              </div>
-            </div>
-            {isPending && (
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => onDecline?.(match.id)}
-                  className="hover:bg-red-50"
-                >
-                  <X className="h-4 w-4 text-red-500" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => onAccept?.(match.id)}
-                  className="hover:bg-green-50"
-                >
-                  <Check className="h-4 w-4 text-green-500" />
-                </Button>
-              </div>
-            )}
+            <UserInfo 
+              profile={matchedProfile}
+              onClick={() => setIsProfileModalOpen(true)}
+            />
           </div>
           
           <div className="mt-4">
@@ -164,40 +75,17 @@ const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: Match
             </div>
           </div>
           
-          {!isPending && (
-            <div className="mt-4 flex justify-between items-center">
-              <div className="text-sm text-gray-500">
-                <span className="flex items-center gap-1">
-                  <Heart className="h-4 w-4" /> {matchedProfile.travel_style}
-                </span>
-              </div>
-              <div className="flex gap-2">
-                {!isCompleted && (
-                  <Button
-                    variant="outline"
-                    onClick={handleCompleteMatch}
-                  >
-                    Complete Trip
-                  </Button>
-                )}
-                {isCompleted && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsRatingModalOpen(true)}
-                  >
-                    Rate User
-                  </Button>
-                )}
-                <Button 
-                  onClick={handleChatClick}
-                  className="flex items-center gap-2"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  Chat
-                </Button>
-              </div>
+          <div className="mt-4 flex justify-between items-center">
+            <div className="text-sm text-gray-500">
+              <span className="flex items-center gap-1">
+                <Heart className="h-4 w-4" /> {matchedProfile.travel_style}
+              </span>
             </div>
-          )}
+            <MatchActions 
+              onChatClick={handleChatClick}
+              onRateClick={() => setIsRatingModalOpen(true)}
+            />
+          </div>
         </CardContent>
       </Card>
 

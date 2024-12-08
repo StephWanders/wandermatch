@@ -12,9 +12,12 @@ const MatchesTab = ({ confirmedMatches }: MatchesTabProps) => {
     navigate(`/chat/${matchId}`);
   };
 
+  // Filter to only show active matches
+  const activeMatches = confirmedMatches.filter(match => match.status === 'active');
+
   return (
     <MatchList
-      matches={confirmedMatches || []}
+      matches={activeMatches || []}
       onChatClick={handleChatClick}
     />
   );
