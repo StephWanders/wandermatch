@@ -67,18 +67,21 @@ const Chat = () => {
             status,
             profile1_id,
             profile2_id,
-            profile2:profiles!matches_profile2_id_fkey(*)
+            profiles:profiles!matches_profile2_id_fkey(*)
           `)
           .eq('status', 'active')
-          .eq('profile1_id', session.user.id);
+          .or(`profile1_id.eq.${session.user.id},profile2_id.eq.${session.user.id}`);
         
         if (error) throw error;
         
-        console.log('Matches data:', data);
-        return data?.map(match => ({
+        // Transform the data to always show the other user's profile
+        const transformedData = data?.map(match => ({
           ...match,
-          profiles: match.profile2
-        })) || [];
+          profiles: match.profile1_id === session.user.id ? match.profiles : await getProfile(match.profile1_id)
+        }));
+        
+        console.log('Matches data:', transformedData);
+        return transformedData || [];
       } catch (error) {
         console.error('Error fetching matches:', error);
         toast.error("Failed to load matches");
@@ -89,6 +92,18 @@ const Chat = () => {
     retry: 3,
     retryDelay: 1000,
   });
+
+  // Helper function to get a profile by ID
+  const getProfile = async (profileId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', profileId)
+      .single();
+    
+    if (error) throw error;
+    return data;
+  };
 
   const { data: messages = [], isError: messagesError } = useQuery({
     queryKey: ['chat-messages', matchId, otherProfile?.id],
@@ -189,7 +204,7 @@ const Chat = () => {
     return <div>Loading...</div>;
   }
 
-  if (matchesError || messagesError) {
+  if (matchesError) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50 flex items-center justify-center">
         <div className="text-center">
