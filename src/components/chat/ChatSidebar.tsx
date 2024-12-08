@@ -48,7 +48,7 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
         
         const { data } = await supabase
           .from('messages')
-          .select('created_at')
+          .select('created_at, content')
           .or(
             `and(sender_id.in.(${otherProfileId},${currentUserId}),` +
             `receiver_id.in.(${otherProfileId},${currentUserId}))`
@@ -58,14 +58,18 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
         
         return {
           matchId: match.id,
-          latestMessageTime: data?.[0]?.created_at || match.matched_at
+          latestMessageTime: data?.[0]?.created_at || match.matched_at,
+          latestMessage: data?.[0]?.content
         };
       });
 
       const results = await Promise.all(messagesPromises);
       return results.reduce((acc, curr) => ({
         ...acc,
-        [curr.matchId]: curr.latestMessageTime
+        [curr.matchId]: {
+          time: curr.latestMessageTime,
+          message: curr.latestMessage
+        }
       }), {});
     },
     enabled: !!matches?.length && !!currentUserId
@@ -90,8 +94,8 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
 
   // Sort matches by latest message time
   const sortedMatches = [...(matches || [])].sort((a, b) => {
-    const timeA = latestMessages?.[a.id] || a.matched_at;
-    const timeB = latestMessages?.[b.id] || b.matched_at;
+    const timeA = latestMessages?.[a.id]?.time || a.matched_at;
+    const timeB = latestMessages?.[b.id]?.time || b.matched_at;
     return new Date(timeB).getTime() - new Date(timeA).getTime();
   });
 
@@ -102,20 +106,9 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     const hasMatches = sortedMatches.length > 0;
     const showLatest = location.state?.showLatest;
     
-    console.log('Navigation check:', {
-      isOnChatRoute,
-      hasNoMatchSelected,
-      hasMatches,
-      currentMatchId,
-      pathname: location.pathname,
-      showLatest,
-      state: location.state
-    });
-
     // Navigate to most recent chat if we're on base route, have no match selected, or showLatest is true
     if ((isOnChatRoute || hasNoMatchSelected || showLatest) && hasMatches) {
       const mostRecentMatchId = sortedMatches[0].id;
-      console.log('Navigating to most recent chat:', mostRecentMatchId);
       navigate(`/chat/${mostRecentMatchId}`, { 
         replace: true,
         state: { ...location.state, showLatest: false }
@@ -131,10 +124,12 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
       <ScrollArea className="h-[calc(100vh-64px)]">
         {sortedMatches?.map((match) => {
           const chatProfile = match.profiles;
+          const latestMessage = latestMessages?.[match.id]?.message;
+          
           return (
             <div
               key={match.id}
-              className={`p-4 hover:bg-gray-50 ${
+              className={`p-4 hover:bg-gray-50 transition-colors duration-200 ${
                 match.id === currentMatchId ? "bg-blue-50" : ""
               }`}
             >
@@ -147,10 +142,10 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
                     imageUrl={chatProfile.profile_image_url}
                     name={chatProfile.full_name}
                   />
-                  <div>
-                    <h3 className="font-medium">{chatProfile.full_name}</h3>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-medium truncate">{chatProfile.full_name}</h3>
                     <p className="text-sm text-gray-500 truncate">
-                      {chatProfile.travel_style}
+                      {latestMessage || chatProfile.travel_style}
                     </p>
                   </div>
                 </div>
@@ -159,7 +154,7 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                      className="text-red-500 hover:text-red-600 hover:bg-red-50 flex-shrink-0"
                     >
                       <UserMinus className="h-4 w-4" />
                     </Button>
