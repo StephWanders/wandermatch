@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Match } from "@/types/match";
 
 export const useMatchData = (userId: string | undefined) => {
   return useQuery({
@@ -15,6 +16,7 @@ export const useMatchData = (userId: string | undefined) => {
           .select(`
             id,
             status,
+            matched_at,
             profile1_id,
             profile2_id,
             profiles:profiles!matches_profile2_id_fkey(*)
@@ -29,6 +31,7 @@ export const useMatchData = (userId: string | undefined) => {
           .select(`
             id,
             status,
+            matched_at,
             profile1_id,
             profile2_id,
             profiles:profiles!matches_profile1_id_fkey(*)
@@ -40,7 +43,7 @@ export const useMatchData = (userId: string | undefined) => {
         
         const allMatches = [...(profile1Matches || []), ...(profile2Matches || [])];
         console.log('All matches data:', allMatches);
-        return allMatches || [];
+        return allMatches as Match[];
       } catch (error) {
         console.error('Error fetching matches:', error);
         toast.error("Failed to load matches");
