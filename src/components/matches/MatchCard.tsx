@@ -32,8 +32,8 @@ const MatchCard = ({ match, isPending, onAccept, onDecline, onChatClick }: Match
 
   // Determine which profile to show based on the current user's ID
   const matchedProfile = currentUserId === match.profile1_id ? 
-    match.profiles!matches_profile2_id_fkey : 
-    match.profiles!matches_profile1_id_fkey;
+    match.profiles : // If current user is profile1, show profile2's data
+    match.profiles; // If current user is profile2, show profile1's data
 
   const handleChatClick = async () => {
     try {
