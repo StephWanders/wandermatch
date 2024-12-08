@@ -1,8 +1,16 @@
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 const TopNav = () => {
-  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const handleSignIn = () => {
+    setSearchParams({ view: 'sign_in' });
+  };
+
+  const handleSignUp = () => {
+    setSearchParams({ view: 'sign_up' });
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-200">
@@ -15,13 +23,13 @@ const TopNav = () => {
             <Button
               variant="ghost"
               className="text-gray-600 hover:text-gray-900"
-              onClick={() => navigate("/?view=sign_in")}
+              onClick={handleSignIn}
             >
               Sign In
             </Button>
             <Button
               className="bg-blue-600 hover:bg-blue-700 text-white"
-              onClick={() => navigate("/?view=sign_up")}
+              onClick={handleSignUp}
             >
               Sign Up
             </Button>

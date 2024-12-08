@@ -1,8 +1,13 @@
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const HeroSection = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const handleJoinNow = () => {
+    setSearchParams({ view: 'sign_up' });
+  };
 
   return (
     <section className="relative min-h-screen flex items-center justify-center">
@@ -34,7 +39,7 @@ const HeroSection = () => {
           <Button 
             size="lg" 
             className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-            onClick={() => navigate("/?view=sign_up")}
+            onClick={handleJoinNow}
           >
             Join Now
           </Button>
