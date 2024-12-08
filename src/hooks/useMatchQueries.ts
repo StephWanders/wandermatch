@@ -11,8 +11,7 @@ export const useMatchQueries = (userId: string | undefined) => {
       if (!userId) return [];
       console.log('Fetching confirmed matches');
       
-      // First, get all matches where the user is either profile1 or profile2
-      const { data: matchData, error } = await supabase
+      const { data, error } = await supabase
         .from('matches')
         .select(`
           id,
@@ -30,41 +29,13 @@ export const useMatchQueries = (userId: string | undefined) => {
         return [];
       }
 
-      // Get matches where user is profile2
-      const { data: reverseMatchData, error: reverseError } = await supabase
-        .from('matches')
-        .select(`
-          id,
-          status,
-          matched_at,
-          profile1_id,
-          profile2_id,
-          matched_profile:profiles!matches_profile1_id_fkey(*)
-        `)
-        .eq('status', 'active')
-        .eq('profile2_id', userId);
+      // Process matches to ensure correct profile mapping
+      const processedMatches = (data || []).map(match => ({
+        ...match,
+        profiles: match.matched_profile
+      }));
 
-      if (reverseError) {
-        console.error('Error fetching reverse matches:', reverseError);
-        return [];
-      }
-
-      // Combine and process all matches
-      const allMatches = [...(matchData || []), ...(reverseMatchData || [])];
-      
-      // Create a Map to store unique matches by ID
-      const uniqueMatches = new Map();
-      
-      allMatches.forEach(match => {
-        if (!uniqueMatches.has(match.id)) {
-          uniqueMatches.set(match.id, {
-            ...match,
-            profiles: match.matched_profile
-          });
-        }
-      });
-      
-      return Array.from(uniqueMatches.values());
+      return processedMatches;
     },
     enabled: !!userId,
   });
