@@ -1,17 +1,14 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import BottomNav from "@/components/navigation/BottomNav";
-import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MatchList from "@/components/matches/MatchList";
-import SwipeCard from "@/components/matches/SwipeCard";
-import { usePotentialMatches } from "@/hooks/usePotentialMatches";
+import DiscoverTab from "@/components/matches/DiscoverTab";
+import { useMatchQueries } from "@/hooks/useMatchQueries";
 
 const Matches = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
 
@@ -37,102 +34,10 @@ const Matches = () => {
     }
   };
 
-  // Query for confirmed matches
-  const { data: confirmedMatches } = useQuery({
-    queryKey: ['confirmed-matches', session?.user?.id],
-    queryFn: async () => {
-      if (!session?.user?.id) return [];
-      console.log('Fetching confirmed matches');
-      const { data, error } = await supabase
-        .from('matches')
-        .select(`
-          *,
-          profiles!matches_profile2_id_fkey(*)
-        `)
-        .eq('status', 'accepted')
-        .or(`profile1_id.eq.${session.user.id},profile2_id.eq.${session.user.id}`);
-      
-      if (error) {
-        console.error('Error fetching confirmed matches:', error);
-        return [];
-      }
-      
-      // Transform the data to ensure we show the other user's profile
-      return data.map(match => ({
-        ...match,
-        profiles: match.profile1_id === session.user.id ? 
-          match.profiles : 
-          match.profiles
-      }));
-    },
-    enabled: !!session?.user?.id,
-  });
-
-  // Query for pending matches
-  const { data: pendingMatches } = useQuery({
-    queryKey: ['pending-matches', session?.user?.id],
-    queryFn: async () => {
-      if (!session?.user?.id) return [];
-      console.log('Fetching pending matches');
-      const { data, error } = await supabase
-        .from('matches')
-        .select(`
-          *,
-          profiles!matches_profile1_id_fkey(*)
-        `)
-        .eq('profile2_id', session.user.id)
-        .eq('status', 'pending');
-
-      if (error) {
-        console.error('Error fetching pending matches:', error);
-        return [];
-      }
-      
-      console.log('Pending matches:', data);
-      return data || [];
-    },
-    enabled: !!session?.user?.id,
-  });
-
-  const handleMatchResponse = async (matchId: string, accept: boolean) => {
-    try {
-      console.log('Updating match:', matchId, 'with status:', accept ? 'accepted' : 'rejected');
-      
-      const { error } = await supabase
-        .from('matches')
-        .update({ 
-          status: accept ? 'accepted' : 'rejected' 
-        })
-        .eq('id', matchId);
-
-      if (error) throw error;
-      
-      // Invalidate both queries to refresh the lists
-      await queryClient.invalidateQueries({ queryKey: ['confirmed-matches'] });
-      await queryClient.invalidateQueries({ queryKey: ['pending-matches'] });
-      
-      toast.success(accept ? "Match accepted!" : "Match declined");
-    } catch (error) {
-      console.error("Error updating match:", error);
-      toast.error("Failed to update match status");
-    }
-  };
+  const { confirmedMatches, pendingMatches, handleMatchResponse } = useMatchQueries(session?.user?.id);
 
   const handleChatClick = (matchId: string) => {
     navigate(`/chat/${matchId}`);
-  };
-
-  const { 
-    currentProfile,
-    handleSwipe,
-    refreshMatches
-  } = usePotentialMatches(session?.user?.id, profile);
-
-  // Refresh potential matches when switching to discover tab
-  const handleTabChange = (value: string) => {
-    if (value === 'discover') {
-      refreshMatches();
-    }
   };
 
   return (
@@ -140,7 +45,7 @@ const Matches = () => {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Your Matches</h1>
         
-        <Tabs defaultValue="matches" className="space-y-6" onValueChange={handleTabChange}>
+        <Tabs defaultValue="matches" className="space-y-6">
           <TabsList>
             <TabsTrigger value="matches">
               Matches ({confirmedMatches?.length || 0})
@@ -170,17 +75,10 @@ const Matches = () => {
           </TabsContent>
 
           <TabsContent value="discover">
-            {currentProfile ? (
-              <SwipeCard
-                profile={currentProfile}
-                onSwipe={handleSwipe}
-                currentUserId={session?.user?.id}
-              />
-            ) : (
-              <div className="text-center text-gray-500 py-8">
-                No more profiles to show at the moment.
-              </div>
-            )}
+            <DiscoverTab 
+              userId={session?.user?.id}
+              userProfile={profile}
+            />
           </TabsContent>
         </Tabs>
       </div>
