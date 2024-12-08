@@ -21,16 +21,24 @@ interface NavButtonProps {
 }
 
 const NavButton = ({ icon: Icon, label, to, onClick, active }: NavButtonProps) => {
-  const Component = to ? Link : "button";
-  const props = to ? { to } : { onClick };
+  if (to) {
+    return (
+      <Link to={to} className="flex flex-col items-center space-y-1">
+        <div className={`flex flex-col items-center space-y-1 ${active ? "text-blue-600" : "text-gray-600"}`}>
+          <Icon className="w-6 h-6" />
+          <span className="text-xs font-medium">{label}</span>
+        </div>
+      </Link>
+    );
+  }
 
   return (
-    <Component {...props} className="flex flex-col items-center space-y-1">
+    <button onClick={onClick} className="flex flex-col items-center space-y-1">
       <div className={`flex flex-col items-center space-y-1 ${active ? "text-blue-600" : "text-gray-600"}`}>
         <Icon className="w-6 h-6" />
         <span className="text-xs font-medium">{label}</span>
       </div>
-    </Component>
+    </button>
   );
 };
 
@@ -52,21 +60,31 @@ const BottomNav = ({ session, profile }: BottomNavProps) => {
       
       const { data, error } = await supabase
         .from('messages')
-        .select('id, created_at, sender_id, receiver_id, matches!inner(*)')
+        .select('id, created_at, sender_id, receiver_id')
         .or(`sender_id.eq.${session.user.id},receiver_id.eq.${session.user.id}`)
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
       
       if (error || !data) return null;
-      return data;
+
+      // Get the match for this message
+      const otherUserId = data.sender_id === session.user.id ? data.receiver_id : data.sender_id;
+      const { data: matchData } = await supabase
+        .from('matches')
+        .select('id')
+        .eq('status', 'active')
+        .or(`and(profile1_id.eq.${session.user.id},profile2_id.eq.${otherUserId}),and(profile1_id.eq.${otherUserId},profile2_id.eq.${session.user.id})`)
+        .single();
+
+      return matchData;
     },
     enabled: !!session?.user?.id
   });
 
   const handleChatClick = () => {
-    if (recentChat?.matches?.id) {
-      navigate(`/chat/${recentChat.matches.id}`);
+    if (recentChat?.id) {
+      navigate(`/chat/${recentChat.id}`);
     } else {
       navigate('/matches');
     }
