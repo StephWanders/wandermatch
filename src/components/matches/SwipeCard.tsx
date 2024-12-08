@@ -34,6 +34,8 @@ const SwipeCard = ({ profile, onSwipe, currentUserId }: SwipeCardProps) => {
       
       if (action === 'like') {
         toast.success("Profile liked!");
+      } else {
+        toast.info("Profile passed");
       }
       
       // Trigger the fade-out animation
