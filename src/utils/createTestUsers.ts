@@ -41,41 +41,40 @@ export const createTestUsers = async () => {
       
       console.log(`Creating test user ${i + 1} with email: ${email}`);
 
-      // First check if user exists
-      const { data: existingUser } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('full_name', `Test User ${i + 1}`)
-        .single();
+      // Try to sign in first to see if user exists
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
       let userId;
-      
-      if (!existingUser) {
-        console.log(`User ${i + 1} doesn't exist, creating new user...`);
-        // Only create new user if they don't exist
+
+      if (signInError && !signInError.message.includes('Invalid login credentials')) {
+        console.error(`Unexpected error for user ${i + 1}:`, signInError);
+        throw signInError;
+      }
+
+      if (signInError) {
+        // User doesn't exist, create new user
+        console.log(`Creating new user ${i + 1}...`);
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: window.location.origin,
+          }
         });
 
         if (authError) {
           console.error(`Auth error for user ${i + 1}:`, authError);
-          // If error is not "user already exists", throw it
-          if (!authError.message.includes('User already registered')) {
-            throw authError;
-          }
-          // If user exists in auth but not in profiles, get their ID
-          console.log(`User ${i + 1} exists in auth, signing in to get ID...`);
-          const { data: existingAuthUser } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
-          userId = existingAuthUser?.user?.id;
-        } else {
-          userId = authData.user?.id;
+          throw authError;
         }
+
+        userId = authData.user?.id;
+        console.log(`Created new user with ID: ${userId}`);
       } else {
-        userId = existingUser.id;
+        userId = signInData.user.id;
+        console.log(`Using existing user with ID: ${userId}`);
       }
 
       if (!userId) {
@@ -83,11 +82,12 @@ export const createTestUsers = async () => {
         continue;
       }
 
-      console.log(`Got user ID for user ${i + 1}: ${userId}`);
+      // Wait a bit to ensure the profile trigger has completed
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       const profileImage = getRandomProfileImage();
       
-      // Update or insert test profile data
+      // Update test profile data
       console.log(`Updating profile data for user ${i + 1}...`);
       const { error: profileError } = await supabase.rpc('insert_test_profile', {
         user_id: userId,
