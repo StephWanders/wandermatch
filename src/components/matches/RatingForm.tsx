@@ -18,12 +18,15 @@ interface RatingFormProps {
   ratedUserId: string;
 }
 
-const RATING_CATEGORIES: { id: RatingCategory; label: string }[] = [
-  { id: 'punctuality', label: 'Punctuality' },
-  { id: 'communication', label: 'Communication' },
-  { id: 'respectfulness', label: 'Respectfulness' },
-  { id: 'responsibility', label: 'Responsibility' },
-  { id: 'overall_safety', label: 'Overall Experience' },
+const RATING_CATEGORIES: { id: RatingCategory; label: string; description: string }[] = [
+  { id: 'punctuality', label: 'Punctuality', description: 'How reliable were they in meeting planned schedules?' },
+  { id: 'communication', label: 'Communication', description: 'How clear and responsive were they in discussions?' },
+  { id: 'respectfulness', label: 'Respect for Boundaries', description: 'Did they respect personal and cultural boundaries?' },
+  { id: 'responsibility', label: 'Responsibility', description: 'How responsible were they throughout the trip?' },
+  { id: 'trustworthiness', label: 'Trustworthiness', description: 'Could you trust them with belongings and information?' },
+  { id: 'conflict_management', label: 'Conflict Management', description: 'How well did they handle disagreements?' },
+  { id: 'preparedness', label: 'Preparedness', description: 'Were they adequately prepared for the trip?' },
+  { id: 'overall_safety', label: 'Overall Safety', description: 'How safe did you feel traveling with them?' },
 ];
 
 const initialRatings: Record<RatingCategory, number> = {
@@ -31,6 +34,9 @@ const initialRatings: Record<RatingCategory, number> = {
   communication: 0,
   respectfulness: 0,
   responsibility: 0,
+  trustworthiness: 0,
+  conflict_management: 0,
+  preparedness: 0,
   overall_safety: 0,
 };
 
@@ -109,6 +115,7 @@ const RatingForm = ({ isOpen, onClose, matchId, ratedUserId }: RatingFormProps) 
           {RATING_CATEGORIES.map((category) => (
             <div key={category.id} className="space-y-2">
               <Label>{category.label}</Label>
+              <p className="text-sm text-gray-500">{category.description}</p>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((value) => (
                   <button
