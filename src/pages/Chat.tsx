@@ -84,8 +84,7 @@ const Chat = () => {
         .from("messages")
         .select("*")
         .or(
-          `and(sender_id.eq.${session.user.id},receiver_id.eq.${otherProfile.id}),` +
-          `and(sender_id.eq.${otherProfile.id},receiver_id.eq.${session.user.id})`
+          `and(sender_id.eq.${session.user.id},receiver_id.eq.${otherProfile.id}),`
         )
         .order("created_at", { ascending: true });
 
