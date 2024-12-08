@@ -104,7 +104,7 @@ const BottomNav = ({ session, profile }: BottomNavProps) => {
       console.log('Navigating to most recent match:', mostRecentMatch.id);
       
       navigate(`/chat/${mostRecentMatch.id}`, { 
-        state: { from: location.pathname }
+        state: { from: location.pathname, showLatest: true }
       });
     } else {
       console.log('No active matches found, navigating to matches page');
