@@ -112,7 +112,7 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
       </div>
       <ScrollArea className="h-[calc(100vh-64px)]">
         {sortedMatches?.map((match) => {
-          // Get the other user's profile ID
+          const otherProfile = match.profiles;
           const otherProfileId = match.profile1_id === currentUserId 
             ? match.profile2_id 
             : match.profile1_id;
@@ -120,7 +120,7 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
           return (
             <ChatPreviewCard
               key={match.id}
-              profile={match.profiles}
+              profile={otherProfile}
               isActive={match.id === currentMatchId}
               latestMessage={latestMessages?.[match.id]?.message}
               onClick={() => navigate(`/chat/${match.id}`)}
