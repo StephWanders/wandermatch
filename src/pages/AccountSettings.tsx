@@ -62,7 +62,7 @@ const AccountSettings = () => {
   };
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen">
       {/* Background with overlay */}
       <div className="fixed inset-0 z-0">
         <div 
@@ -76,68 +76,70 @@ const AccountSettings = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10">
+      <div className="relative z-10 flex flex-col h-full">
         <TopNav session={session} profile={profile} />
         
-        <div className="container max-w-2xl mx-auto p-4 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Settings</CardTitle>
-              <CardDescription>
-                Manage your account settings and preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Email Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Email Address</h3>
-                <div className="flex gap-4">
-                  <Input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="New email address"
-                    disabled={loading}
-                  />
-                  <Button 
-                    onClick={handleUpdateEmail}
-                    disabled={loading || !email || email === session.user.email}
-                  >
-                    Update Email
-                  </Button>
-                </div>
-              </div>
-
-              {/* Password Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Change Password</h3>
+        <main className="flex-1 overflow-hidden pt-16 pb-16"> {/* Added padding to account for nav bars */}
+          <div className="container max-w-2xl mx-auto p-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Account Settings</CardTitle>
+                <CardDescription>
+                  Manage your account settings and preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Email Section */}
                 <div className="space-y-4">
-                  <Input
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="New password"
-                    disabled={loading}
-                  />
-                  <Input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm new password"
-                    disabled={loading}
-                  />
-                  <Button 
-                    onClick={handleUpdatePassword}
-                    disabled={loading || !newPassword || !confirmPassword}
-                    className="w-full"
-                  >
-                    Update Password
-                  </Button>
+                  <h3 className="text-lg font-medium">Email Address</h3>
+                  <div className="flex gap-4">
+                    <Input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="New email address"
+                      disabled={loading}
+                    />
+                    <Button 
+                      onClick={handleUpdateEmail}
+                      disabled={loading || !email || email === session.user.email}
+                    >
+                      Update Email
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+
+                {/* Password Section */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Change Password</h3>
+                  <div className="space-y-4">
+                    <Input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="New password"
+                      disabled={loading}
+                    />
+                    <Input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm new password"
+                      disabled={loading}
+                    />
+                    <Button 
+                      onClick={handleUpdatePassword}
+                      disabled={loading || !newPassword || !confirmPassword}
+                      className="w-full"
+                    >
+                      Update Password
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
 
         <BottomNav session={session} profile={profile} />
       </div>
