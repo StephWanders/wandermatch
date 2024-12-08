@@ -46,20 +46,18 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
           const messageIds = unreadMessages.map(m => m.id);
           console.log('Attempting to mark messages as read:', messageIds);
           
-          const timestamp = new Date().toISOString();
-          const { data, error } = await supabase
+          const { error } = await supabase
             .from('messages')
-            .update({ read_at: timestamp })
+            .update({ read_at: new Date().toISOString() })
             .in('id', messageIds)
-            .eq('receiver_id', currentUserId)
-            .select('*');
+            .eq('receiver_id', currentUserId);
 
           if (error) {
             console.error('Error marking messages as read:', error);
             return;
           }
 
-          console.log('Successfully marked messages as read:', data);
+          console.log('Successfully marked messages as read');
           
           // Invalidate queries immediately after successful update
           await Promise.all([
@@ -67,7 +65,8 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
             queryClient.invalidateQueries({ queryKey: ['welcomeData'] }),
             queryClient.invalidateQueries({ queryKey: ['chat-messages'] }),
             queryClient.invalidateQueries({ queryKey: ['latest-messages'] }),
-            queryClient.invalidateQueries({ queryKey: ['unread-counts'] })
+            queryClient.invalidateQueries({ queryKey: ['unread-counts'] }),
+            queryClient.invalidateQueries({ queryKey: ['confirmed-matches'] })
           ]);
         } catch (error) {
           console.error('Failed to mark messages as read:', error);
