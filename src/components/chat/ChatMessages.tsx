@@ -34,6 +34,7 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
         return;
       }
 
+      // Filter unread messages where the current user is the receiver
       const unreadMessages = messages.filter(
         msg => msg.sender_id !== currentUserId && !msg.read_at
       );
@@ -45,13 +46,12 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
           const messageIds = unreadMessages.map(m => m.id);
           console.log('Attempting to mark messages as read:', messageIds);
           
+          const timestamp = new Date().toISOString();
           const { data, error } = await supabase
             .from('messages')
-            .update({ 
-              read_at: new Date().toISOString() 
-            })
+            .update({ read_at: timestamp })
             .in('id', messageIds)
-            .eq('receiver_id', currentUserId)  // Add this to ensure we only update messages for current user
+            .eq('receiver_id', currentUserId)
             .select();
 
           if (error) {
@@ -59,18 +59,16 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
             return;
           }
 
-          console.log('Update response:', data);
-          console.log('Successfully marked messages as read');
+          console.log('Successfully marked messages as read:', data);
           
           // Invalidate queries immediately after successful update
           await Promise.all([
             queryClient.invalidateQueries({ queryKey: ['unread-messages'] }),
             queryClient.invalidateQueries({ queryKey: ['welcomeData'] }),
             queryClient.invalidateQueries({ queryKey: ['chat-messages'] }),
-            queryClient.invalidateQueries({ queryKey: ['latest-messages'] })
+            queryClient.invalidateQueries({ queryKey: ['latest-messages'] }),
+            queryClient.invalidateQueries({ queryKey: ['unread-counts'] })
           ]);
-
-          console.log('Queries invalidated');
         } catch (error) {
           console.error('Failed to mark messages as read:', error);
         }
