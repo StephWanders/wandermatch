@@ -4,6 +4,8 @@ import { useWelcomeData } from "@/hooks/useWelcomeData";
 import LocalEventsSection from "../LocalEventsSection";
 import SeasonalSection from "../SeasonalSection";
 import InspirationSection from "../InspirationSection";
+import { Link } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface WelcomeSectionProps {
   session: any;
@@ -47,12 +49,39 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
       </div>
 
       {profile?.location && (
-        <LocalEventsSection location={profile.location} />
+        <div className="mt-8">
+          <h2 className="text-2xl font-semibold mb-4">Local Events</h2>
+          <Link to="/" className="block hover:opacity-90 transition-opacity">
+            <Card>
+              <CardContent className="p-6">
+                <LocalEventsSection location={profile.location} />
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
       )}
 
-      <InspirationSection />
+      <div className="mt-8">
+        <h2 className="text-2xl font-semibold mb-4">Travel Inspiration</h2>
+        <Link to="/" className="block hover:opacity-90 transition-opacity">
+          <Card>
+            <CardContent className="p-6">
+              <InspirationSection />
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
       
-      <SeasonalSection />
+      <div className="mt-8">
+        <h2 className="text-2xl font-semibold mb-4">Seasonal Highlights</h2>
+        <Link to="/" className="block hover:opacity-90 transition-opacity">
+          <Card>
+            <CardContent className="p-6">
+              <SeasonalSection />
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
     </div>
   );
 };
