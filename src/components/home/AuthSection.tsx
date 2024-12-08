@@ -5,9 +5,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const AuthSection = () => {
-  const handleError = () => {
-    toast.error("Invalid email or password. Please try again or sign up if you're new!");
-    console.error("Auth error occurred");
+  const handleError = (error: Error) => {
+    console.error("Auth error occurred:", error);
+    
+    if (error.message.includes("invalid_credentials")) {
+      toast.error("Invalid email or password. Please check your credentials and try again.");
+    } else if (error.message.includes("Email not confirmed")) {
+      toast.error("Please verify your email address before signing in.");
+    } else {
+      toast.error("An error occurred during authentication. Please try again.");
+    }
   };
 
   return (
@@ -32,7 +39,7 @@ const AuthSection = () => {
           }}
           providers={[]}
           redirectTo={window.location.origin}
-          onlyThirdPartyProviders={false}
+          onError={handleError}
           localization={{
             variables: {
               sign_in: {
