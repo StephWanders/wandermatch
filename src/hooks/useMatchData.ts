@@ -17,22 +17,15 @@ export const useMatchData = (userId: string | undefined) => {
             status,
             profile1_id,
             profile2_id,
-            profile1:profiles!matches_profile1_id_fkey(*),
-            profile2:profiles!matches_profile2_id_fkey(*)
+            profiles:profiles!matches_profile2_id_fkey(*)
           `)
           .eq('status', 'active')
-          .or(`profile1_id.eq.${userId},profile2_id.eq.${userId}`);
+          .eq('profile1_id', userId);
         
         if (error) throw error;
         
-        // Transform data to show the other user's profile
-        const transformedData = data?.map(match => ({
-          ...match,
-          profiles: match.profile1_id === userId ? match.profile2 : match.profile1
-        }));
-        
-        console.log('Matches data:', transformedData);
-        return transformedData || [];
+        console.log('Matches data:', data);
+        return data || [];
       } catch (error) {
         console.error('Error fetching matches:', error);
         toast.error("Failed to load matches");
