@@ -20,15 +20,15 @@ const ChatInput = ({ onSendMessage }: ChatInputProps) => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white border-t p-4 flex items-center space-x-2"
+      className="bg-white/60 backdrop-blur-sm border-t border-gray-200/50 p-4 flex items-center space-x-2"
     >
       <Input
         value={newMessage}
         onChange={(e) => setNewMessage(e.target.value)}
         placeholder="Type a message..."
-        className="flex-1"
+        className="flex-1 bg-white/80 border-gray-200/50"
       />
-      <Button type="submit" size="icon" className="bg-green-500 hover:bg-green-600">
+      <Button type="submit" size="icon" className="bg-primary hover:bg-primary-600">
         <Send className="h-4 w-4" />
       </Button>
     </form>

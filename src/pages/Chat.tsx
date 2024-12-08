@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import ChatSidebar from "@/components/chat/ChatSidebar";
 import ChatContainer from "@/components/chat/ChatContainer";
 import BottomNav from "@/components/navigation/BottomNav";
+import TopNav from "@/components/navigation/TopNav";
 import { useMatchData } from "@/hooks/useMatchData";
 import { useMessageData } from "@/hooks/useMessageData";
 import { useAuthState } from "@/hooks/useAuthState";
@@ -69,17 +70,33 @@ const Chat = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-secondary-50">
-      <div className="h-[calc(100vh-64px)] flex">
-        <ChatSidebar matches={matches || []} currentMatchId={matchId} />
-        <ChatContainer 
-          matchId={matchId!}
-          otherProfile={otherProfile}
-          session={session}
-          messages={messages}
-        />
+    <div className="min-h-screen relative">
+      {/* Background Image with Overlay */}
+      <div className="fixed inset-0 z-0">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ 
+            backgroundImage: "url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80')",
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-white/85 to-white/90 backdrop-blur-[1px]" />
+        </div>
       </div>
-      <BottomNav session={session} profile={profile} />
+
+      {/* Content */}
+      <div className="relative z-10">
+        <TopNav session={session} profile={profile} />
+        <div className="h-[calc(100vh-128px)] flex mt-16">
+          <ChatSidebar matches={matches || []} currentMatchId={matchId} />
+          <ChatContainer 
+            matchId={matchId!}
+            otherProfile={otherProfile}
+            session={session}
+            messages={messages}
+          />
+        </div>
+        <BottomNav session={session} profile={profile} />
+      </div>
     </div>
   );
 };
