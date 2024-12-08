@@ -29,18 +29,6 @@ const Chat = () => {
     }
   }, [session, navigate, loading]);
 
-  // Set other profile based on current match
-  useEffect(() => {
-    if (!session?.user?.id || !matchId || !matches?.length) return;
-    
-    console.log('Setting other profile for match:', matchId);
-    const currentMatch = matches.find(m => m.id === matchId);
-    if (currentMatch) {
-      setOtherProfile(currentMatch.profiles);
-      console.log('Other profile set:', currentMatch.profiles);
-    }
-  }, [matchId, matches, session?.user?.id]);
-
   // Navigate to most recent chat if no matchId is provided
   useEffect(() => {
     if (!matchId && matches.length > 0) {
@@ -53,6 +41,24 @@ const Chat = () => {
       navigate(`/chat/${sortedMatches[0].id}`, { replace: true });
     }
   }, [matchId, matches, navigate]);
+
+  // Set other profile based on current match
+  useEffect(() => {
+    if (!session?.user?.id || !matchId || !matches?.length) return;
+    
+    console.log('Setting other profile for match:', matchId);
+    const currentMatch = matches.find(m => m.id === matchId);
+    if (currentMatch) {
+      const profileToSet = currentMatch.profile1_id === session.user.id 
+        ? currentMatch.profiles 
+        : matches.find(m => m.profile1_id === session.user.id && m.profile2_id === currentMatch.profile1_id)?.profiles;
+      
+      if (profileToSet) {
+        console.log('Other profile set:', profileToSet);
+        setOtherProfile(profileToSet);
+      }
+    }
+  }, [matchId, matches, session?.user?.id]);
 
   useChatSubscription(matchId, session?.user?.id, otherProfile?.id, queryClient);
 
