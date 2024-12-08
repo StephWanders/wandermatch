@@ -42,6 +42,7 @@ const HeroSection = () => {
             size="lg" 
             variant="outline" 
             className="border-2 border-teal-400 text-white hover:bg-teal-500/20 px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+            onClick={() => navigate("/#features")}
           >
             Learn More
           </Button>
