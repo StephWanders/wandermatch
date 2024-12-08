@@ -222,7 +222,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      insert_test_profile: {
+        Args: {
+          user_id: string
+          user_full_name: string
+          user_age: number
+          user_location: string
+          user_bio: string
+          user_travel_style: string
+          user_languages: string[]
+          user_interests: string[]
+          user_preferred_destinations: string[]
+          user_gender: string
+          user_preferred_gender: string[]
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

@@ -10,11 +10,11 @@ const testUsers = [
       location: 'San Francisco',
       bio: 'Adventure seeker looking for travel buddies! Love hiking and photography.',
       travel_style: 'adventure',
-      languages: ['English', 'Mandarin'],
-      interests: ['hiking', 'photography', 'food', 'culture'],
-      preferred_destinations: ['Japan', 'New Zealand', 'Thailand'],
+      languages: ['English', 'Mandarin'] as string[],
+      interests: ['hiking', 'photography', 'food', 'culture'] as string[],
+      preferred_destinations: ['Japan', 'New Zealand', 'Thailand'] as string[],
       gender: 'female',
-      preferred_gender: ['male', 'female']
+      preferred_gender: ['male', 'female'] as string[]
     }
   },
   {
@@ -26,11 +26,11 @@ const testUsers = [
       location: 'Barcelona',
       bio: 'Cultural explorer and foodie. Always ready for the next adventure!',
       travel_style: 'cultural',
-      languages: ['English', 'Spanish', 'Portuguese'],
-      interests: ['food', 'history', 'architecture', 'museums'],
-      preferred_destinations: ['Italy', 'France', 'Portugal'],
+      languages: ['English', 'Spanish', 'Portuguese'] as string[],
+      interests: ['food', 'history', 'architecture', 'museums'] as string[],
+      preferred_destinations: ['Italy', 'France', 'Portugal'] as string[],
       gender: 'male',
-      preferred_gender: ['female']
+      preferred_gender: ['female'] as string[]
     }
   },
   {
@@ -42,11 +42,11 @@ const testUsers = [
       location: 'Paris',
       bio: 'Luxury travel enthusiast with a passion for art and fine dining.',
       travel_style: 'luxury',
-      languages: ['French', 'English'],
-      interests: ['art', 'fine dining', 'shopping', 'wine tasting'],
-      preferred_destinations: ['Maldives', 'Dubai', 'Switzerland'],
+      languages: ['French', 'English'] as string[],
+      interests: ['art', 'fine dining', 'shopping', 'wine tasting'] as string[],
+      preferred_destinations: ['Maldives', 'Dubai', 'Switzerland'] as string[],
       gender: 'female',
-      preferred_gender: ['male']
+      preferred_gender: ['male'] as string[]
     }
   },
   {
@@ -58,11 +58,11 @@ const testUsers = [
       location: 'London',
       bio: 'Backpacker who loves meeting new people and exploring off-the-beaten-path destinations.',
       travel_style: 'backpacker',
-      languages: ['English', 'German'],
-      interests: ['backpacking', 'hostels', 'street food', 'hiking'],
-      preferred_destinations: ['Vietnam', 'Cambodia', 'Peru'],
+      languages: ['English', 'German'] as string[],
+      interests: ['backpacking', 'hostels', 'street food', 'hiking'] as string[],
+      preferred_destinations: ['Vietnam', 'Cambodia', 'Peru'] as string[],
       gender: 'other',
-      preferred_gender: ['male', 'female', 'other']
+      preferred_gender: ['male', 'female', 'other'] as string[]
     }
   },
   {
@@ -74,11 +74,11 @@ const testUsers = [
       location: 'Tokyo',
       bio: 'Looking for travel companions who enjoy both city life and nature retreats.',
       travel_style: 'cultural',
-      languages: ['Japanese', 'English'],
-      interests: ['temples', 'nature', 'city exploration', 'traditional arts'],
-      preferred_destinations: ['South Korea', 'Taiwan', 'Australia'],
+      languages: ['Japanese', 'English'] as string[],
+      interests: ['temples', 'nature', 'city exploration', 'traditional arts'] as string[],
+      preferred_destinations: ['South Korea', 'Taiwan', 'Australia'] as string[],
       gender: 'female',
-      preferred_gender: ['female']
+      preferred_gender: ['female'] as string[]
     }
   }
 ];
