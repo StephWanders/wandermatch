@@ -36,6 +36,7 @@ const AuthSection = () => {
           }}
           providers={[]}
           redirectTo={window.location.origin}
+          onError={handleAuthError}
           onlyThirdPartyProviders={false}
           localization={{
             variables: {
