@@ -10,7 +10,9 @@ export const useMatchQueries = (userId: string | undefined) => {
     queryFn: async () => {
       if (!userId) return [];
       console.log('Fetching confirmed matches');
-      const { data, error } = await supabase
+      
+      // First, get all matches where the user is either profile1 or profile2
+      const { data: matchData, error } = await supabase
         .from('matches')
         .select(`
           id,
@@ -18,29 +20,47 @@ export const useMatchQueries = (userId: string | undefined) => {
           matched_at,
           profile1_id,
           profile2_id,
-          profile2:profiles!matches_profile2_id_fkey(*)
+          matched_profile:profiles!matches_profile2_id_fkey(*)
         `)
         .eq('status', 'active')
-        .or(`profile1_id.eq.${userId},profile2_id.eq.${userId}`)
-        .order('matched_at', { ascending: false });
-      
+        .eq('profile1_id', userId);
+
       if (error) {
         console.error('Error fetching confirmed matches:', error);
         return [];
       }
-      
-      // Process matches to ensure no duplicates and correct profile mapping
-      const processedMatches = data.map(match => ({
-        ...match,
-        profiles: match.profile2
-      }));
 
-      // Use a Map to deduplicate based on the matched profile's ID
+      // Get matches where user is profile2
+      const { data: reverseMatchData, error: reverseError } = await supabase
+        .from('matches')
+        .select(`
+          id,
+          status,
+          matched_at,
+          profile1_id,
+          profile2_id,
+          matched_profile:profiles!matches_profile1_id_fkey(*)
+        `)
+        .eq('status', 'active')
+        .eq('profile2_id', userId);
+
+      if (reverseError) {
+        console.error('Error fetching reverse matches:', reverseError);
+        return [];
+      }
+
+      // Combine and process all matches
+      const allMatches = [...(matchData || []), ...(reverseMatchData || [])];
+      
+      // Create a Map to store unique matches by ID
       const uniqueMatches = new Map();
-      processedMatches.forEach(match => {
-        const matchedProfileId = match.profiles.id;
-        if (!uniqueMatches.has(matchedProfileId)) {
-          uniqueMatches.set(matchedProfileId, match);
+      
+      allMatches.forEach(match => {
+        if (!uniqueMatches.has(match.id)) {
+          uniqueMatches.set(match.id, {
+            ...match,
+            profiles: match.matched_profile
+          });
         }
       });
       
