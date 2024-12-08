@@ -108,14 +108,14 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     const hasMatches = sortedMatches.length > 0;
     const showLatest = location.state?.showLatest;
     
-    if ((isOnChatRoute || hasNoMatchSelected || showLatest) && hasMatches) {
-      // Find first match with unread messages or most recent match
+    if ((isOnChatRoute || hasNoMatchSelected) && hasMatches && showLatest) {
+      // Only navigate to latest if explicitly requested
       const matchToShow = sortedMatches[0];
       if (matchToShow?.id !== currentMatchId) {
-        console.log('Navigating to match:', matchToShow.id);
+        console.log('Navigating to latest match:', matchToShow.id);
         navigate(`/chat/${matchToShow.id}`, { 
           replace: true,
-          state: { ...location.state, showLatest: false }
+          state: { showLatest: false }
         });
       }
     }
