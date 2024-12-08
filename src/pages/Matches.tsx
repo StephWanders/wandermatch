@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import BottomNav from "@/components/navigation/BottomNav";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MatchList from "@/components/matches/MatchList";
@@ -9,6 +9,7 @@ import { useMatchQueries } from "@/hooks/useMatchQueries";
 
 const Matches = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
 
@@ -40,6 +41,9 @@ const Matches = () => {
     navigate(`/chat/${matchId}`);
   };
 
+  // Get the initial tab from URL or default to "matches"
+  const initialTab = searchParams.get("tab") || "matches";
+
   // Calculate actual counts from the data
   const confirmedCount = confirmedMatches?.length || 0;
   const pendingCount = pendingMatches?.length || 0;
@@ -49,7 +53,7 @@ const Matches = () => {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Your Matches</h1>
         
-        <Tabs defaultValue="matches" className="space-y-6">
+        <Tabs defaultValue={initialTab} className="space-y-6">
           <TabsList>
             <TabsTrigger value="matches">
               Matches ({confirmedCount})
