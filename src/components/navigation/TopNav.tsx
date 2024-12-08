@@ -61,7 +61,7 @@ const TopNav = ({ session, profile }: TopNavProps) => {
                   <User className="mr-2 h-4 w-4" />
                   Edit Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => window.location.href = 'https://supabase.com/dashboard/project/gkvhkkgpqblclwgrzkwr/auth/users'}>
+                <DropdownMenuItem onClick={() => navigate("/account-settings")}>
                   <Settings className="mr-2 h-4 w-4" />
                   Account Settings
                 </DropdownMenuItem>
