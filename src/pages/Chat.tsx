@@ -22,34 +22,35 @@ const Chat = () => {
   const { data: matches = [], isError: matchesError } = useMatchData(session?.user?.id);
   const { data: messages = [] } = useMessageData(session?.user?.id, matchId, otherProfile?.id);
 
+  // Redirect if not authenticated
   useEffect(() => {
     if (!loading && !session) {
       navigate('/');
     }
   }, [session, navigate, loading]);
 
+  // Set other profile based on current match
   useEffect(() => {
-    const updateOtherProfile = async () => {
-      if (!session?.user?.id || !matchId || !matches?.length) return;
-      
-      const currentMatch = matches.find(m => m.id === matchId);
-      if (currentMatch) {
-        setOtherProfile(currentMatch.profiles);
-      }
-    };
-
-    updateOtherProfile();
+    if (!session?.user?.id || !matchId || !matches?.length) return;
+    
+    console.log('Setting other profile for match:', matchId);
+    const currentMatch = matches.find(m => m.id === matchId);
+    if (currentMatch) {
+      setOtherProfile(currentMatch.profiles);
+      console.log('Other profile set:', currentMatch.profiles);
+    }
   }, [matchId, matches, session?.user?.id]);
 
-  // If no matchId is provided, navigate to the most recent chat
+  // Navigate to most recent chat if no matchId is provided
   useEffect(() => {
     if (!matchId && matches.length > 0) {
+      console.log('No matchId provided, navigating to most recent chat');
       const sortedMatches = [...matches].sort((a, b) => {
         const timeA = new Date(a.matched_at || a.profiles.created_at || '').getTime();
         const timeB = new Date(b.matched_at || b.profiles.created_at || '').getTime();
         return timeB - timeA;
       });
-      navigate(`/chat/${sortedMatches[0].id}`);
+      navigate(`/chat/${sortedMatches[0].id}`, { replace: true });
     }
   }, [matchId, matches, navigate]);
 
@@ -99,12 +100,14 @@ const Chat = () => {
         <TopNav session={session} profile={profile} />
         <div className="h-[calc(100vh-128px)] flex mt-16">
           <ChatSidebar matches={matches as Match[]} currentMatchId={matchId} />
-          <ChatContainer 
-            matchId={matchId!}
-            otherProfile={otherProfile}
-            session={session}
-            messages={messages}
-          />
+          {matchId && otherProfile && (
+            <ChatContainer 
+              matchId={matchId}
+              otherProfile={otherProfile}
+              session={session}
+              messages={messages}
+            />
+          )}
         </div>
         <BottomNav session={session} profile={profile} />
       </div>
