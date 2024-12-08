@@ -10,7 +10,7 @@ interface AboutYouSectionProps {
 
 const AboutYouSection = ({ form }: AboutYouSectionProps) => {
   return (
-    <Card>
+    <Card className="bg-white/80 backdrop-blur-sm border-gray-200/50">
       <CardHeader>
         <CardTitle>About You</CardTitle>
       </CardHeader>

@@ -61,23 +61,38 @@ const CreateProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <TopNav session={session} profile={profile} />
-      
-      <main className="pt-16 pb-20 px-4">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">
-            {profile ? "Edit Your Profile" : "Create Your Profile"}
-          </h1>
-          <ProfileForm
-            session={session}
-            profile={profile}
-            onProfileUpdate={handleProfileUpdate}
-          />
+    <div className="min-h-screen relative">
+      {/* Background Image with Overlay */}
+      <div className="fixed inset-0 z-0">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ 
+            backgroundImage: "url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80')",
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-white/85 to-white/90 backdrop-blur-[1px]" />
         </div>
-      </main>
+      </div>
+      
+      {/* Content */}
+      <div className="relative z-10">
+        <TopNav session={session} profile={profile} />
+        
+        <main className="pt-16 pb-20 px-4">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-3xl font-bold mb-8">
+              {profile ? "Edit Your Profile" : "Create Your Profile"}
+            </h1>
+            <ProfileForm
+              session={session}
+              profile={profile}
+              onProfileUpdate={handleProfileUpdate}
+            />
+          </div>
+        </main>
 
-      <BottomNav session={session} profile={profile} />
+        <BottomNav session={session} profile={profile} />
+      </div>
     </div>
   );
 };

@@ -11,7 +11,7 @@ interface TravelPreferencesSectionProps {
 
 const TravelPreferencesSection = ({ form }: TravelPreferencesSectionProps) => {
   return (
-    <Card>
+    <Card className="bg-white/80 backdrop-blur-sm border-gray-200/50">
       <CardHeader>
         <CardTitle>Travel Preferences</CardTitle>
       </CardHeader>

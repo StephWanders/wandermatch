@@ -11,7 +11,7 @@ interface BasicInfoSectionProps {
 
 const BasicInfoSection = ({ form }: BasicInfoSectionProps) => {
   return (
-    <Card>
+    <Card className="bg-white/80 backdrop-blur-sm border-gray-200/50">
       <CardHeader>
         <CardTitle>Basic Information</CardTitle>
       </CardHeader>
