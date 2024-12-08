@@ -20,7 +20,8 @@ export const useMatchQueries = (userId: string | undefined) => {
           matched_at,
           profile1_id,
           profile2_id,
-          profiles!matches_profile2_id_fkey(*)
+          profile2:profiles!matches_profile2_id_fkey(*),
+          profile1:profiles!matches_profile1_id_fkey(*)
         `)
         .eq('status', 'active')
         .eq('profile1_id', userId);
@@ -39,7 +40,8 @@ export const useMatchQueries = (userId: string | undefined) => {
           matched_at,
           profile1_id,
           profile2_id,
-          profiles!matches_profile1_id_fkey(*)
+          profile2:profiles!matches_profile2_id_fkey(*),
+          profile1:profiles!matches_profile1_id_fkey(*)
         `)
         .eq('status', 'active')
         .eq('profile2_id', userId);
@@ -50,14 +52,8 @@ export const useMatchQueries = (userId: string | undefined) => {
       }
 
       const allMatches = [
-        ...(matches1?.map(match => ({
-          ...match,
-          profiles: match.profiles
-        })) || []),
-        ...(matches2?.map(match => ({
-          ...match,
-          profiles: match.profiles
-        })) || [])
+        ...(matches1 || []),
+        ...(matches2 || [])
       ];
 
       console.log('Confirmed matches data:', allMatches);
@@ -81,7 +77,8 @@ export const useMatchQueries = (userId: string | undefined) => {
           matched_at,
           profile1_id,
           profile2_id,
-          profiles!matches_profile1_id_fkey(*)
+          profile2:profiles!matches_profile2_id_fkey(*),
+          profile1:profiles!matches_profile1_id_fkey(*)
         `)
         .eq('status', 'pending_first')
         .eq('profile2_id', userId);
@@ -100,7 +97,8 @@ export const useMatchQueries = (userId: string | undefined) => {
           matched_at,
           profile1_id,
           profile2_id,
-          profiles!matches_profile2_id_fkey(*)
+          profile2:profiles!matches_profile2_id_fkey(*),
+          profile1:profiles!matches_profile1_id_fkey(*)
         `)
         .eq('status', 'pending_second')
         .eq('profile1_id', userId);
@@ -111,14 +109,8 @@ export const useMatchQueries = (userId: string | undefined) => {
       }
 
       const allPendingMatches = [
-        ...(pendingFirst?.map(match => ({
-          ...match,
-          profiles: match.profiles
-        })) || []),
-        ...(pendingSecond?.map(match => ({
-          ...match,
-          profiles: match.profiles
-        })) || [])
+        ...(pendingFirst || []),
+        ...(pendingSecond || [])
       ];
 
       console.log('Pending matches data:', allPendingMatches);
