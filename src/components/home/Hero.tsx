@@ -27,10 +27,6 @@ const Hero = ({ session, profile }: HeroProps) => {
 
   return (
     <section className="relative min-h-screen font-body">
-      {/* Gradient Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-background to-secondary-50" />
-      <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-      
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 pt-24 pb-20">
         {session && profile ? (
@@ -74,11 +70,6 @@ const Hero = ({ session, profile }: HeroProps) => {
           </div>
         )}
       </div>
-
-      {/* Decorative Elements */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
-      <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-primary-500/20 rounded-full filter blur-3xl" />
-      <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-secondary-500/20 rounded-full filter blur-3xl" />
     </section>
   );
 };
