@@ -102,11 +102,11 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     return unreadB - unreadA;
   });
 
-  // Navigate to most recent chat if no specific chat is selected
+  // Navigate to most recent chat if on base chat route
   useEffect(() => {
     if (location.pathname === '/chat' && sortedMatches.length > 0) {
       const mostRecentMatch = sortedMatches[0];
-      navigate(`/chat/${mostRecentMatch.id}`);
+      navigate(`/chat/${mostRecentMatch.id}`, { replace: true });
     }
   }, [location.pathname, sortedMatches, navigate]);
 
