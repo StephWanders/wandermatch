@@ -1,6 +1,6 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { UserMinus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +26,7 @@ interface ChatSidebarProps {
 
 const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -95,13 +96,17 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     return new Date(timeB).getTime() - new Date(timeA).getTime();
   });
 
-  // If no match is selected, automatically select the most recent one
+  // Select most recent chat when navigating to /chat or when no match is selected
   useEffect(() => {
-    if (!currentMatchId && sortedMatches.length > 0) {
-      const mostRecentMatch = sortedMatches[0];
-      navigate(`/chat/${mostRecentMatch.id}`);
+    const shouldSelectMostRecent = 
+      (location.pathname === '/chat' || !currentMatchId) && 
+      sortedMatches.length > 0;
+
+    if (shouldSelectMostRecent) {
+      console.log('Selecting most recent chat:', sortedMatches[0].id);
+      navigate(`/chat/${sortedMatches[0].id}`);
     }
-  }, [currentMatchId, sortedMatches, navigate]);
+  }, [currentMatchId, sortedMatches, navigate, location.pathname]);
 
   return (
     <div className="w-80 bg-white border-r">
