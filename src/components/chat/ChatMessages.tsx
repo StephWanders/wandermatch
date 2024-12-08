@@ -18,13 +18,16 @@ interface ChatMessagesProps {
 }
 
 const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Scroll to bottom when messages change
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    scrollToBottom();
   }, [messages]);
 
   // Mark messages as read when they are displayed
@@ -104,7 +107,7 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
   }, {});
 
   return (
-    <div className="flex-1 overflow-hidden bg-white/30 backdrop-blur-sm" ref={scrollRef}>
+    <div className="flex-1 overflow-hidden bg-white/30 backdrop-blur-sm">
       <ScrollArea className="h-full p-4 scrollbar-none">
         <div className="space-y-4">
           {Object.entries(messagesByDate).map(([dateKey, dateMessages]) => (
@@ -140,6 +143,7 @@ const ChatMessages = ({ messages, currentUserId }: ChatMessagesProps) => {
               </div>
             </div>
           ))}
+          <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
     </div>
