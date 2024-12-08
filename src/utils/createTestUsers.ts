@@ -39,19 +39,48 @@ export const createTestUsers = async () => {
       const email = `test${i + 1}@example.com`;
       const password = 'testpassword123';
       
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+      // First check if user exists
+      const { data: existingUser } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('full_name', `Test User ${i + 1}`)
+        .single();
 
-      if (authError) throw authError;
+      let userId;
       
-      const userId = authData.user?.id;
-      if (!userId) continue;
+      if (!existingUser) {
+        // Only create new user if they don't exist
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+
+        if (authError) {
+          // If error is not "user already exists", throw it
+          if (!authError.message.includes('User already registered')) {
+            throw authError;
+          }
+          // If user exists in auth but not in profiles, get their ID
+          const { data: existingAuthUser } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+          userId = existingAuthUser?.user?.id;
+        } else {
+          userId = authData.user?.id;
+        }
+      } else {
+        userId = existingUser.id;
+      }
+
+      if (!userId) {
+        console.log(`Skipping user ${i + 1} - could not get user ID`);
+        continue;
+      }
 
       const profileImage = getRandomProfileImage();
       
-      // Insert test profile data
+      // Update or insert test profile data
       const { error: profileError } = await supabase.rpc('insert_test_profile', {
         user_id: userId,
         user_full_name: `Test User ${i + 1}`,
@@ -69,27 +98,37 @@ export const createTestUsers = async () => {
       if (profileError) throw profileError;
 
       if (profileImage) {
-        const { error: pictureError } = await supabase
+        // Check if profile picture already exists
+        const { data: existingPicture } = await supabase
           .from('profile_pictures')
-          .insert({
-            profile_id: userId,
-            image_url: profileImage,
-            is_default: true
-          });
+          .select('id')
+          .eq('profile_id', userId)
+          .eq('is_default', true)
+          .single();
 
-        if (pictureError) throw pictureError;
+        if (!existingPicture) {
+          const { error: pictureError } = await supabase
+            .from('profile_pictures')
+            .insert({
+              profile_id: userId,
+              image_url: profileImage,
+              is_default: true
+            });
 
-        // Update profile with the image URL
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ profile_image_url: profileImage })
-          .eq('id', userId);
+          if (pictureError) throw pictureError;
 
-        if (updateError) throw updateError;
+          // Update profile with the image URL
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ profile_image_url: profileImage })
+            .eq('id', userId);
+
+          if (updateError) throw updateError;
+        }
       }
     }
 
-    console.log('Test users created successfully');
+    console.log('Test users created/updated successfully');
     return true;
   } catch (error) {
     console.error('Error creating test users:', error);
