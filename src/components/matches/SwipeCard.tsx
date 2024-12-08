@@ -5,6 +5,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ProfileModal from "./ProfileModal";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface SwipeCardProps {
   profile: any;
@@ -15,6 +16,7 @@ interface SwipeCardProps {
 const SwipeCard = ({ profile, onSwipe, currentUserId }: SwipeCardProps) => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleSwipe = async (action: 'like' | 'dislike') => {
     if (isTransitioning) return; // Prevent double clicks during transition
@@ -53,6 +55,9 @@ const SwipeCard = ({ profile, onSwipe, currentUserId }: SwipeCardProps) => {
       } else {
         toast.info("Profile passed");
       }
+
+      // Invalidate pending matches query to update the counter
+      queryClient.invalidateQueries({ queryKey: ['pending-matches'] });
       
       // Trigger the fade-out animation
       setTimeout(() => {
