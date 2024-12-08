@@ -80,11 +80,13 @@ const Chat = () => {
     queryFn: async () => {
       if (!session?.user?.id || !matchId || !otherProfile?.id) return [];
       console.log('Fetching messages for match:', matchId);
+      
       const { data, error } = await supabase
         .from("messages")
         .select("*")
         .or(
-          `and(sender_id.eq.${session.user.id},receiver_id.eq.${otherProfile.id}),`
+          `sender_id.eq.${session.user.id},and(receiver_id.eq.${session.user.id}),` +
+          `sender_id.eq.${otherProfile.id},and(receiver_id.eq.${otherProfile.id})`
         )
         .order("created_at", { ascending: true });
 
