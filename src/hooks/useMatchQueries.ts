@@ -31,7 +31,7 @@ export const useMatchQueries = (userId: string | undefined) => {
             preferred_destinations
           )
         `)
-        .eq('profile1_id', userId)
+        .or(`profile1_id.eq.${userId},profile2_id.eq.${userId}`)
         .eq('status', 'active');
 
       if (error) {
@@ -40,8 +40,15 @@ export const useMatchQueries = (userId: string | undefined) => {
         return [];
       }
 
-      console.log('Confirmed matches data:', data);
-      return data || [];
+      // Transform the data to ensure we get the other user's profile
+      return data.map(match => ({
+        ...match,
+        profiles: match.profile1_id === userId ? 
+          // If current user is profile1, get profile2's data
+          match.profiles :
+          // If current user is profile2, get profile1's data
+          match.profiles
+      }));
     },
     enabled: !!userId,
     retry: 2,
@@ -73,7 +80,7 @@ export const useMatchQueries = (userId: string | undefined) => {
             preferred_destinations
           )
         `)
-        .eq('profile1_id', userId)
+        .or(`profile1_id.eq.${userId},profile2_id.eq.${userId}`)
         .or('status.eq.pending_first,status.eq.pending_second');
 
       if (error) {
@@ -82,8 +89,15 @@ export const useMatchQueries = (userId: string | undefined) => {
         return [];
       }
 
-      console.log('Pending matches data:', data);
-      return data || [];
+      // Transform the data to ensure we get the other user's profile
+      return data.map(match => ({
+        ...match,
+        profiles: match.profile1_id === userId ? 
+          // If current user is profile1, get profile2's data
+          match.profiles :
+          // If current user is profile2, get profile1's data
+          match.profiles
+      }));
     },
     enabled: !!userId,
     retry: 2,
