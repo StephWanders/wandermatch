@@ -21,6 +21,8 @@ const ChatContainer = ({ matchId, otherProfile, session, messages }: ChatContain
     const markMessagesAsRead = async () => {
       if (!session?.user?.id || !otherProfile?.id || !messages?.length) return;
 
+      console.log('Checking messages to mark as read for:', otherProfile.id);
+      
       const unreadMessageIds = messages
         .filter(msg => 
           msg.sender_id === otherProfile.id && 
@@ -29,7 +31,10 @@ const ChatContainer = ({ matchId, otherProfile, session, messages }: ChatContain
         )
         .map(msg => msg.id);
 
-      if (unreadMessageIds.length === 0) return;
+      if (unreadMessageIds.length === 0) {
+        console.log('No unread messages to mark');
+        return;
+      }
 
       console.log('Marking messages as read:', unreadMessageIds);
 
@@ -45,6 +50,9 @@ const ChatContainer = ({ matchId, otherProfile, session, messages }: ChatContain
         queryClient.invalidateQueries({ queryKey: ['chat-messages', matchId] });
         queryClient.invalidateQueries({ queryKey: ['unread-counts'] });
         queryClient.invalidateQueries({ queryKey: ['latest-messages'] });
+        queryClient.invalidateQueries({ queryKey: ['unread-messages'] });
+        
+        console.log('Successfully marked messages as read');
       } catch (error) {
         console.error('Error marking messages as read:', error);
       }
