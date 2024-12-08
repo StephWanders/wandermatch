@@ -53,29 +53,32 @@ const WelcomeSection = ({ session, profile }: WelcomeSectionProps) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
         <StatsCard
           icon={Heart}
-          title="Pending Matches"
+          title={<span className="font-display text-lg">Pending Matches</span>}
           stat={`${pendingMatches?.length || 0} pending matches`}
           to="/matches?tab=pending"
-          bgColor="bg-primary-50"
+          bgColor="bg-white/80 backdrop-blur-sm"
           iconColor="text-primary-600"
+          className="shadow-lg hover:shadow-xl transition-all duration-300 border border-primary-100"
         />
 
         <StatsCard
           icon={Globe}
-          title="Discover"
+          title={<span className="font-display text-lg">Discover</span>}
           stat="Find new travel buddies"
           to="/matches?tab=discover"
-          bgColor="bg-secondary-50"
+          bgColor="bg-white/80 backdrop-blur-sm"
           iconColor="text-secondary-600"
+          className="shadow-lg hover:shadow-xl transition-all duration-300 border border-secondary-100"
         />
 
         <StatsCard
           icon={MessageCircle}
-          title="Messages"
+          title={<span className="font-display text-lg">Messages</span>}
           stat={`${unreadMessages?.length || 0} unread messages`}
           to={firstUnreadChat ? `/chat/${firstUnreadChat}` : '/matches'}
-          bgColor="bg-accent-50"
+          bgColor="bg-white/80 backdrop-blur-sm"
           iconColor="text-accent-600"
+          className="shadow-lg hover:shadow-xl transition-all duration-300 border border-accent-100"
           onClick={handleChatClick}
         />
       </div>

@@ -29,21 +29,36 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50 pb-20">
-      <Hero session={session} profile={profile} />
-      
-      {/* Temporary button for creating test users - remove in production */}
-      <div className="fixed bottom-20 right-4">
-        <Button 
-          onClick={handleCreateTestUsers}
-          variant="outline"
-          className="bg-white"
+    <div className="min-h-screen pb-20 relative">
+      {/* Background Image with Overlay */}
+      <div className="fixed inset-0 z-0">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ 
+            backgroundImage: "url('https://images.unsplash.com/photo-1501854140801-50d01698950b')",
+          }}
         >
-          Create Test Users
-        </Button>
+          <div className="absolute inset-0 bg-white/90" />
+        </div>
       </div>
+      
+      {/* Content */}
+      <div className="relative z-10">
+        <Hero session={session} profile={profile} />
+        
+        {/* Temporary button for creating test users - remove in production */}
+        <div className="fixed bottom-20 right-4">
+          <Button 
+            onClick={handleCreateTestUsers}
+            variant="outline"
+            className="bg-white"
+          >
+            Create Test Users
+          </Button>
+        </div>
 
-      <BottomNav session={session} profile={profile} />
+        <BottomNav session={session} profile={profile} />
+      </div>
     </div>
   );
 };
