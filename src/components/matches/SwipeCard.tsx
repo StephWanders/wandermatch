@@ -32,6 +32,8 @@ const SwipeCard = ({ profile, onSwipe, currentUserId }: SwipeCardProps) => {
       }
       
       onSwipe();
+      // Refresh the page after recording the swipe
+      window.location.reload();
     } catch (error) {
       console.error('Error recording swipe:', error);
       toast.error("Failed to record preference");
