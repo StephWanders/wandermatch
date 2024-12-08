@@ -14,12 +14,14 @@ interface LocationData {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { latitude, longitude, city } = await req.json() as LocationData;
+    console.log('Received request with data:', { latitude, longitude, city });
 
     if (!TICKETMASTER_API_KEY) {
       console.log('Ticketmaster API key not configured');
@@ -40,13 +42,14 @@ serve(async (req) => {
       ? `&city=${encodeURIComponent(city)}`
       : `&latlong=${latitude},${longitude}`;
 
-    const response = await fetch(
-      `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${TICKETMASTER_API_KEY}${locationQuery}&size=4&sort=date,asc&startDateTime=${new Date().toISOString()}`
-    );
+    const apiUrl = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${TICKETMASTER_API_KEY}${locationQuery}&size=4&sort=date,asc&startDateTime=${new Date().toISOString()}`;
+    console.log('Fetching events from:', apiUrl);
 
+    const response = await fetch(apiUrl);
     const data = await response.json();
 
     if (!response.ok) {
+      console.error('Ticketmaster API error:', data);
       throw new Error(data.message || 'Failed to fetch events');
     }
 
@@ -67,6 +70,8 @@ serve(async (req) => {
       ].filter(Boolean),
       url: event.url
     }));
+
+    console.log('Returning formatted events:', formattedEvents);
 
     return new Response(
       JSON.stringify({ events: formattedEvents }),
