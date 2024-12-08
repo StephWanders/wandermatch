@@ -1,7 +1,49 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Theater, Pizza, Ticket } from "lucide-react";
+import { Music, Theater, Pizza, Ticket, MapPin } from "lucide-react";
+import { toast } from "sonner";
 
-const LocalEventsSection = ({ location }: { location: string }) => {
+const LocalEventsSection = ({ location: defaultLocation }: { location: string }) => {
+  const [currentLocation, setCurrentLocation] = useState<string>(defaultLocation);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            // Use reverse geocoding to get city name from coordinates
+            const response = await fetch(
+              `https://api.opencagedata.com/geocode/v1/json?q=${position.coords.latitude}+${position.coords.longitude}&key=24d14c17c3304c1b9d2e2e49c7449c9c`
+            );
+            const data = await response.json();
+            
+            if (data.results && data.results[0]) {
+              const city = data.results[0].components.city || 
+                          data.results[0].components.town ||
+                          data.results[0].components.village ||
+                          defaultLocation.split(',')[0].trim();
+              setCurrentLocation(city);
+            }
+          } catch (error) {
+            console.error("Error getting location:", error);
+            toast.error("Could not get current location. Using default location.");
+          } finally {
+            setLoading(false);
+          }
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          toast.error("Could not access location. Using default location.");
+          setLoading(false);
+        }
+      );
+    } else {
+      toast.error("Geolocation is not supported by your browser. Using default location.");
+      setLoading(false);
+    }
+  }, [defaultLocation]);
+
   // Event templates that will be customized based on location
   const getLocationEvents = (cityName: string) => [
     {
@@ -42,15 +84,27 @@ const LocalEventsSection = ({ location }: { location: string }) => {
     }
   ];
 
-  // Extract city name from full location (e.g., "San Francisco, CA" -> "San Francisco")
-  const cityName = location.split(',')[0].trim();
+  const cityName = currentLocation.split(',')[0].trim();
   const tonightEvents = getLocationEvents(cityName);
+
+  if (loading) {
+    return (
+      <section className="mt-16">
+        <div className="flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="mt-16">
-      <h2 className="text-3xl font-bold text-center mb-8">
-        What's Happening Tonight in {cityName}
-      </h2>
+      <div className="flex items-center justify-center gap-2 mb-8">
+        <MapPin className="h-6 w-6 text-gray-500" />
+        <h2 className="text-3xl font-bold text-center">
+          What's Happening Tonight in {cityName}
+        </h2>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {tonightEvents.map((event, index) => (
           <Card key={index} className="hover:shadow-lg transition-shadow">
