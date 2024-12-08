@@ -27,7 +27,6 @@ const MatchList = ({ matches, isPending, onAccept, onDecline, onChatClick }: Mat
           isPending={isPending}
           onAccept={onAccept}
           onDecline={onDecline}
-          onChatClick={onChatClick}
         />
       ))}
     </div>

@@ -12,10 +12,13 @@ import MatchActions from "./MatchActions";
 
 interface MatchCardProps {
   match: any;
+  isPending?: boolean;
+  onAccept?: (matchId: string) => void;
+  onDecline?: (matchId: string) => void;
   onChatClick?: (matchId: string) => void;
 }
 
-const MatchCard = ({ match, onChatClick }: MatchCardProps) => {
+const MatchCard = ({ match, isPending, onAccept, onDecline }: MatchCardProps) => {
   const navigate = useNavigate();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
@@ -81,10 +84,27 @@ const MatchCard = ({ match, onChatClick }: MatchCardProps) => {
                 <Heart className="h-4 w-4" /> {matchedProfile.travel_style}
               </span>
             </div>
-            <MatchActions 
-              onChatClick={handleChatClick}
-              onRateClick={() => setIsRatingModalOpen(true)}
-            />
+            {isPending ? (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => onDecline?.(match.id)}
+                  className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700"
+                >
+                  Decline
+                </button>
+                <button
+                  onClick={() => onAccept?.(match.id)}
+                  className="px-4 py-2 text-sm font-medium text-green-600 hover:text-green-700"
+                >
+                  Accept
+                </button>
+              </div>
+            ) : (
+              <MatchActions 
+                onChatClick={handleChatClick}
+                onRateClick={() => setIsRatingModalOpen(true)}
+              />
+            )}
           </div>
         </CardContent>
       </Card>
