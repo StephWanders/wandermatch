@@ -68,21 +68,25 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     }
   };
 
-  // Sort matches by unread messages first, then by latest message time
+  // Sort matches by latest message time
   const sortedMatches = [...(matches || [])].sort((a, b) => {
-    const unreadA = unreadCounts[a.profiles.id] || 0;
-    const unreadB = unreadCounts[b.profiles.id] || 0;
+    const timeA = latestMessages?.[a.id]?.time;
+    const timeB = latestMessages?.[b.id]?.time;
     
-    if (unreadA !== unreadB) {
-      return unreadB - unreadA; // Sort by unread count first
+    // If both matches have messages, compare their timestamps
+    if (timeA && timeB) {
+      return new Date(timeB).getTime() - new Date(timeA).getTime();
     }
     
-    const timeA = latestMessages?.[a.id]?.time || a.matched_at;
-    const timeB = latestMessages?.[b.id]?.time || b.matched_at;
-    return new Date(timeB).getTime() - new Date(timeA).getTime();
+    // If only one match has messages, prioritize it
+    if (timeA) return -1;
+    if (timeB) return 1;
+    
+    // If neither has messages, sort by match time
+    return new Date(b.matched_at).getTime() - new Date(a.matched_at).getTime();
   });
 
-  // Select most recent chat with unread messages when navigating to /chat
+  // Select most recent chat when navigating to /chat
   useEffect(() => {
     const isOnChatRoute = location.pathname === '/chat';
     const hasNoMatchSelected = !currentMatchId;
