@@ -14,8 +14,13 @@ interface SwipeCardProps {
 
 const SwipeCard = ({ profile, onSwipe, currentUserId }: SwipeCardProps) => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const handleSwipe = async (action: 'like' | 'dislike') => {
+    if (isTransitioning) return; // Prevent double clicks during transition
+    
+    setIsTransitioning(true);
+    
     try {
       const { error } = await supabase
         .from('potential_matches')
@@ -31,18 +36,22 @@ const SwipeCard = ({ profile, onSwipe, currentUserId }: SwipeCardProps) => {
         toast.success("Profile liked!");
       }
       
-      onSwipe();
-      // Refresh the page after recording the swipe
-      window.location.reload();
+      // Trigger the fade-out animation
+      setTimeout(() => {
+        onSwipe();
+        setIsTransitioning(false);
+      }, 300); // Match this with the CSS transition duration
+      
     } catch (error) {
       console.error('Error recording swipe:', error);
       toast.error("Failed to record preference");
+      setIsTransitioning(false);
     }
   };
 
   return (
     <>
-      <Card className="max-w-xl mx-auto">
+      <Card className={`max-w-xl mx-auto transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
         <CardContent className="p-6">
           <div 
             className="cursor-pointer"
@@ -79,6 +88,7 @@ const SwipeCard = ({ profile, onSwipe, currentUserId }: SwipeCardProps) => {
               size="lg"
               onClick={() => handleSwipe('dislike')}
               className="w-32"
+              disabled={isTransitioning}
             >
               <ThumbsDown className="h-5 w-5 mr-2" />
               Pass
@@ -88,6 +98,7 @@ const SwipeCard = ({ profile, onSwipe, currentUserId }: SwipeCardProps) => {
               size="lg"
               onClick={() => handleSwipe('like')}
               className="w-32 bg-green-600 hover:bg-green-700"
+              disabled={isTransitioning}
             >
               <ThumbsUp className="h-5 w-5 mr-2" />
               Like
