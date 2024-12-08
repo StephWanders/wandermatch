@@ -9,7 +9,14 @@ import Chat from "./pages/Chat";
 import Matches from "./pages/Matches";
 import AccountSettings from "./pages/AccountSettings";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60, // 1 minute
+      retry: 2,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
