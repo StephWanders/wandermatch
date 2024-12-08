@@ -90,7 +90,7 @@ const ChatContainer = ({ matchId, otherProfile, session, messages }: ChatContain
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-white/40 backdrop-blur-sm">
+    <div className="flex-1 flex flex-col h-screen">
       <ChatHeader profile={otherProfile} />
       <ChatMessages messages={messages} currentUserId={session?.user?.id} />
       <ChatInput onSendMessage={sendMessage} />
