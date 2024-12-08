@@ -13,9 +13,12 @@ export const useMatchQueries = (userId: string | undefined) => {
       const { data, error } = await supabase
         .from('matches')
         .select(`
-          *,
-          profile2:profiles!matches_profile2_id_fkey(*),
-          profile1:profiles!matches_profile1_id_fkey(*)
+          id,
+          status,
+          matched_at,
+          profile1_id,
+          profile2_id,
+          profile2:profiles!matches_profile2_id_fkey(*)
         `)
         .eq('status', 'active')
         .or(`profile1_id.eq.${userId},profile2_id.eq.${userId}`)
@@ -26,15 +29,18 @@ export const useMatchQueries = (userId: string | undefined) => {
         return [];
       }
       
-      // Deduplicate matches based on match ID
+      // Process matches to ensure no duplicates and correct profile mapping
+      const processedMatches = data.map(match => ({
+        ...match,
+        profiles: match.profile2
+      }));
+
+      // Use a Map to deduplicate based on the matched profile's ID
       const uniqueMatches = new Map();
-      data.forEach(match => {
-        if (!uniqueMatches.has(match.id)) {
-          uniqueMatches.set(match.id, {
-            ...match,
-            // Select the profile that isn't the current user
-            profiles: match.profile1_id === userId ? match.profile2 : match.profile1
-          });
+      processedMatches.forEach(match => {
+        const matchedProfileId = match.profiles.id;
+        if (!uniqueMatches.has(matchedProfileId)) {
+          uniqueMatches.set(matchedProfileId, match);
         }
       });
       
@@ -51,7 +57,11 @@ export const useMatchQueries = (userId: string | undefined) => {
       const { data, error } = await supabase
         .from('matches')
         .select(`
-          *,
+          id,
+          status,
+          matched_at,
+          profile1_id,
+          profile2_id,
           profiles!matches_profile2_id_fkey(*)
         `)
         .eq('profile2_id', userId)
@@ -63,15 +73,7 @@ export const useMatchQueries = (userId: string | undefined) => {
         return [];
       }
       
-      // Deduplicate pending matches based on match ID
-      const uniqueMatches = new Map();
-      data?.forEach(match => {
-        if (!uniqueMatches.has(match.id)) {
-          uniqueMatches.set(match.id, match);
-        }
-      });
-      
-      return Array.from(uniqueMatches.values());
+      return data || [];
     },
     enabled: !!userId,
   });
