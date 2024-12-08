@@ -36,7 +36,10 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
         const { data } = await supabase
           .from('messages')
           .select('created_at')
-          .or(`sender_id.eq.${match.profiles.id},receiver_id.eq.${match.profiles.id}`)
+          .or(
+            `and(sender_id.in.(${match.profiles.id},${match.current_user_id}),` +
+            `receiver_id.in.(${match.profiles.id},${match.current_user_id}))`
+          )
           .order('created_at', { ascending: false })
           .limit(1);
         
@@ -78,6 +81,12 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     const timeB = latestMessages?.[b.id] || b.matched_at;
     return new Date(timeB).getTime() - new Date(timeA).getTime();
   });
+
+  // If no match is selected, automatically select the most recent one
+  if (!currentMatchId && sortedMatches.length > 0) {
+    const mostRecentMatch = sortedMatches[0];
+    navigate(`/chat/${mostRecentMatch.id}`);
+  }
 
   return (
     <div className="w-80 bg-white border-r">
