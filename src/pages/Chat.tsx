@@ -42,7 +42,11 @@ const Chat = () => {
   useChatSubscription(matchId, session?.user?.id, otherProfile?.id, queryClient);
 
   if (loading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-secondary-50 flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
   }
 
   if (!session) {
@@ -51,12 +55,12 @@ const Chat = () => {
 
   if (matchesError) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-secondary-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">
+          <h2 className="text-xl font-display font-semibold text-accent-800 mb-2">
             Unable to load chat
           </h2>
-          <p className="text-gray-600">
+          <p className="font-body text-accent-600">
             Please try refreshing the page
           </p>
         </div>
@@ -65,7 +69,7 @@ const Chat = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-background to-secondary-50">
       <div className="h-[calc(100vh-64px)] flex">
         <ChatSidebar matches={matches || []} currentMatchId={matchId} />
         <ChatContainer 
