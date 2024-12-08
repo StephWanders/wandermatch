@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Theater, Pizza, Ticket, MapPin, Users, Camera, Palette } from "lucide-react";
+import { Music, Theater, Ticket, MapPin, Calendar, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 
 const LocalEventsSection = ({ location: defaultLocation }: { location: string }) => {
   const [currentLocation, setCurrentLocation] = useState<string>(defaultLocation);
   const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState<any[]>([]);
 
   useEffect(() => {
     if ("geolocation" in navigator) {
@@ -18,58 +20,87 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
               longitude: position.coords.longitude
             });
 
-            const { data, error } = await supabase.functions.invoke('reverse-geocode', {
+            const { data: locationData, error: locationError } = await supabase.functions.invoke('reverse-geocode', {
               body: {
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude
               }
             });
 
-            if (error) {
-              console.error('Supabase function error:', error);
-              throw error;
+            if (locationError) {
+              console.error('Supabase function error:', locationError);
+              throw locationError;
             }
 
-            console.log('Reverse geocode response:', data);
+            console.log('Reverse geocode response:', locationData);
             
-            if (data?.fallback) {
+            let city;
+            if (locationData?.fallback) {
               console.log('Using fallback location due to API configuration issue');
+              city = defaultLocation.split(',')[0].trim();
               setCurrentLocation(defaultLocation);
               toast.error("Location service unavailable. Using default location.");
-            } else if (data?.results?.[0]?.components) {
-              const city = data.results[0].components.city || 
-                          data.results[0].components.town ||
-                          data.results[0].components.village ||
-                          defaultLocation.split(',')[0].trim();
+            } else if (locationData?.results?.[0]?.components) {
+              city = locationData.results[0].components.city || 
+                     locationData.results[0].components.town ||
+                     locationData.results[0].components.village ||
+                     defaultLocation.split(',')[0].trim();
               setCurrentLocation(city);
             } else {
-              console.warn('No location data in response:', data);
+              console.warn('No location data in response:', locationData);
+              city = defaultLocation.split(',')[0].trim();
               setCurrentLocation(defaultLocation);
               toast.error("Could not determine location. Using default location.");
             }
+
+            // Fetch events for the determined city
+            const { data: eventsData, error: eventsError } = await supabase.functions.invoke('get-events', {
+              body: {
+                city,
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
+              }
+            });
+
+            if (eventsError) {
+              throw eventsError;
+            }
+
+            if (eventsData.fallback) {
+              toast.error("Events service unavailable. Using placeholder events.");
+              setEvents(getPlaceholderEvents(city));
+            } else {
+              setEvents(eventsData.events);
+            }
+
           } catch (error) {
-            console.error("Error getting location:", error);
+            console.error("Error:", error);
             setCurrentLocation(defaultLocation);
-            toast.error("Could not get current location. Using default location.");
+            setEvents(getPlaceholderEvents(defaultLocation.split(',')[0].trim()));
+            toast.error("Could not fetch live events. Using placeholder events.");
           } finally {
             setLoading(false);
           }
         },
         (error) => {
           console.error("Geolocation error:", error);
+          const city = defaultLocation.split(',')[0].trim();
           setCurrentLocation(defaultLocation);
+          setEvents(getPlaceholderEvents(city));
           toast.error("Could not access location. Using default location.");
           setLoading(false);
         }
       );
     } else {
+      const city = defaultLocation.split(',')[0].trim();
       setCurrentLocation(defaultLocation);
+      setEvents(getPlaceholderEvents(city));
       toast.error("Geolocation is not supported by your browser. Using default location.");
       setLoading(false);
     }
   }, [defaultLocation]);
 
-  const getLocationEvents = (cityName: string) => [
+  const getPlaceholderEvents = (cityName: string) => [
     {
       title: `Live Jazz & Wine Tasting`,
       type: "Music & Culture",
@@ -112,8 +143,12 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
     }
   ];
 
-  const cityName = currentLocation.split(',')[0].trim();
-  const tonightEvents = getLocationEvents(cityName);
+  const getEventIcon = (type: string) => {
+    type = type.toLowerCase();
+    if (type.includes('music')) return <Music className="h-6 w-6 text-purple-500" />;
+    if (type.includes('theatre') || type.includes('theater')) return <Theater className="h-6 w-6 text-blue-500" />;
+    return <Calendar className="h-6 w-6 text-green-500" />;
+  };
 
   if (loading) {
     return (
@@ -125,6 +160,8 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
     );
   }
 
+  const cityName = currentLocation.split(',')[0].trim();
+
   return (
     <section className="mt-16">
       <div className="flex items-center justify-center gap-2 mb-8">
@@ -134,11 +171,11 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
         </h2>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {tonightEvents.map((event, index) => (
+        {events.map((event, index) => (
           <Card key={index} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex items-center gap-2 mb-2">
-                {event.icon}
+                {getEventIcon(event.type)}
                 <span className="text-sm font-medium text-gray-600">{event.type}</span>
               </div>
               <CardTitle className="text-lg">{event.title}</CardTitle>
@@ -147,7 +184,7 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
               <div className="space-y-3">
                 <p className="text-sm text-gray-600">{event.description}</p>
                 <div className="flex flex-wrap gap-2">
-                  {event.tags.map((tag, tagIndex) => (
+                  {event.tags.map((tag: string, tagIndex: number) => (
                     <span
                       key={tagIndex}
                       className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full"
@@ -161,6 +198,17 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
                   <span className="text-primary">{event.price}</span>
                 </div>
                 <p className="text-sm text-gray-500">{event.location}</p>
+                {event.url && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full mt-2"
+                    onClick={() => window.open(event.url, '_blank')}
+                  >
+                    <LinkIcon className="h-4 w-4 mr-2" />
+                    Get Tickets
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
