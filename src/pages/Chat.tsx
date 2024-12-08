@@ -29,18 +29,11 @@ const Chat = () => {
     }
   }, [session, navigate, loading]);
 
-  // Navigate to most recent chat if no matchId is provided
+  // Navigate to first chat if no matchId is provided
   useEffect(() => {
     if (!matchId && matches.length > 0) {
-      console.log('No matchId provided, navigating to most recent chat');
-      const mostRecentMatch = matches.reduce((latest, current) => {
-        const latestTime = new Date(latest.matched_at || '').getTime();
-        const currentTime = new Date(current.matched_at || '').getTime();
-        return currentTime > latestTime ? current : latest;
-      }, matches[0]);
-      
-      console.log('Most recent match:', mostRecentMatch);
-      navigate(`/chat/${mostRecentMatch.id}`, { replace: true });
+      console.log('No matchId provided, navigating to first chat');
+      navigate(`/chat/${matches[0].id}`, { replace: true });
     }
   }, [matchId, matches, navigate]);
 
@@ -51,30 +44,10 @@ const Chat = () => {
       return;
     }
 
-    if (!matches?.length) {
-      console.log('No matches available yet');
-      return;
-    }
-    
-    console.log('Finding match:', matchId);
     const currentMatch = matches.find(m => m.id === matchId);
-    
     if (currentMatch) {
       console.log('Found match:', currentMatch);
-      // If the current user is profile1, we want profile2's data and vice versa
-      if (currentMatch.profile1_id === session.user.id) {
-        const otherProfileMatch = matches.find(m => m.profiles.id === currentMatch.profile2_id);
-        if (otherProfileMatch) {
-          console.log('Setting other profile (from profile2):', otherProfileMatch.profiles);
-          setOtherProfile(otherProfileMatch.profiles);
-        }
-      } else {
-        const otherProfileMatch = matches.find(m => m.profiles.id === currentMatch.profile1_id);
-        if (otherProfileMatch) {
-          console.log('Setting other profile (from profile1):', otherProfileMatch.profiles);
-          setOtherProfile(otherProfileMatch.profiles);
-        }
-      }
+      setOtherProfile(currentMatch.profiles);
     } else {
       console.log('Match not found:', matchId);
     }
