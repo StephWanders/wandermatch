@@ -38,6 +38,9 @@ const Matches = () => {
     return null;
   }
 
+  // Filter to only show active matches
+  const activeMatches = confirmedMatches?.filter(match => match.status === 'active') || [];
+
   return (
     <div className="min-h-screen pb-20 relative">
       {/* Background Image with Overlay */}
@@ -60,8 +63,22 @@ const Matches = () => {
           <Tabs defaultValue="discover" className="w-full">
             <TabsList className="grid w-full grid-cols-3 mb-8">
               <TabsTrigger value="discover">Discover</TabsTrigger>
-              <TabsTrigger value="pending">Pending</TabsTrigger>
-              <TabsTrigger value="matches">My Matches</TabsTrigger>
+              <TabsTrigger value="pending" className="relative">
+                Pending
+                {pendingMatches?.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {pendingMatches.length}
+                  </span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="matches" className="relative">
+                My Matches
+                {activeMatches.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {activeMatches.length}
+                  </span>
+                )}
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="discover">
               <DiscoverTab 
@@ -78,7 +95,7 @@ const Matches = () => {
             </TabsContent>
             <TabsContent value="matches">
               <MatchList 
-                matches={confirmedMatches || []}
+                matches={activeMatches}
               />
             </TabsContent>
           </Tabs>
