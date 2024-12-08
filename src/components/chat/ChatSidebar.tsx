@@ -100,7 +100,7 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
     const isOnChatRoute = location.pathname === '/chat';
     const hasNoMatchSelected = !currentMatchId;
     const hasMatches = sortedMatches.length > 0;
-    const isComingFromHome = location.state?.from === '/';
+    const isComingFromMatches = location.state?.from === '/matches';
     
     console.log('Navigation check:', {
       isOnChatRoute,
@@ -108,11 +108,12 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
       hasMatches,
       currentMatchId,
       pathname: location.pathname,
-      isComingFromHome,
+      isComingFromMatches,
       state: location.state
     });
 
-    if ((isOnChatRoute || hasNoMatchSelected || isComingFromHome) && hasMatches) {
+    // Only navigate if we're on the base chat route or have no match selected
+    if ((isOnChatRoute || hasNoMatchSelected) && hasMatches && !isComingFromMatches) {
       const mostRecentMatchId = sortedMatches[0].id;
       console.log('Navigating to most recent chat:', mostRecentMatchId);
       navigate(`/chat/${mostRecentMatchId}`, { replace: true });
