@@ -68,6 +68,10 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
 
       toast.success("Successfully unmatched");
       navigate('/matches');
+      
+      // Invalidate queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['chat-matches'] });
+      queryClient.invalidateQueries({ queryKey: ['confirmed-matches'] });
     } catch (error) {
       console.error("Error unmatching:", error);
       toast.error("Failed to unmatch");
@@ -76,8 +80,7 @@ const ChatSidebar = ({ matches, currentMatchId }: ChatSidebarProps) => {
 
   // Filter matches to only show active ones where the current user is profile1
   const activeMatches = matches.filter(match => 
-    match.status === 'active' && 
-    match.profile1_id === currentUserId
+    match.status === 'active'
   );
 
   // Sort matches by latest message time
