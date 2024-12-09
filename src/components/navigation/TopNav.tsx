@@ -36,16 +36,16 @@ const TopNav = ({ session, profile }: TopNavProps) => {
     <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-2">
+          <div 
+            onClick={() => navigate('/')} 
+            className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
+          >
             <img 
               src="/lovable-uploads/0850ab77-fd64-4e8d-b1e2-d36823905bd5.png" 
               alt="WanderMatch Logo" 
               className="h-8 w-8"
             />
-            <span 
-              onClick={() => navigate('/')} 
-              className="text-xl font-bold text-primary cursor-pointer hover:opacity-80 transition-opacity"
-            >
+            <span className="text-xl font-bold text-primary">
               WanderMatch
             </span>
           </div>
