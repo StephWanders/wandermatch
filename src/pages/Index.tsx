@@ -16,11 +16,7 @@ const Index = () => {
   // Show loading spinner while authentication state is being determined
   if (loading) {
     console.log('Showing loading spinner');
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   // If not authenticated, show landing page
@@ -32,11 +28,7 @@ const Index = () => {
   // If authenticated but no profile, show loading spinner
   if (!profile) {
     console.log("Session exists but no profile, showing loading spinner");
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   console.log("Session and profile exist, showing authenticated view");

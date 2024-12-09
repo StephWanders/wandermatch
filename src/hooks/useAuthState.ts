@@ -11,15 +11,24 @@ export const useAuthState = () => {
     console.log('Initializing auth state...');
     
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session:', session?.user?.id);
-      setSession(session);
-      if (session?.user?.id) {
-        fetchProfile(session.user.id);
-      } else {
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Initial session:', session?.user?.id);
+        setSession(session);
+        
+        if (session?.user?.id) {
+          await fetchProfile(session.user.id);
+        } else {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
         setLoading(false);
       }
-    });
+    };
+
+    initializeAuth();
 
     // Listen for auth changes
     const {
@@ -43,45 +52,41 @@ export const useAuthState = () => {
     try {
       console.log('Fetching profile for user:', userId);
       
-      // First, try to get the existing profile
       const { data: existingProfile, error: fetchError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", userId)
         .single();
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
+      if (fetchError) {
         console.error("Error fetching profile:", fetchError);
-        toast.error("Failed to load profile");
+        if (fetchError.code === 'PGRST116') {
+          // Profile doesn't exist, create one
+          console.log('No profile found, creating new profile');
+          const { data: newProfile, error: insertError } = await supabase
+            .from("profiles")
+            .insert([{ id: userId }])
+            .select()
+            .single();
+
+          if (insertError) {
+            console.error("Error creating profile:", insertError);
+            toast.error("Failed to create profile");
+            setLoading(false);
+            return;
+          }
+
+          console.log('New profile created:', newProfile);
+          setProfile(newProfile);
+        } else {
+          toast.error("Failed to load profile");
+        }
         setLoading(false);
         return;
       }
 
-      if (existingProfile) {
-        console.log('Profile found:', existingProfile);
-        setProfile(existingProfile);
-        setLoading(false);
-        return;
-      }
-
-      console.log('No profile found, creating new profile');
-      
-      // If no profile exists, create one
-      const { data: newProfile, error: insertError } = await supabase
-        .from("profiles")
-        .insert([{ id: userId }])
-        .select()
-        .single();
-
-      if (insertError) {
-        console.error("Error creating profile:", insertError);
-        toast.error("Failed to create profile");
-        setLoading(false);
-        return;
-      }
-
-      console.log('New profile created:', newProfile);
-      setProfile(newProfile);
+      console.log('Profile found:', existingProfile);
+      setProfile(existingProfile);
       setLoading(false);
 
     } catch (error) {
