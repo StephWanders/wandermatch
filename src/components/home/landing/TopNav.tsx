@@ -37,7 +37,7 @@ const TopNav = () => {
               alt="WanderMatch Logo" 
               className="h-8 w-8"
             />
-            <span className="text-xl font-bold text-gray-900">
+            <span className="text-xl font-bold text-primary">
               WanderMatch
             </span>
           </div>
@@ -50,7 +50,7 @@ const TopNav = () => {
               Sign In
             </Button>
             <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-primary hover:bg-primary-600 text-white"
               onClick={handleSignUp}
             >
               Sign Up

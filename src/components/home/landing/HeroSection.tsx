@@ -44,7 +44,7 @@ const HeroSection = () => {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button 
             size="lg" 
-            className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+            className="bg-primary hover:bg-primary-600 text-white px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
             onClick={handleJoinNow}
           >
             Join Now
@@ -52,7 +52,7 @@ const HeroSection = () => {
           <Button 
             size="lg" 
             variant="outline" 
-            className="border-2 border-teal-400 text-white hover:bg-teal-500/20 px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+            className="border-2 border-primary text-white hover:bg-primary/20 px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
             onClick={() => {
               const featuresSection = document.getElementById('features');
               if (featuresSection) {
