@@ -6,32 +6,30 @@ export const useAuthState = () => {
   const [session, setSession] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [retryCount, setRetryCount] = useState(0);
-  const MAX_RETRIES = 3;
-  const RETRY_DELAY = 1000; // 1 second
 
   useEffect(() => {
     console.log('Initializing auth state...');
+    
+    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Got session:', session?.user?.id);
       setSession(session);
-      if (session) {
+      if (session?.user?.id) {
         fetchProfile(session.user.id);
       } else {
         setLoading(false);
       }
-    }).catch(error => {
-      console.error('Error getting session:', error);
-      setLoading(false);
     });
 
+    // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       console.log('Auth state changed:', _event, session?.user?.id);
       setSession(session);
-      if (session) {
-        fetchProfile(session.user.id);
+      
+      if (session?.user?.id) {
+        await fetchProfile(session.user.id);
       } else {
         setProfile(null);
         setLoading(false);
@@ -43,35 +41,55 @@ export const useAuthState = () => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      console.log('Fetching profile for user:', userId, 'Attempt:', retryCount + 1);
+      console.log('Fetching profile for user:', userId);
+      
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
+        console.error("Error fetching profile:", error);
+        toast.error("Failed to load profile");
         throw error;
       }
 
-      console.log('Profile data:', data);
-      setProfile(data);
-      setRetryCount(0); // Reset retry count on success
-      setLoading(false);
-    } catch (error: any) {
-      console.error("Error fetching profile:", error);
-      
-      if (retryCount < MAX_RETRIES) {
-        console.log(`Retrying in ${RETRY_DELAY}ms... (Attempt ${retryCount + 1}/${MAX_RETRIES})`);
-        setTimeout(() => {
-          setRetryCount(prev => prev + 1);
-          fetchProfile(userId);
-        }, RETRY_DELAY);
+      if (!data) {
+        console.log('No profile found, creating new profile');
+        // If no profile exists, create one
+        const { error: insertError } = await supabase
+          .from("profiles")
+          .insert([{ id: userId }]);
+
+        if (insertError) {
+          console.error("Error creating profile:", insertError);
+          toast.error("Failed to create profile");
+          throw insertError;
+        }
+
+        // Fetch the newly created profile
+        const { data: newProfile, error: fetchError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .maybeSingle();
+
+        if (fetchError) {
+          console.error("Error fetching new profile:", fetchError);
+          throw fetchError;
+        }
+
+        setProfile(newProfile);
       } else {
-        console.error("Max retries reached. Failed to load profile.");
-        toast.error("Failed to load profile. Please refresh the page.");
-        setLoading(false);
+        console.log('Profile found:', data);
+        setProfile(data);
       }
+    } catch (error) {
+      console.error("Error in fetchProfile:", error);
+      toast.error("Failed to load profile");
+    } finally {
+      setLoading(false);
     }
   };
 
