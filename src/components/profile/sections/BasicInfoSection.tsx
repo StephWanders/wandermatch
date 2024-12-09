@@ -4,18 +4,31 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UseFormReturn } from "react-hook-form";
 import { ProfileFormValues } from "../ProfileSchema";
+import ProfileImageUpload from "../ProfileImageUpload";
+import { ProfilePicture } from "../hooks/useProfilePictures";
 
 interface BasicInfoSectionProps {
   form: UseFormReturn<ProfileFormValues>;
+  userId?: string;
+  profilePictures?: ProfilePicture[];
+  onImagesUpdate?: (images: ProfilePicture[]) => void;
 }
 
-const BasicInfoSection = ({ form }: BasicInfoSectionProps) => {
+const BasicInfoSection = ({ form, userId, profilePictures = [], onImagesUpdate }: BasicInfoSectionProps) => {
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-gray-200/50">
       <CardHeader>
         <CardTitle>Basic Information</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {userId && (
+          <ProfileImageUpload
+            userId={userId}
+            existingImages={profilePictures}
+            onImagesUpdate={onImagesUpdate}
+          />
+        )}
+
         <FormField
           control={form.control}
           name="name"

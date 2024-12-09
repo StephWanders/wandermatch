@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import { useAuthState } from "@/hooks/useAuthState";
 import Index from "./pages/Index";
 import CreateProfile from "./pages/CreateProfile";
 import Chat from "./pages/Chat";
@@ -20,6 +21,8 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
+  const { loading } = useAuthState();
+
   if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-background">
