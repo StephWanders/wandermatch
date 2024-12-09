@@ -2,37 +2,39 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 
 const AuthSection = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const view = searchParams.get('view');
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const view = searchParams.get('view');
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed in AuthSection:', event, !!session);
+      console.log('Auth state changed:', event, !!session);
       if (event === 'SIGNED_IN' && session) {
+        console.log('User signed in, initiating page reload');
         setIsTransitioning(true);
-        // Immediately navigate and reload to ensure clean state
-        navigate('/', { replace: true });
-        window.location.reload();
+        // Use a small delay to ensure state updates are processed
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 100);
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
 
   if (!view) return null;
 
   const handleClose = () => {
-    navigate('/', { replace: true });
+    window.history.replaceState(null, '', '/');
+    window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
   if (isTransitioning) {

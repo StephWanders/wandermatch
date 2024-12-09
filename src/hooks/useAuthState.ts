@@ -30,10 +30,10 @@ export const useAuthState = () => {
       
       console.log('Profile data:', data);
       setProfile(data);
-      setLoading(false);
     } catch (error) {
       console.error("Error fetching profile:", error);
       toast.error("Failed to load profile");
+    } finally {
       setLoading(false);
     }
   };
@@ -42,18 +42,26 @@ export const useAuthState = () => {
     let mounted = true;
 
     // Initial session check
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      console.log('Initial auth check:', initialSession ? 'Found session' : 'No session');
-      
-      if (mounted) {
-        setSession(initialSession);
-        if (initialSession?.user?.id) {
-          fetchProfile(initialSession.user.id);
-        } else {
-          setLoading(false);
+    const initializeAuth = async () => {
+      try {
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        console.log('Initial auth check:', initialSession ? 'Found session' : 'No session');
+        
+        if (mounted) {
+          setSession(initialSession);
+          if (initialSession?.user?.id) {
+            await fetchProfile(initialSession.user.id);
+          } else {
+            setLoading(false);
+          }
         }
+      } catch (error) {
+        console.error('Error during auth initialization:', error);
+        if (mounted) setLoading(false);
       }
-    });
+    };
+
+    initializeAuth();
 
     // Set up auth listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
