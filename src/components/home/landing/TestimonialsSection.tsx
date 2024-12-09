@@ -33,7 +33,7 @@ const TestimonialsSection = () => {
   return (
     <section className="py-24 px-4 bg-gradient-to-b from-white to-teal-50">
       <div className="max-w-6xl mx-auto">
-        <h2 className="text-4xl font-bold text-center mb-16 text-gray-900">
+        <h2 className="text-4xl font-bold text-center mb-16 text-primary">
           What Our Travelers Say
         </h2>
         

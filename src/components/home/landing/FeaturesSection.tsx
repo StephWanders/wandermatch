@@ -30,16 +30,29 @@ const FeaturesSection = () => {
           {features.map((feature, index) => (
             <Card 
               key={index}
-              className="overflow-hidden bg-white/95 backdrop-blur-sm border-none shadow-lg hover:shadow-xl transition-shadow duration-300"
+              className="group overflow-hidden bg-white/95 backdrop-blur-sm border-none shadow-lg hover:shadow-xl transition-all duration-300"
             >
-              <CardContent className="p-8">
-                <div className="mb-6 flex justify-center">
-                  <div className="p-4 rounded-full bg-gradient-to-br from-teal-500/10 to-teal-600/10">
-                    <feature.icon className="w-12 h-12 text-teal-600" />
+              <CardContent className="p-8 relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-100 to-primary-200 rounded-bl-[100px] -z-10 transition-all duration-300 group-hover:scale-110" />
+                
+                <div className="mb-6">
+                  <div className="relative inline-block">
+                    <div className="absolute inset-0 bg-primary-200 rounded-full blur-lg opacity-50 group-hover:opacity-70 transition-opacity" />
+                    <div className="relative p-4 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
+                      <feature.icon className="w-8 h-8" />
+                    </div>
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold mb-3 text-center">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed text-center">{feature.description}</p>
+                
+                <h3 className="text-xl font-semibold mb-3 text-gray-900 group-hover:text-primary-600 transition-colors">
+                  {feature.title}
+                </h3>
+                
+                <p className="text-gray-600 leading-relaxed">
+                  {feature.description}
+                </p>
+                
+                <div className="mt-4 h-1 w-16 bg-gradient-to-r from-primary-400 to-primary-600 rounded-full group-hover:w-24 transition-all duration-300" />
               </CardContent>
             </Card>
           ))}
