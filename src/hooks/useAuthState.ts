@@ -12,6 +12,7 @@ export const useAuthState = () => {
 
     const fetchProfile = async (userId: string) => {
       try {
+        console.log('Fetching profile for user:', userId);
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
@@ -30,15 +31,17 @@ export const useAuthState = () => {
       }
     };
 
-    // Initialize auth state
     const initAuth = async () => {
       try {
+        setLoading(true);
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         
         if (mounted) {
           setSession(currentSession);
           if (currentSession?.user?.id) {
             await fetchProfile(currentSession.user.id);
+          } else {
+            setProfile(null);
           }
         }
       } catch (error) {
@@ -51,11 +54,12 @@ export const useAuthState = () => {
       }
     };
 
-    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, newSession) => {
+      async (event, newSession) => {
+        console.log('Auth state changed:', event);
         if (mounted) {
           setSession(newSession);
+          setLoading(true);
           
           if (newSession?.user?.id) {
             await fetchProfile(newSession.user.id);

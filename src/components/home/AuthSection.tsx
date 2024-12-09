@@ -5,17 +5,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const AuthSection = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const view = searchParams.get('view');
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN') {
-        navigate('/');
+        setIsTransitioning(true);
+        setTimeout(() => {
+          navigate('/');
+          setIsTransitioning(false);
+        }, 500);
       }
     });
 
@@ -29,6 +34,20 @@ const AuthSection = () => {
   const handleClose = () => {
     navigate('/');
   };
+
+  if (isTransitioning) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in">
+        <Card className="max-w-md w-full mx-4 bg-white/95 backdrop-blur-sm relative animate-pulse">
+          <CardHeader className="space-y-2">
+            <CardTitle className="text-2xl font-display text-accent-700">
+              Signing you in...
+            </CardTitle>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in">

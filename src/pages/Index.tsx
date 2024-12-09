@@ -10,8 +10,8 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner />
+      <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
