@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Settings, User, ChevronDown } from "lucide-react";
+import { LogOut, Settings, User } from "lucide-react";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import {
   DropdownMenu,
@@ -68,7 +68,6 @@ const TopNav = ({ session, profile }: TopNavProps) => {
                       name={profile?.full_name} 
                       className="group-hover:scale-105 transition-transform duration-200"
                     />
-                    <ChevronDown className="h-4 w-4 absolute bottom-0 right-0 text-gray-600 group-hover:text-primary transition-colors duration-200" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
