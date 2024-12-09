@@ -43,48 +43,46 @@ export const useAuthState = () => {
     try {
       console.log('Fetching profile for user:', userId);
       
-      const { data, error } = await supabase
+      // First, try to get the existing profile
+      const { data: existingProfile, error: fetchError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", userId)
         .maybeSingle();
 
-      if (error) {
-        console.error("Error fetching profile:", error);
+      if (fetchError) {
+        console.error("Error fetching profile:", fetchError);
         toast.error("Failed to load profile");
-        throw error;
+        throw fetchError;
       }
 
-      if (!data) {
-        console.log('No profile found, creating new profile');
-        // If no profile exists, create one
-        const { error: insertError } = await supabase
-          .from("profiles")
-          .insert([{ id: userId }]);
-
-        if (insertError) {
-          console.error("Error creating profile:", insertError);
-          toast.error("Failed to create profile");
-          throw insertError;
-        }
-
-        // Fetch the newly created profile
-        const { data: newProfile, error: fetchError } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", userId)
-          .maybeSingle();
-
-        if (fetchError) {
-          console.error("Error fetching new profile:", fetchError);
-          throw fetchError;
-        }
-
-        setProfile(newProfile);
-      } else {
-        console.log('Profile found:', data);
-        setProfile(data);
+      if (existingProfile) {
+        console.log('Profile found:', existingProfile);
+        setProfile(existingProfile);
+        setLoading(false);
+        return;
       }
+
+      console.log('No profile found, creating new profile');
+      
+      // If no profile exists, create one with upsert to handle potential race conditions
+      const { data: newProfile, error: upsertError } = await supabase
+        .from("profiles")
+        .upsert([{ id: userId }], { 
+          onConflict: 'id',
+          ignoreDuplicates: true 
+        })
+        .select()
+        .single();
+
+      if (upsertError) {
+        console.error("Error creating profile:", upsertError);
+        toast.error("Failed to create profile");
+        throw upsertError;
+      }
+
+      console.log('Profile created:', newProfile);
+      setProfile(newProfile);
     } catch (error) {
       console.error("Error in fetchProfile:", error);
       toast.error("Failed to load profile");
