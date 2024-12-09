@@ -9,23 +9,25 @@ import LoadingSpinner from "@/components/ui/loading-spinner";
 import TopNav from "@/components/navigation/TopNav";
 
 const Index = () => {
-  const { session, profile, loading } = useAuthState();
+  const { session, profile, loading, error } = useAuthState();
 
-  console.log('Index page render:', { session, profile, loading });
+  console.log('Index page render:', { session, profile, loading, error });
 
-  // Show loading spinner while authentication state is being determined
+  if (error) {
+    console.error('Auth error:', error);
+    toast.error("Failed to load user data");
+  }
+
   if (loading) {
     console.log('Showing loading spinner');
     return <LoadingSpinner />;
   }
 
-  // If not authenticated, show landing page
   if (!session) {
     console.log("No session, showing landing page");
     return <LandingPage />;
   }
 
-  // If authenticated but no profile, show loading spinner
   if (!profile) {
     console.log("Session exists but no profile, showing loading spinner");
     return <LoadingSpinner />;
