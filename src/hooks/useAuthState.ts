@@ -7,35 +7,39 @@ export const useAuthState = () => {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchProfile = async (userId: string) => {
+    if (!userId) return;
+    
+    try {
+      console.log('Fetching profile for user:', userId);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+
+      if (error) {
+        console.error("Error details:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
+      
+      console.log('Profile data:', data);
+      setProfile(data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      toast.error("Failed to load profile");
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
-
-    const fetchProfile = async (userId: string) => {
-      if (!mounted) return;
-      
-      try {
-        console.log('Fetching profile for user:', userId);
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", userId)
-          .single();
-
-        if (error) throw error;
-        
-        if (mounted) {
-          console.log('Profile data:', data);
-          setProfile(data);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-        toast.error("Failed to load profile");
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
 
     // Initial session check
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
