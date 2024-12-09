@@ -13,16 +13,6 @@ const Index = () => {
 
   console.log('Index page render:', { session, profile, loading });
 
-  const handleCreateTestUsers = async () => {
-    try {
-      await createTestUsers();
-      toast.success("Test users created successfully!");
-    } catch (error: any) {
-      console.error("Error creating test users:", error);
-      toast.error(error.message || "Failed to create test users");
-    }
-  };
-
   // Show loading spinner while authentication state is being determined
   if (loading) {
     console.log('Showing loading spinner');
@@ -39,7 +29,17 @@ const Index = () => {
     return <LandingPage />;
   }
 
-  console.log("Session exists, showing authenticated view");
+  // If authenticated but no profile, show loading spinner
+  if (!profile) {
+    console.log("Session exists but no profile, showing loading spinner");
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  console.log("Session and profile exist, showing authenticated view");
   return (
     <div className="min-h-screen pb-20 relative">
       {/* Background Image with Overlay */}
@@ -74,6 +74,16 @@ const Index = () => {
       </div>
     </div>
   );
+};
+
+const handleCreateTestUsers = async () => {
+  try {
+    await createTestUsers();
+    toast.success("Test users created successfully!");
+  } catch (error: any) {
+    console.error("Error creating test users:", error);
+    toast.error(error.message || "Failed to create test users");
+  }
 };
 
 export default Index;

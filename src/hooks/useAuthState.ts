@@ -12,7 +12,7 @@ export const useAuthState = () => {
     
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Got session:', session?.user?.id);
+      console.log('Initial session:', session?.user?.id);
       setSession(session);
       if (session?.user?.id) {
         fetchProfile(session.user.id);
@@ -50,40 +50,18 @@ export const useAuthState = () => {
         .eq("id", userId)
         .single();
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
+      if (fetchError) {
         console.error("Error fetching profile:", fetchError);
-        toast.error("Failed to load profile");
         throw fetchError;
       }
 
-      if (existingProfile) {
-        console.log('Profile found:', existingProfile);
-        setProfile(existingProfile);
-        setLoading(false);
-        return;
-      }
+      console.log('Profile data:', existingProfile);
+      setProfile(existingProfile);
+      setLoading(false);
 
-      console.log('No profile found, creating new profile');
-      
-      // If no profile exists, create one
-      const { data: newProfile, error: insertError } = await supabase
-        .from("profiles")
-        .insert([{ id: userId }])
-        .select()
-        .single();
-
-      if (insertError) {
-        console.error("Error creating profile:", insertError);
-        toast.error("Failed to create profile");
-        throw insertError;
-      }
-
-      console.log('Profile created:', newProfile);
-      setProfile(newProfile);
     } catch (error) {
       console.error("Error in fetchProfile:", error);
       toast.error("Failed to load profile");
-    } finally {
       setLoading(false);
     }
   };
