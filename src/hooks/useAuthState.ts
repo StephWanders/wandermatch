@@ -6,11 +6,14 @@ export const useAuthState = () => {
   const [session, setSession] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     let mounted = true;
 
     const fetchProfile = async (userId: string) => {
+      if (!mounted) return;
+      
       try {
         console.log('Fetching profile for user:', userId);
         const { data, error } = await supabase
@@ -31,8 +34,10 @@ export const useAuthState = () => {
       }
     };
 
-    // Initial session check
+    // Initial auth check - only runs once
     const initializeAuth = async () => {
+      if (initialized) return;
+      
       try {
         const { data: { session: initialSession } } = await supabase.auth.getSession();
         console.log('Initial auth check:', initialSession ? 'Found session' : 'No session');
@@ -43,11 +48,13 @@ export const useAuthState = () => {
             await fetchProfile(initialSession.user.id);
           }
           setLoading(false);
+          setInitialized(true);
         }
       } catch (error) {
         console.error('Error during initialization:', error);
         if (mounted) {
           setLoading(false);
+          setInitialized(true);
         }
       }
     };
@@ -58,14 +65,20 @@ export const useAuthState = () => {
       
       console.log('Auth state changed:', event);
       
-      if (event === 'SIGNED_IN') {
-        setSession(newSession);
-        if (newSession?.user?.id) {
-          await fetchProfile(newSession.user.id);
-        }
-      } else if (event === 'SIGNED_OUT') {
-        setSession(null);
-        setProfile(null);
+      switch (event) {
+        case 'SIGNED_IN':
+          setSession(newSession);
+          if (newSession?.user?.id) {
+            await fetchProfile(newSession.user.id);
+          }
+          break;
+        case 'SIGNED_OUT':
+          setSession(null);
+          setProfile(null);
+          break;
+        case 'TOKEN_REFRESHED':
+          setSession(newSession);
+          break;
       }
     });
 
@@ -78,7 +91,7 @@ export const useAuthState = () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [initialized]);
 
   return { session, profile, loading };
 };

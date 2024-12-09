@@ -17,10 +17,11 @@ const AuthSection = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN') {
         setIsTransitioning(true);
-        setTimeout(() => {
-          navigate('/');
+        const timer = setTimeout(() => {
+          navigate('/', { replace: true });
           setIsTransitioning(false);
         }, 500);
+        return () => clearTimeout(timer);
       }
     });
 
@@ -32,7 +33,7 @@ const AuthSection = () => {
   if (!view) return null;
 
   const handleClose = () => {
-    navigate('/');
+    navigate('/', { replace: true });
   };
 
   if (isTransitioning) {
