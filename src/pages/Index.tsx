@@ -16,10 +16,12 @@ const Index = () => {
     );
   }
 
+  // If no session, show landing page
   if (!session) {
     return <LandingPage />;
   }
 
+  // If we have a session, show the authenticated view
   return (
     <div className="min-h-screen pb-20 relative">
       {/* Background Image with Overlay */}

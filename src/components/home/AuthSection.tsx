@@ -18,17 +18,16 @@ const AuthSection = () => {
       console.log('Auth state changed in AuthSection:', event, !!session);
       if (event === 'SIGNED_IN' && session) {
         setIsTransitioning(true);
-        // Force a small delay to ensure state updates are processed
-        setTimeout(() => {
-          window.location.href = '/';  // Use full page refresh for reliable state reset
-        }, 100);
+        // Immediately navigate and reload to ensure clean state
+        navigate('/', { replace: true });
+        window.location.reload();
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
 
   if (!view) return null;
 

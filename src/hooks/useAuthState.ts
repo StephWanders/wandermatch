@@ -26,10 +26,14 @@ export const useAuthState = () => {
         if (mounted) {
           console.log('Profile data:', data);
           setProfile(data);
+          setLoading(false);
         }
       } catch (error) {
         console.error("Error fetching profile:", error);
         toast.error("Failed to load profile");
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -41,8 +45,9 @@ export const useAuthState = () => {
         setSession(initialSession);
         if (initialSession?.user?.id) {
           fetchProfile(initialSession.user.id);
+        } else {
+          setLoading(false);
         }
-        setLoading(false);
       }
     });
 
@@ -58,6 +63,7 @@ export const useAuthState = () => {
         await fetchProfile(newSession.user.id);
       } else if (event === 'SIGNED_OUT') {
         setProfile(null);
+        setLoading(false);
       }
     });
 
