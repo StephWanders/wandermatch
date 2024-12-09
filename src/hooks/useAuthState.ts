@@ -6,16 +6,13 @@ export const useAuthState = () => {
   const [session, setSession] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     let mounted = true;
-    let authListener: any = null;
 
     const fetchProfile = async (userId: string) => {
-      if (!mounted) return;
-      
       try {
+        console.log('Fetching profile for user:', userId);
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
@@ -25,61 +22,63 @@ export const useAuthState = () => {
         if (error) throw error;
         
         if (mounted) {
+          console.log('Profile data:', data);
           setProfile(data);
         }
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        console.error("Error fetching profile:", error);
         toast.error("Failed to load profile");
       }
     };
 
-    // Initial auth check - only runs once
-    if (!initialized) {
-      supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-        if (!mounted) return;
-
-        console.log('Initial session check:', currentSession ? 'Found session' : 'No session');
-        setSession(currentSession);
+    // Initial session check
+    const initializeAuth = async () => {
+      try {
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        console.log('Initial auth check:', initialSession ? 'Found session' : 'No session');
         
-        if (currentSession?.user?.id) {
-          fetchProfile(currentSession.user.id);
-        }
-        
-        setLoading(false);
-        setInitialized(true);
-      });
-    }
-
-    // Set up auth listener only once
-    if (!authListener) {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-        if (!mounted) return;
-        
-        console.log('Auth state changed:', event, 'Session:', newSession ? 'exists' : 'null');
-        
-        // Only update if the session actually changed
-        if (JSON.stringify(session) !== JSON.stringify(newSession)) {
-          setSession(newSession);
-          
-          if (newSession?.user?.id) {
-            await fetchProfile(newSession.user.id);
-          } else {
-            setProfile(null);
+        if (mounted) {
+          setSession(initialSession);
+          if (initialSession?.user?.id) {
+            await fetchProfile(initialSession.user.id);
           }
+          setLoading(false);
         }
-      });
-      
-      authListener = subscription;
-    }
+      } catch (error) {
+        console.error('Error during initialization:', error);
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
 
+    // Set up auth listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      if (!mounted) return;
+      
+      console.log('Auth state changed:', event);
+      
+      if (event === 'SIGNED_IN') {
+        setSession(newSession);
+        if (newSession?.user?.id) {
+          await fetchProfile(newSession.user.id);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setSession(null);
+        setProfile(null);
+      }
+    });
+
+    // Initialize
+    initializeAuth();
+
+    // Cleanup
     return () => {
       console.log('Cleaning up auth state hook');
       mounted = false;
-      if (authListener) {
-        authListener.unsubscribe();
-      }
+      subscription.unsubscribe();
     };
-  }, [initialized, session]); // Only re-run if initialized or session changes
+  }, []);
 
   return { session, profile, loading };
 };
