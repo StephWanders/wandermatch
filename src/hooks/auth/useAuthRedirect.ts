@@ -6,6 +6,7 @@ export const useAuthRedirect = (session: any, loading: boolean) => {
 
   useEffect(() => {
     if (!loading && !session) {
+      console.log('No session found after loading, redirecting to home');
       navigate('/');
     }
   }, [session, navigate, loading]);

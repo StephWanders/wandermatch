@@ -53,7 +53,8 @@ export const useAuthState = () => {
       if (fetchError && fetchError.code !== 'PGRST116') {
         console.error("Error fetching profile:", fetchError);
         toast.error("Failed to load profile");
-        throw fetchError;
+        setLoading(false);
+        return;
       }
 
       if (existingProfile) {
@@ -75,7 +76,8 @@ export const useAuthState = () => {
       if (insertError) {
         console.error("Error creating profile:", insertError);
         toast.error("Failed to create profile");
-        throw insertError;
+        setLoading(false);
+        return;
       }
 
       console.log('New profile created:', newProfile);
