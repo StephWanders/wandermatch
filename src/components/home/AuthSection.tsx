@@ -2,15 +2,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
 
 const AuthSection = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const view = searchParams.get('view');
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN') {
+        navigate('/');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   if (!view) return null;
 
@@ -95,33 +107,6 @@ const AuthSection = () => {
             view={view === 'sign_up' ? 'sign_up' : 'sign_in'}
             providers={[]}
             redirectTo={window.location.origin}
-            localization={{
-              variables: {
-                sign_in: {
-                  email_input_placeholder: "Your email address",
-                  password_input_placeholder: "Your password",
-                  email_label: "Email",
-                  password_label: "Password",
-                  button_label: "Sign in",
-                  loading_button_label: "Signing in ...",
-                  social_provider_text: "Sign in with {{provider}}",
-                  link_text: "Already have an account? Sign in",
-                },
-                sign_up: {
-                  email_input_placeholder: "Your email address",
-                  password_input_placeholder: "Create a password",
-                  email_label: "Email",
-                  password_label: "Password",
-                  button_label: "Sign up",
-                  loading_button_label: "Signing up ...",
-                  social_provider_text: "Sign up with {{provider}}",
-                  link_text: "Don't have an account? Sign up",
-                },
-                forgotten_password: {
-                  link_text: "Forgot your password?",
-                },
-              },
-            }}
           />
         </CardContent>
       </Card>

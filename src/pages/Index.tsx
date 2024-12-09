@@ -1,25 +1,19 @@
 import { useAuthState } from "@/hooks/useAuthState";
-import { toast } from "sonner";
 import Hero from "@/components/home/Hero";
 import LandingPage from "@/components/home/landing/LandingPage";
-import { Button } from "@/components/ui/button";
-import { createTestUsers } from "@/utils/createTestUsers";
 import BottomNav from "@/components/navigation/BottomNav";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import TopNav from "@/components/navigation/TopNav";
 
 const Index = () => {
-  const { session, profile, loading, error } = useAuthState();
-
-  if (error) {
-    console.error('Error:', error);
-    return <div className="flex items-center justify-center min-h-screen">
-      <p className="text-red-500">Failed to load. Please refresh the page.</p>
-    </div>;
-  }
+  const { session, profile, loading } = useAuthState();
 
   if (loading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
   }
 
   if (!session) {
@@ -44,32 +38,10 @@ const Index = () => {
       <div className="relative z-10">
         <TopNav session={session} profile={profile} />
         <Hero session={session} profile={profile} />
-        
-        {/* Temporary button for creating test users - remove in production */}
-        <div className="fixed bottom-20 right-4">
-          <Button 
-            onClick={handleCreateTestUsers}
-            variant="outline"
-            className="bg-white/80 backdrop-blur-sm"
-          >
-            Create Test Users
-          </Button>
-        </div>
-
         <BottomNav session={session} profile={profile} />
       </div>
     </div>
   );
-};
-
-const handleCreateTestUsers = async () => {
-  try {
-    await createTestUsers();
-    toast.success("Test users created successfully!");
-  } catch (error: any) {
-    console.error("Error creating test users:", error);
-    toast.error(error.message || "Failed to create test users");
-  }
 };
 
 export default Index;
