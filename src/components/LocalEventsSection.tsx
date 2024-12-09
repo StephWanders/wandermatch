@@ -16,6 +16,11 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
         navigator.geolocation.getCurrentPosition(
           async (position) => {
             try {
+              console.log('Got GPS coordinates:', {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+              });
+              
               // Call the reverse-geocode function to get city name
               const { data: locationData, error: locationError } = await supabase.functions.invoke('reverse-geocode', {
                 body: {
@@ -24,15 +29,25 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
                 }
               });
 
-              if (locationError) throw locationError;
+              if (locationError) {
+                console.error('Location error:', locationError);
+                throw locationError;
+              }
+              
+              if (!locationData) {
+                throw new Error('No location data received');
+              }
+
+              console.log('Location data received:', locationData);
               
               const city = locationData?.city || defaultLocation.split(',')[0].trim();
-              console.log('GPS Location city:', city);
+              console.log('Using city:', city);
               setCurrentLocation(city);
               fetchEventsForCity(city);
             } catch (error) {
               console.error("Error getting city name:", error);
               const fallbackCity = defaultLocation.split(',')[0].trim();
+              console.log('Using fallback city:', fallbackCity);
               setCurrentLocation(fallbackCity);
               fetchEventsForCity(fallbackCity);
             }
@@ -40,12 +55,14 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
           (error) => {
             console.error("Error getting GPS location:", error);
             const fallbackCity = defaultLocation.split(',')[0].trim();
+            console.log('Using fallback city due to GPS error:', fallbackCity);
             setCurrentLocation(fallbackCity);
             fetchEventsForCity(fallbackCity);
           }
         );
       } else {
         const fallbackCity = defaultLocation.split(',')[0].trim();
+        console.log('Geolocation not available, using fallback city:', fallbackCity);
         setCurrentLocation(fallbackCity);
         fetchEventsForCity(fallbackCity);
       }
@@ -59,9 +76,9 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
         });
 
         if (eventsError) throw eventsError;
-        setEvents(eventsData.events || getPlaceholderEvents(city));
+        setEvents(eventsData?.events || getPlaceholderEvents(city));
       } catch (error) {
-        console.error("Error:", error);
+        console.error("Error fetching events:", error);
         setEvents(getPlaceholderEvents(city));
         toast.error("Could not fetch events. Using placeholder events.");
       } finally {
