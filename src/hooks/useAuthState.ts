@@ -15,29 +15,28 @@ export const useAuthState = () => {
     const initializeAuth = async () => {
       try {
         console.log('📥 [useAuthState] Getting initial session...');
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
           console.error('❌ [useAuthState] Session error:', sessionError);
           throw sessionError;
         }
         
-        console.log('✨ [useAuthState] Initial session result:', session?.user?.id);
+        console.log('✨ [useAuthState] Initial session result:', initialSession?.user?.id);
         
         if (!mounted) {
           console.log('❌ [useAuthState] Component unmounted during initialization');
           return;
         }
+
+        setSession(initialSession);
         
-        if (session?.user?.id) {
-          console.log('👤 [useAuthState] Valid session found, setting session state');
-          setSession(session);
-          
-          console.log('🔍 [useAuthState] Fetching profile for user:', session.user.id);
+        if (initialSession?.user?.id) {
+          console.log('🔍 [useAuthState] Fetching profile for user:', initialSession.user.id);
           const { data: profileData, error: profileError } = await supabase
             .from("profiles")
             .select("*")
-            .eq("id", session.user.id)
+            .eq("id", initialSession.user.id)
             .single();
 
           if (!mounted) {
@@ -54,13 +53,9 @@ export const useAuthState = () => {
 
           console.log('✅ [useAuthState] Profile loaded successfully:', profileData);
           setProfile(profileData);
-          setLoading(false);
-        } else {
-          console.log('👻 [useAuthState] No session found, clearing states');
-          setSession(null);
-          setProfile(null);
-          setLoading(false);
         }
+        
+        setLoading(false);
       } catch (error) {
         console.error('💥 [useAuthState] Error during initialization:', error);
         if (mounted) {
@@ -74,21 +69,21 @@ export const useAuthState = () => {
     initializeAuth();
 
     console.log('👂 [useAuthState] Setting up auth state change listener');
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔄 [useAuthState] Auth state changed:', event, session?.user?.id);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log('🔄 [useAuthState] Auth state changed:', event, newSession?.user?.id);
       if (!mounted) {
         console.log('❌ [useAuthState] Component unmounted during auth state change');
         return;
       }
       
-      setSession(session);
+      setSession(newSession);
       
-      if (session?.user?.id) {
+      if (newSession?.user?.id) {
         console.log('🔍 [useAuthState] Fetching profile after auth state change');
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("*")
-          .eq("id", session.user.id)
+          .eq("id", newSession.user.id)
           .single();
 
         if (!mounted) {
@@ -106,12 +101,11 @@ export const useAuthState = () => {
 
         console.log('✅ [useAuthState] Profile loaded after auth state change:', profileData);
         setProfile(profileData);
-        setLoading(false);
       } else {
         console.log('👻 [useAuthState] No session after auth state change, clearing profile');
         setProfile(null);
-        setLoading(false);
       }
+      setLoading(false);
     });
 
     return () => {
