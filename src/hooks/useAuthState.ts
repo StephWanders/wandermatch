@@ -50,13 +50,36 @@ export const useAuthState = () => {
         .eq("id", userId)
         .single();
 
-      if (fetchError) {
+      if (fetchError && fetchError.code !== 'PGRST116') {
         console.error("Error fetching profile:", fetchError);
+        toast.error("Failed to load profile");
         throw fetchError;
       }
 
-      console.log('Profile data:', existingProfile);
-      setProfile(existingProfile);
+      if (existingProfile) {
+        console.log('Profile found:', existingProfile);
+        setProfile(existingProfile);
+        setLoading(false);
+        return;
+      }
+
+      console.log('No profile found, creating new profile');
+      
+      // If no profile exists, create one
+      const { data: newProfile, error: insertError } = await supabase
+        .from("profiles")
+        .insert([{ id: userId }])
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error("Error creating profile:", insertError);
+        toast.error("Failed to create profile");
+        throw insertError;
+      }
+
+      console.log('New profile created:', newProfile);
+      setProfile(newProfile);
       setLoading(false);
 
     } catch (error) {
