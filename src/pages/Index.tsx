@@ -25,11 +25,13 @@ const Index = () => {
     return <LoadingSpinner />;
   }
 
-  // If not authenticated, show landing page without attempting to fetch profile
+  // If not authenticated, show landing page
   if (!session) {
+    console.log("No session, showing landing page");
     return <LandingPage />;
   }
 
+  console.log("Session exists, showing authenticated view");
   return (
     <div className="min-h-screen pb-20 relative">
       {/* Background Image with Overlay */}

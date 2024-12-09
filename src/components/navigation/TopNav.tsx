@@ -50,43 +50,45 @@ const TopNav = ({ session, profile }: TopNavProps) => {
             </span>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <div className="text-right mr-2">
-              <p className="text-sm text-gray-600">Welcome back,</p>
-              <p className="font-semibold text-gray-900">{profile?.full_name}</p>
-            </div>
+          {session && profile && (
+            <div className="flex items-center space-x-4">
+              <div className="text-right mr-2">
+                <p className="text-sm text-gray-600">Welcome back,</p>
+                <p className="font-semibold text-gray-900">{profile?.full_name}</p>
+              </div>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  className="relative h-10 w-10 rounded-full transition-all duration-200 hover:ring-2 hover:ring-primary hover:ring-offset-2 group"
-                >
-                  <ProfileAvatar 
-                    imageUrl={profile?.profile_image_url} 
-                    name={profile?.full_name} 
-                    className="group-hover:scale-105 transition-transform duration-200"
-                  />
-                  <ChevronDown className="h-4 w-4 absolute bottom-0 right-0 text-gray-600 group-hover:text-primary transition-colors duration-200" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={() => navigate("/create-profile")}>
-                  <User className="mr-2 h-4 w-4" />
-                  Edit Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/account-settings")}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  Account Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className="relative h-10 w-10 rounded-full transition-all duration-200 hover:ring-2 hover:ring-primary hover:ring-offset-2 group"
+                  >
+                    <ProfileAvatar 
+                      imageUrl={profile?.profile_image_url} 
+                      name={profile?.full_name} 
+                      className="group-hover:scale-105 transition-transform duration-200"
+                    />
+                    <ChevronDown className="h-4 w-4 absolute bottom-0 right-0 text-gray-600 group-hover:text-primary transition-colors duration-200" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => navigate("/create-profile")}>
+                    <User className="mr-2 h-4 w-4" />
+                    Edit Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/account-settings")}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Account Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
         </div>
       </div>
     </nav>
