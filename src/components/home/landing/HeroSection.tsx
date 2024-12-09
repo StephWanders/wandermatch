@@ -15,6 +15,13 @@ const HeroSection = () => {
     }
   };
 
+  const scrollToFeatures = () => {
+    const featuresSection = document.querySelector('#why-choose-wandermatch');
+    if (featuresSection) {
+      featuresSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="relative min-h-screen flex items-center justify-center">
       {/* Background Image with Overlay */}
@@ -52,13 +59,8 @@ const HeroSection = () => {
           <Button 
             size="lg" 
             variant="outline" 
-            className="border-2 border-primary text-white hover:bg-primary/20 px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-            onClick={() => {
-              const featuresSection = document.getElementById('features');
-              if (featuresSection) {
-                featuresSection.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
+            className="border-2 border-primary text-primary hover:bg-primary/20 px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+            onClick={scrollToFeatures}
           >
             Learn More
           </Button>
