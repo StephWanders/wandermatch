@@ -11,6 +11,8 @@ import TopNav from "@/components/navigation/TopNav";
 const Index = () => {
   const { session, profile, loading } = useAuthState();
 
+  console.log('Index page render:', { session, profile, loading });
+
   const handleCreateTestUsers = async () => {
     try {
       await createTestUsers();
@@ -21,8 +23,14 @@ const Index = () => {
     }
   };
 
+  // Show loading spinner while authentication state is being determined
   if (loading) {
-    return <LoadingSpinner />;
+    console.log('Showing loading spinner');
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
   }
 
   // If not authenticated, show landing page
