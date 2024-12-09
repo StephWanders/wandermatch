@@ -1,13 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useNavigate } from "react-router-dom";
+import { ProfileFormValues } from "./ProfileSchema";
+import AboutYouSection from "./sections/AboutYouSection";
 import BasicInfoSection from "./sections/BasicInfoSection";
 import TravelPreferencesSection from "./sections/TravelPreferencesSection";
-import AboutYouSection from "./sections/AboutYouSection";
-import ProfileImageUpload from "./ProfileImageUpload";
-import { useProfilePictures } from "./hooks/useProfilePictures";
 import { useProfileForm } from "./hooks/useProfileForm";
-import type { ProfileFormValues } from "./ProfileSchema";
+import { useProfilePictures } from "./hooks/useProfilePictures";
 
 interface ProfileFormProps {
   session: any;
@@ -22,24 +21,21 @@ const ProfileForm = ({ session, profile, onProfileUpdate }: ProfileFormProps) =>
 
   const handleFormSubmit = async (values: ProfileFormValues) => {
     await onSubmit(values);
-    navigate("/");
-  };
-
-  const handleCancel = () => {
-    navigate("/");
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-        <ProfileImageUpload 
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-8">
+        <BasicInfoSection 
+          form={form} 
           userId={session?.user?.id}
-          existingImages={profilePictures}
+          profilePictures={profilePictures}
           onImagesUpdate={handleImagesUpdate}
         />
-        <BasicInfoSection form={form} />
-        <TravelPreferencesSection form={form} />
+        
         <AboutYouSection form={form} />
+        
+        <TravelPreferencesSection form={form} />
 
         <div className="flex gap-4">
           <Button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700">
@@ -48,8 +44,7 @@ const ProfileForm = ({ session, profile, onProfileUpdate }: ProfileFormProps) =>
           <Button 
             type="button" 
             variant="outline" 
-            onClick={handleCancel}
-            className="flex-1"
+            onClick={() => navigate(-1)}
           >
             Cancel
           </Button>
