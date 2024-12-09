@@ -12,7 +12,6 @@ export const useAuthState = () => {
 
     const fetchProfile = async (userId: string) => {
       try {
-        console.log('Fetching profile for user:', userId);
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
@@ -22,7 +21,6 @@ export const useAuthState = () => {
         if (error) throw error;
         
         if (mounted) {
-          console.log('Profile loaded:', data);
           setProfile(data);
         }
       } catch (error) {
@@ -31,50 +29,30 @@ export const useAuthState = () => {
       }
     };
 
-    const initAuth = async () => {
-      try {
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        
-        if (mounted) {
-          setSession(currentSession);
-          if (currentSession?.user?.id) {
-            await fetchProfile(currentSession.user.id);
-          } else {
-            setProfile(null);
-          }
-        }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        toast.error("Authentication error");
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
+    // Initial auth check
+    supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
+      if (!mounted) return;
 
-    // Initialize auth state
-    initAuth();
-
-    // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
-        console.log('Auth state changed:', event);
-        
-        if (mounted) {
-          setSession(newSession);
-          
-          if (newSession?.user?.id) {
-            setLoading(true);
-            await fetchProfile(newSession.user.id);
-            setLoading(false);
-          } else {
-            setProfile(null);
-            setLoading(false);
-          }
-        }
+      setSession(currentSession);
+      if (currentSession?.user?.id) {
+        await fetchProfile(currentSession.user.id);
       }
-    );
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      if (!mounted) return;
+
+      console.log('Auth state changed:', event);
+      setSession(newSession);
+
+      if (newSession?.user?.id) {
+        await fetchProfile(newSession.user.id);
+      } else {
+        setProfile(null);
+      }
+    });
 
     return () => {
       mounted = false;
