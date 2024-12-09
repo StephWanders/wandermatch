@@ -33,7 +33,6 @@ export const useAuthState = () => {
 
     const initAuth = async () => {
       try {
-        setLoading(true);
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         
         if (mounted) {
@@ -54,25 +53,28 @@ export const useAuthState = () => {
       }
     };
 
+    // Initialize auth state
+    initAuth();
+
+    // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
         console.log('Auth state changed:', event);
+        
         if (mounted) {
           setSession(newSession);
-          setLoading(true);
           
           if (newSession?.user?.id) {
+            setLoading(true);
             await fetchProfile(newSession.user.id);
+            setLoading(false);
           } else {
             setProfile(null);
+            setLoading(false);
           }
-          
-          setLoading(false);
         }
       }
     );
-
-    initAuth();
 
     return () => {
       mounted = false;
