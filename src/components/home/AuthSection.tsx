@@ -18,19 +18,17 @@ const AuthSection = () => {
       console.log('Auth state changed in AuthSection:', event, !!session);
       if (event === 'SIGNED_IN' && session) {
         setIsTransitioning(true);
-        // Navigate immediately but keep transition state for animation
-        navigate('/', { replace: true });
-        // Reset transition state after animation
+        // Force a small delay to ensure state updates are processed
         setTimeout(() => {
-          setIsTransitioning(false);
-        }, 500);
+          window.location.href = '/';  // Use full page refresh for reliable state reset
+        }, 100);
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
 
   if (!view) return null;
 
