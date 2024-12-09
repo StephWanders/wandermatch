@@ -25,6 +25,7 @@ const Index = () => {
     return <LoadingSpinner />;
   }
 
+  // If not authenticated, show landing page without attempting to fetch profile
   if (!session) {
     return <LandingPage />;
   }
