@@ -21,29 +21,32 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
                 lng: position.coords.longitude
               });
               
-              // Call the reverse-geocode function to get city name
-              const { data: locationData, error: locationError } = await supabase.functions.invoke('reverse-geocode', {
+              // Use default location if reverse geocoding fails
+              setCurrentLocation(defaultLocation.split(',')[0].trim());
+              
+              // Attempt reverse geocoding but don't block on it
+              supabase.functions.invoke('reverse-geocode', {
                 body: {
                   lat: position.coords.latitude,
                   lng: position.coords.longitude
                 }
+              }).then(({ data: locationData, error: locationError }) => {
+                if (locationError) {
+                  console.error('Location error:', locationError);
+                  return;
+                }
+                
+                if (locationData?.city) {
+                  console.log('Location data received:', locationData);
+                  setCurrentLocation(locationData.city);
+                  fetchEventsForCity(locationData.city);
+                }
+              }).catch(error => {
+                console.error("Error in reverse geocoding:", error);
               });
 
-              if (locationError) {
-                console.error('Location error:', locationError);
-                throw locationError;
-              }
-              
-              if (!locationData) {
-                throw new Error('No location data received');
-              }
-
-              console.log('Location data received:', locationData);
-              
-              const city = locationData?.city || defaultLocation.split(',')[0].trim();
-              console.log('Using city:', city);
-              setCurrentLocation(city);
-              fetchEventsForCity(city);
+              // Immediately fetch events for default location
+              fetchEventsForCity(defaultLocation.split(',')[0].trim());
             } catch (error) {
               console.error("Error getting city name:", error);
               const fallbackCity = defaultLocation.split(',')[0].trim();
@@ -87,6 +90,19 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
     };
 
     getGPSLocation();
+
+    // Set a timeout to ensure we don't get stuck in loading state
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.log('Loading timeout reached, using default location');
+        setLoading(false);
+        const fallbackCity = defaultLocation.split(',')[0].trim();
+        setCurrentLocation(fallbackCity);
+        setEvents(getPlaceholderEvents(fallbackCity));
+      }
+    }, 5000); // 5 second timeout
+
+    return () => clearTimeout(timeoutId);
   }, [defaultLocation]);
 
   if (loading) {
