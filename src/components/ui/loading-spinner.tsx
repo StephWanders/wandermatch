@@ -1,7 +1,26 @@
-const LoadingSpinner = () => (
-  <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
-    <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
-  </div>
-);
+import { cn } from "@/lib/utils";
+
+interface LoadingSpinnerProps {
+  size?: "sm" | "md" | "lg";
+  className?: string;
+}
+
+const LoadingSpinner = ({ size = "md", className }: LoadingSpinnerProps) => {
+  const sizeClasses = {
+    sm: "w-4 h-4",
+    md: "w-6 h-6",
+    lg: "w-8 h-8"
+  };
+
+  return (
+    <div
+      className={cn(
+        "animate-spin rounded-full border-2 border-primary-200 border-t-primary-600",
+        sizeClasses[size],
+        className
+      )}
+    />
+  );
+};
 
 export default LoadingSpinner;
