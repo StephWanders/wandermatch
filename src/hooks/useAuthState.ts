@@ -9,43 +9,54 @@ export const useAuthState = () => {
   const [error, setError] = useState<any>(null);
 
   useEffect(() => {
-    console.log('Initializing auth state...');
+    console.log('🔄 [useAuthState] Starting effect, initializing auth state...');
     let mounted = true;
 
     const initializeAuth = async () => {
       try {
+        console.log('📥 [useAuthState] Getting initial session...');
         const { data: { session } } = await supabase.auth.getSession();
-        console.log('Initial session:', session?.user?.id);
+        console.log('✨ [useAuthState] Initial session result:', session?.user?.id);
         
-        if (!mounted) return;
+        if (!mounted) {
+          console.log('❌ [useAuthState] Component unmounted during initialization');
+          return;
+        }
         
         if (session?.user?.id) {
+          console.log('👤 [useAuthState] Valid session found, setting session state');
           setSession(session);
+          
+          console.log('🔍 [useAuthState] Fetching profile for user:', session.user.id);
           const { data: profileData, error: profileError } = await supabase
             .from("profiles")
             .select("*")
             .eq("id", session.user.id)
             .single();
 
-          if (!mounted) return;
+          if (!mounted) {
+            console.log('❌ [useAuthState] Component unmounted during profile fetch');
+            return;
+          }
 
           if (profileError) {
-            console.error("Error fetching profile:", profileError);
+            console.error('🚫 [useAuthState] Error fetching profile:', profileError);
             setError(profileError);
             setLoading(false);
             return;
           }
 
-          console.log('Profile loaded:', profileData);
+          console.log('✅ [useAuthState] Profile loaded successfully:', profileData);
           setProfile(profileData);
           setLoading(false);
         } else {
+          console.log('👻 [useAuthState] No session found, clearing states');
           setSession(null);
           setProfile(null);
           setLoading(false);
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        console.error('💥 [useAuthState] Error during initialization:', error);
         if (mounted) {
           setError(error);
           setLoading(false);
@@ -55,37 +66,48 @@ export const useAuthState = () => {
 
     initializeAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('Auth state changed:', _event, session?.user?.id);
-      if (!mounted) return;
+    console.log('👂 [useAuthState] Setting up auth state change listener');
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔄 [useAuthState] Auth state changed:', event, session?.user?.id);
+      if (!mounted) {
+        console.log('❌ [useAuthState] Component unmounted during auth state change');
+        return;
+      }
       
       setSession(session);
       
       if (session?.user?.id) {
+        console.log('🔍 [useAuthState] Fetching profile after auth state change');
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", session.user.id)
           .single();
 
-        if (!mounted) return;
+        if (!mounted) {
+          console.log('❌ [useAuthState] Component unmounted during profile fetch');
+          return;
+        }
 
         if (profileError) {
-          console.error("Error fetching profile:", profileError);
+          console.error('🚫 [useAuthState] Error fetching profile:', profileError);
           setError(profileError);
           setLoading(false);
           return;
         }
 
+        console.log('✅ [useAuthState] Profile loaded after auth state change:', profileData);
         setProfile(profileData);
         setLoading(false);
       } else {
+        console.log('👻 [useAuthState] No session after auth state change, clearing profile');
         setProfile(null);
         setLoading(false);
       }
     });
 
     return () => {
+      console.log('🧹 [useAuthState] Cleaning up effect');
       mounted = false;
       subscription.unsubscribe();
     };

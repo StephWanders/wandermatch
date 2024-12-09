@@ -11,29 +11,35 @@ import TopNav from "@/components/navigation/TopNav";
 const Index = () => {
   const { session, profile, loading, error } = useAuthState();
 
-  console.log('Index page render:', { session, profile, loading, error });
+  console.log('🎯 [Index] Page render:', { 
+    sessionExists: !!session,
+    userId: session?.user?.id,
+    profileExists: !!profile,
+    loading,
+    error: error ? 'Error exists' : 'No error'
+  });
 
   if (error) {
-    console.error('Auth error:', error);
+    console.error('🚫 [Index] Auth error:', error);
     toast.error("Failed to load user data");
   }
 
   if (loading) {
-    console.log('Showing loading spinner');
+    console.log('⌛ [Index] Showing loading spinner');
     return <LoadingSpinner />;
   }
 
   if (!session) {
-    console.log("No session, showing landing page");
+    console.log('🚪 [Index] No session, showing landing page');
     return <LandingPage />;
   }
 
   if (!profile) {
-    console.log("Session exists but no profile, showing loading spinner");
+    console.log('⏳ [Index] Session exists but no profile, showing loading spinner');
     return <LoadingSpinner />;
   }
 
-  console.log("Session and profile exist, showing authenticated view");
+  console.log('✅ [Index] Session and profile exist, showing authenticated view');
   return (
     <div className="min-h-screen pb-20 relative">
       {/* Background Image with Overlay */}
