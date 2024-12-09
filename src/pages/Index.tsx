@@ -11,7 +11,7 @@ const Index = () => {
   if (loading) {
     return (
       <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
-        <LoadingSpinner className="h-12 w-12 border-4" />
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
