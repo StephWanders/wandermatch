@@ -14,20 +14,20 @@ const AuthSection = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN') {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed in AuthSection:', event, !!session);
+      if (event === 'SIGNED_IN' && session) {
         setIsTransitioning(true);
-        timer = setTimeout(() => {
-          navigate('/', { replace: true });
+        // Navigate immediately but keep transition state for animation
+        navigate('/', { replace: true });
+        // Reset transition state after animation
+        setTimeout(() => {
           setIsTransitioning(false);
         }, 500);
       }
     });
 
     return () => {
-      clearTimeout(timer);
       subscription.unsubscribe();
     };
   }, [navigate]);
