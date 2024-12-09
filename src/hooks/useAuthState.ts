@@ -9,116 +9,79 @@ export const useAuthState = () => {
   const [error, setError] = useState<any>(null);
 
   useEffect(() => {
-    console.log('🔄 [useAuthState] Starting effect, initializing auth state...');
     let mounted = true;
-    let authStateChangeHandled = false;
 
-    const initializeAuth = async () => {
-      if (!mounted) return;
-      
+    const fetchProfile = async (userId: string) => {
       try {
-        console.log('📥 [useAuthState] Getting initial session...');
-        const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error('❌ [useAuthState] Session error:', sessionError);
-          throw sessionError;
+        console.log('🔍 [useAuthState] Fetching profile for user:', userId);
+        const { data, error: profileError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .single();
+
+        if (profileError) {
+          console.error('❌ [useAuthState] Profile error:', profileError);
+          throw profileError;
         }
-        
-        console.log('✨ [useAuthState] Initial session result:', initialSession?.user?.id);
-        
-        if (!mounted) return;
 
-        if (initialSession?.user?.id) {
-          setSession(initialSession);
-          console.log('🔍 [useAuthState] Fetching profile for user:', initialSession.user.id);
-          
-          const { data: profileData, error: profileError } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", initialSession.user.id)
-            .single();
-
-          if (!mounted) return;
-
-          if (profileError) {
-            console.error('🚫 [useAuthState] Error fetching profile:', profileError);
-            setError(profileError);
-            setLoading(false);
-            return;
-          }
-
-          console.log('✅ [useAuthState] Profile loaded successfully:', profileData);
-          setProfile(profileData);
-        } else {
-          console.log('👻 [useAuthState] No initial session found');
-          setSession(null);
-          setProfile(null);
-        }
-        
-        if (mounted && !authStateChangeHandled) {
+        if (mounted) {
+          console.log('✅ [useAuthState] Profile loaded:', data);
+          setProfile(data);
           setLoading(false);
         }
       } catch (error) {
-        console.error('💥 [useAuthState] Error during initialization:', error);
+        console.error('💥 [useAuthState] Error:', error);
         if (mounted) {
           setError(error);
           setLoading(false);
-          toast.error("Failed to initialize authentication state");
+          toast.error("Failed to load profile");
         }
       }
     };
 
-    console.log('👂 [useAuthState] Setting up auth state change listener');
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      console.log('🔄 [useAuthState] Auth state changed:', event, newSession?.user?.id);
-      if (!mounted) return;
-      
-      authStateChangeHandled = true;
-      setLoading(true);
-      
+    const initializeAuth = async () => {
       try {
-        setSession(newSession);
+        const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
         
-        if (newSession?.user?.id) {
-          console.log('🔍 [useAuthState] Fetching profile after auth state change');
-          const { data: profileData, error: profileError } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", newSession.user.id)
-            .single();
-
-          if (!mounted) return;
-
-          if (profileError) {
-            console.error('🚫 [useAuthState] Error fetching profile:', profileError);
-            setError(profileError);
+        if (sessionError) throw sessionError;
+        
+        if (mounted) {
+          setSession(initialSession);
+          if (initialSession?.user?.id) {
+            await fetchProfile(initialSession.user.id);
+          } else {
             setLoading(false);
-            toast.error("Failed to load user profile");
-            return;
           }
-
-          console.log('✅ [useAuthState] Profile loaded after auth state change:', profileData);
-          setProfile(profileData);
-        } else {
-          console.log('👻 [useAuthState] No session after auth state change, clearing profile');
-          setProfile(null);
         }
       } catch (error) {
-        console.error('💥 [useAuthState] Error during auth state change:', error);
-        setError(error);
-        toast.error("Authentication state update failed");
-      } finally {
+        console.error('💥 [useAuthState] Init error:', error);
         if (mounted) {
+          setError(error);
           setLoading(false);
+          toast.error("Authentication error");
         }
+      }
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log('🔄 [useAuthState] Auth state changed:', event, newSession?.user?.id);
+      
+      if (!mounted) return;
+      
+      setSession(newSession);
+      
+      if (newSession?.user?.id) {
+        await fetchProfile(newSession.user.id);
+      } else {
+        setProfile(null);
+        setLoading(false);
       }
     });
 
     initializeAuth();
 
     return () => {
-      console.log('🧹 [useAuthState] Cleaning up effect');
       mounted = false;
       subscription.unsubscribe();
     };
