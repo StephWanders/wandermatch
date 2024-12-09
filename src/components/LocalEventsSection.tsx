@@ -21,16 +21,20 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
                 lng: position.coords.longitude
               });
               
-              // Use default location if reverse geocoding fails
-              setCurrentLocation(defaultLocation.split(',')[0].trim());
+              // Use default location initially
+              const initialCity = defaultLocation.split(',')[0].trim();
+              setCurrentLocation(initialCity);
+              await fetchEventsForCity(initialCity);
               
-              // Attempt reverse geocoding but don't block on it
-              supabase.functions.invoke('reverse-geocode', {
-                body: {
-                  lat: position.coords.latitude,
-                  lng: position.coords.longitude
-                }
-              }).then(({ data: locationData, error: locationError }) => {
+              // Attempt reverse geocoding in background
+              try {
+                const { data: locationData, error: locationError } = await supabase.functions.invoke('reverse-geocode', {
+                  body: {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                  }
+                });
+
                 if (locationError) {
                   console.error('Location error:', locationError);
                   return;
@@ -39,36 +43,32 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
                 if (locationData?.city) {
                   console.log('Location data received:', locationData);
                   setCurrentLocation(locationData.city);
-                  fetchEventsForCity(locationData.city);
+                  await fetchEventsForCity(locationData.city);
                 }
-              }).catch(error => {
-                console.error("Error in reverse geocoding:", error);
-              });
-
-              // Immediately fetch events for default location
-              fetchEventsForCity(defaultLocation.split(',')[0].trim());
+              } catch (geoError) {
+                console.error("Error in reverse geocoding:", geoError);
+              }
             } catch (error) {
               console.error("Error getting city name:", error);
-              const fallbackCity = defaultLocation.split(',')[0].trim();
-              console.log('Using fallback city:', fallbackCity);
-              setCurrentLocation(fallbackCity);
-              fetchEventsForCity(fallbackCity);
+              handleLocationFallback();
             }
           },
           (error) => {
             console.error("Error getting GPS location:", error);
-            const fallbackCity = defaultLocation.split(',')[0].trim();
-            console.log('Using fallback city due to GPS error:', fallbackCity);
-            setCurrentLocation(fallbackCity);
-            fetchEventsForCity(fallbackCity);
+            handleLocationFallback();
           }
         );
       } else {
-        const fallbackCity = defaultLocation.split(',')[0].trim();
-        console.log('Geolocation not available, using fallback city:', fallbackCity);
-        setCurrentLocation(fallbackCity);
-        fetchEventsForCity(fallbackCity);
+        console.log('Geolocation not available, using fallback city');
+        handleLocationFallback();
       }
+    };
+
+    const handleLocationFallback = async () => {
+      const fallbackCity = defaultLocation.split(',')[0].trim();
+      console.log('Using fallback city:', fallbackCity);
+      setCurrentLocation(fallbackCity);
+      await fetchEventsForCity(fallbackCity);
     };
 
     const fetchEventsForCity = async (city: string) => {
@@ -79,7 +79,13 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
         });
 
         if (eventsError) throw eventsError;
-        setEvents(eventsData?.events || getPlaceholderEvents(city));
+        
+        if (eventsData?.events) {
+          setEvents(eventsData.events);
+        } else {
+          console.log('No events data, using placeholders');
+          setEvents(getPlaceholderEvents(city));
+        }
       } catch (error) {
         console.error("Error fetching events:", error);
         setEvents(getPlaceholderEvents(city));
@@ -95,10 +101,7 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
     const timeoutId = setTimeout(() => {
       if (loading) {
         console.log('Loading timeout reached, using default location');
-        setLoading(false);
-        const fallbackCity = defaultLocation.split(',')[0].trim();
-        setCurrentLocation(fallbackCity);
-        setEvents(getPlaceholderEvents(fallbackCity));
+        handleLocationFallback();
       }
     }, 5000); // 5 second timeout
 

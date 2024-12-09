@@ -8,7 +8,10 @@ export const useAuthState = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
-    if (!userId) return;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
     
     try {
       console.log('Fetching profile for user:', userId);
@@ -16,7 +19,7 @@ export const useAuthState = () => {
         .from("profiles")
         .select("*")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error details:", {
@@ -72,8 +75,10 @@ export const useAuthState = () => {
       setSession(newSession);
 
       if (event === 'SIGNED_IN' && newSession?.user?.id) {
+        console.log('User signed in, fetching profile...');
         await fetchProfile(newSession.user.id);
       } else if (event === 'SIGNED_OUT') {
+        console.log('User signed out, clearing profile');
         setProfile(null);
         setLoading(false);
       }
