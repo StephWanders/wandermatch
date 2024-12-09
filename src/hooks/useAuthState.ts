@@ -20,9 +20,15 @@ export const useAuthState = () => {
         
         setSession(session);
         if (session?.user?.id) {
-          await fetchProfile(session.user.id);
+          const profileData = await fetchProfile(session.user.id);
+          if (mounted) {
+            setProfile(profileData);
+            setLoading(false);
+          }
         } else {
-          setLoading(false);
+          if (mounted) {
+            setLoading(false);
+          }
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
@@ -40,10 +46,16 @@ export const useAuthState = () => {
       
       setSession(session);
       if (session?.user?.id) {
-        await fetchProfile(session.user.id);
+        const profileData = await fetchProfile(session.user.id);
+        if (mounted) {
+          setProfile(profileData);
+          setLoading(false);
+        }
       } else {
-        setProfile(null);
-        setLoading(false);
+        if (mounted) {
+          setProfile(null);
+          setLoading(false);
+        }
       }
     });
 
@@ -56,48 +68,24 @@ export const useAuthState = () => {
   const fetchProfile = async (userId: string) => {
     try {
       console.log('Fetching profile for user:', userId);
-      
-      const { data: existingProfile, error: fetchError } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", userId)
         .single();
 
-      if (fetchError) {
-        console.error("Error fetching profile:", fetchError);
-        if (fetchError.code === 'PGRST116') {
-          // Profile doesn't exist, create one
-          console.log('No profile found, creating new profile');
-          const { data: newProfile, error: insertError } = await supabase
-            .from("profiles")
-            .insert([{ id: userId }])
-            .select()
-            .single();
-
-          if (insertError) {
-            console.error("Error creating profile:", insertError);
-            toast.error("Failed to create profile");
-            setLoading(false);
-            return;
-          }
-
-          console.log('New profile created:', newProfile);
-          setProfile(newProfile);
-        } else {
-          toast.error("Failed to load profile");
-        }
-        setLoading(false);
-        return;
+      if (error) {
+        console.error("Error fetching profile:", error);
+        toast.error("Failed to load profile");
+        return null;
       }
 
-      console.log('Profile found:', existingProfile);
-      setProfile(existingProfile);
-      setLoading(false);
-
+      console.log('Profile data:', data);
+      return data;
     } catch (error) {
-      console.error("Error in fetchProfile:", error);
+      console.error("Error fetching profile:", error);
       toast.error("Failed to load profile");
-      setLoading(false);
+      return null;
     }
   };
 
