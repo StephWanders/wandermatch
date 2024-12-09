@@ -28,23 +28,53 @@ const MatchCard = ({ match, isPending, onAccept, onDecline }: MatchCardProps) =>
   const otherProfileId = match.profile1_id === session?.user?.id ? match.profile2_id : match.profile1_id;
 
   // Get the profile of the other user
-  const { data: matchedProfile } = useQuery({
+  const { data: matchedProfile, isError } = useQuery({
     queryKey: ['profile', otherProfileId],
     queryFn: async () => {
+      console.log('Fetching profile for ID:', otherProfileId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', otherProfileId)
-        .single();
+        .maybeSingle(); // Use maybeSingle instead of single to handle missing profiles
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching profile:', error);
+        throw error;
+      }
+
+      if (!data) {
+        console.log('No profile found for ID:', otherProfileId);
+        return null;
+      }
+
+      console.log('Found profile:', data);
       return data;
     },
-    enabled: !!otherProfileId
+    enabled: !!otherProfileId,
+    retry: false // Don't retry if profile doesn't exist
   });
 
+  if (isError) {
+    console.error('Error in MatchCard:', isError);
+    return (
+      <Card className="hover:shadow-lg transition-shadow animate-fade-in">
+        <CardContent className="p-6">
+          <p className="text-red-600">Failed to load match details</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (!matchedProfile) {
-    return null;
+    console.log('No matched profile found');
+    return (
+      <Card className="hover:shadow-lg transition-shadow animate-fade-in">
+        <CardContent className="p-6">
+          <p className="text-gray-600">Profile not found</p>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
