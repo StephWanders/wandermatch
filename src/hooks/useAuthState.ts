@@ -15,7 +15,13 @@ export const useAuthState = () => {
     const initializeAuth = async () => {
       try {
         console.log('📥 [useAuthState] Getting initial session...');
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('❌ [useAuthState] Session error:', sessionError);
+          throw sessionError;
+        }
+        
         console.log('✨ [useAuthState] Initial session result:', session?.user?.id);
         
         if (!mounted) {
@@ -60,6 +66,7 @@ export const useAuthState = () => {
         if (mounted) {
           setError(error);
           setLoading(false);
+          toast.error("Failed to initialize authentication state");
         }
       }
     };
@@ -93,6 +100,7 @@ export const useAuthState = () => {
           console.error('🚫 [useAuthState] Error fetching profile:', profileError);
           setError(profileError);
           setLoading(false);
+          toast.error("Failed to load user profile");
           return;
         }
 
