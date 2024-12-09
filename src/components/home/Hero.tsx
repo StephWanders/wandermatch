@@ -15,14 +15,17 @@ const Hero = ({ session, profile }: HeroProps) => {
   const navigate = useNavigate();
   
   const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast.error("Error signing out");
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      console.log('Sign out successful');
+      toast.success("Successfully signed out");
+      navigate("/");
+    } catch (error) {
       console.error("Error signing out:", error);
-      return;
+      toast.error("Failed to sign out");
     }
-    toast.success("Successfully signed out");
-    navigate("/");
   };
 
   return (
@@ -31,6 +34,16 @@ const Hero = ({ session, profile }: HeroProps) => {
       <div className="relative z-10 container mx-auto px-4 pt-24 pb-20">
         {session && profile ? (
           <div className="animate-fade-in">
+            <div className="flex justify-end mb-6">
+              <Button 
+                variant="outline"
+                onClick={handleSignOut}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            </div>
             <WelcomeSection session={session} profile={profile} />
           </div>
         ) : (
