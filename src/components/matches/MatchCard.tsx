@@ -28,7 +28,7 @@ const MatchCard = ({ match, isPending, onAccept, onDecline }: MatchCardProps) =>
   const otherProfileId = match.profile1_id === session?.user?.id ? match.profile2_id : match.profile1_id;
 
   // Get the profile of the other user
-  const { data: matchedProfile, isError } = useQuery({
+  const { data: matchedProfile, isError, isLoading } = useQuery({
     queryKey: ['profile', otherProfileId],
     queryFn: async () => {
       console.log('Fetching profile for ID:', otherProfileId);
@@ -54,6 +54,20 @@ const MatchCard = ({ match, isPending, onAccept, onDecline }: MatchCardProps) =>
     enabled: !!otherProfileId,
     retry: false // Don't retry if profile doesn't exist
   });
+
+  if (isLoading) {
+    return (
+      <Card className="hover:shadow-lg transition-shadow animate-fade-in">
+        <CardContent className="p-6">
+          <div className="animate-pulse space-y-4">
+            <div className="h-12 bg-gray-200 rounded"></div>
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isError) {
     console.error('Error in MatchCard:', isError);
