@@ -1,6 +1,9 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
+import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import ChatSidebar from "@/components/chat/ChatSidebar";
 import ChatContainer from "@/components/chat/ChatContainer";
 import BottomNav from "@/components/navigation/BottomNav";
@@ -11,6 +14,7 @@ import { useAuthState } from "@/hooks/useAuthState";
 import { useChatSubscription } from "@/hooks/useChatSubscription";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { useLatestMessages } from "@/hooks/useMessageData";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Chat = () => {
   const { matchId } = useParams();
@@ -19,6 +23,7 @@ const Chat = () => {
   const queryClient = useQueryClient();
   const { session, profile, loading } = useAuthState();
   const [otherProfile, setOtherProfile] = useState(null);
+  const isMobile = useIsMobile();
 
   const { data: matches = [] } = useMatchData(session?.user?.id);
   const { data: messages = [] } = useMessageData(session?.user?.id, matchId, otherProfile?.id);
@@ -88,6 +93,33 @@ const Chat = () => {
     return null;
   }
 
+  const renderSidebar = () => {
+    const sidebarContent = (
+      <ChatSidebar matches={sortedMatches} currentMatchId={matchId} />
+    );
+
+    if (isMobile) {
+      return (
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="fixed left-4 top-20 z-50 bg-white/80 backdrop-blur-sm shadow-md"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-[280px]">
+            {sidebarContent}
+          </SheetContent>
+        </Sheet>
+      );
+    }
+
+    return sidebarContent;
+  };
+
   return (
     <div className="h-screen flex flex-col">
       {/* Background Image with Overlay */}
@@ -105,8 +137,8 @@ const Chat = () => {
       {/* Content */}
       <div className="relative z-10 flex flex-col h-full">
         <TopNav session={session} profile={profile} />
-        <main className="flex-1 flex overflow-hidden pt-16 pb-16"> {/* Added padding to account for nav bars */}
-          <ChatSidebar matches={sortedMatches} currentMatchId={matchId} />
+        <main className="flex-1 flex overflow-hidden pt-16 pb-16">
+          {renderSidebar()}
           {matchId && otherProfile && (
             <ChatContainer 
               matchId={matchId}
