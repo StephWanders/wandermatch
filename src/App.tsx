@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { useAuthState } from "@/hooks/useAuthState";
+import { LocationProvider } from "@/contexts/LocationContext";
 import Index from "./pages/Index";
 import CreateProfile from "./pages/CreateProfile";
 import Chat from "./pages/Chat";
@@ -33,20 +34,22 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/create-profile" element={<CreateProfile />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/chat/:matchId" element={<Chat />} />
-            <Route path="/matches" element={<Matches />} />
-            <Route path="/account-settings" element={<AccountSettings />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <LocationProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/create-profile" element={<CreateProfile />} />
+              <Route path="/chat" element={<Chat />} />
+              <Route path="/chat/:matchId" element={<Chat />} />
+              <Route path="/matches" element={<Matches />} />
+              <Route path="/account-settings" element={<AccountSettings />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </LocationProvider>
     </QueryClientProvider>
   );
 };

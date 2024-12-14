@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { MapPin, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,16 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import EventCard from "./events/EventCard";
 import { getPlaceholderEvents } from "@/utils/eventUtils";
+import { useLocation } from "@/contexts/LocationContext";
 
 const LocalEventsSection = ({ location: defaultLocation }: { location: string }) => {
-  const [currentLocation, setCurrentLocation] = useState<string>(defaultLocation);
-  const [loading, setLoading] = useState(true);
+  const { currentLocation, setCurrentLocation, isLoading, error, getGPSLocation } = useLocation();
   const [events, setEvents] = useState<any[]>([]);
   const [showLocationDialog, setShowLocationDialog] = useState(false);
   const [manualLocation, setManualLocation] = useState("");
-  const [geoError, setGeoError] = useState<string>("");
+  const [fetchingEvents, setFetchingEvents] = useState(false);
 
   const fetchEventsForCity = async (city: string) => {
+    setFetchingEvents(true);
     try {
       console.log('Fetching events for city:', city);
       const { data: eventsData, error: eventsError } = await supabase.functions.invoke('get-events', {
@@ -30,7 +31,7 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
       setEvents(getPlaceholderEvents(city));
       toast.error("Could not fetch events. Using placeholder events.");
     } finally {
-      setLoading(false);
+      setFetchingEvents(false);
     }
   };
 
@@ -38,75 +39,23 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
     e.preventDefault();
     if (manualLocation.trim()) {
       setCurrentLocation(manualLocation.trim());
+      sessionStorage.setItem("userLocation", manualLocation.trim());
       fetchEventsForCity(manualLocation.trim());
       setShowLocationDialog(false);
-      setGeoError("");
     }
   };
 
-  const getGPSLocation = () => {
-    setLoading(true);
-    setGeoError("");
-
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            console.log('Got GPS coordinates:', position.coords);
-            const { data: locationData, error: locationError } = await supabase.functions.invoke('reverse-geocode', {
-              body: {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-              }
-            });
-
-            if (locationError) throw locationError;
-            
-            if (locationData?.results?.[0]?.components?.city) {
-              const city = locationData.results[0].components.city;
-              console.log('GPS Location city:', city);
-              setCurrentLocation(city);
-              fetchEventsForCity(city);
-            } else {
-              throw new Error("Could not determine city from coordinates");
-            }
-          } catch (error) {
-            console.error("Error getting city name:", error);
-            setGeoError("Could not determine your location automatically");
-            setShowLocationDialog(true);
-            setCurrentLocation(defaultLocation);
-            fetchEventsForCity(defaultLocation);
-          }
-        },
-        (error) => {
-          console.error("Geolocation error:", error);
-          const errorMessage = error.code === 1 
-            ? "Location access denied. Please enable location services or enter your location manually."
-            : "Could not get your location. Please try again or enter it manually.";
-          setGeoError(errorMessage);
-          setShowLocationDialog(true);
-          setCurrentLocation(defaultLocation);
-          fetchEventsForCity(defaultLocation);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0
-        }
-      );
-    } else {
-      setGeoError("Geolocation is not supported by your browser");
-      setShowLocationDialog(true);
+  // Fetch events when location changes
+  useState(() => {
+    if (currentLocation) {
+      fetchEventsForCity(currentLocation);
+    } else if (defaultLocation) {
       setCurrentLocation(defaultLocation);
       fetchEventsForCity(defaultLocation);
     }
-  };
+  }, [currentLocation, defaultLocation]);
 
-  useEffect(() => {
-    getGPSLocation();
-  }, [defaultLocation]);
-
-  if (loading) {
+  if (isLoading || fetchingEvents) {
     return (
       <section className="mt-16">
         <div className="flex items-center justify-center">
@@ -122,7 +71,7 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
         <div className="flex items-center gap-2">
           <MapPin className="h-6 w-6 text-gray-500" />
           <h2 className="text-3xl font-bold text-center">
-            What's Happening Tonight in {currentLocation}
+            What's Happening Tonight in {currentLocation || defaultLocation}
           </h2>
         </div>
         <Button 
@@ -151,10 +100,10 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
             </DialogDescription>
           </DialogHeader>
 
-          {geoError && (
+          {error && (
             <div className="flex items-center gap-2 text-sm text-red-500 mb-4">
               <AlertCircle className="h-4 w-4" />
-              <p>{geoError}</p>
+              <p>{error}</p>
             </div>
           )}
 
