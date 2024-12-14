@@ -57,14 +57,18 @@ const TopNav = ({ session, profile }: TopNavProps) => {
               <DropdownMenuTrigger asChild>
                 <Button 
                   variant="ghost" 
-                  className="relative h-10 w-10 rounded-full transition-all duration-200 hover:ring-2 hover:ring-primary hover:ring-offset-2 group"
+                  className="relative h-10 w-12 rounded-full transition-all duration-200 hover:ring-2 hover:ring-primary hover:ring-offset-2 group p-0"
                 >
-                  <ProfileAvatar 
-                    imageUrl={profile?.profile_image_url} 
-                    name={profile?.full_name} 
-                    className="group-hover:scale-105 transition-transform duration-200"
-                  />
-                  <ChevronDown className="h-5 w-5 absolute -bottom-1 -right-1 text-primary drop-shadow-sm bg-white/80 rounded-full p-0.5 backdrop-blur-sm border border-primary/10 group-hover:text-primary-600 transition-colors duration-200" />
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    <ProfileAvatar 
+                      imageUrl={profile?.profile_image_url} 
+                      name={profile?.full_name} 
+                      className="group-hover:scale-105 transition-transform duration-200"
+                    />
+                    <div className="absolute -bottom-1 -right-1 h-5 w-5 flex items-center justify-center">
+                      <ChevronDown className="h-5 w-5 text-primary drop-shadow-sm bg-white/80 rounded-full p-0.5 backdrop-blur-sm border border-primary/10 group-hover:text-primary-600 transition-colors duration-200" />
+                    </div>
+                  </div>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
