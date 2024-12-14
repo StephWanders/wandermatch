@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
-import { MapPin, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import EventCard from "./events/EventCard";
 import { getPlaceholderEvents } from "@/utils/eventUtils";
 import { useLocation } from "@/contexts/LocationContext";
+import EventsHeader from "./events/EventsHeader";
+import EventsGrid from "./events/EventsGrid";
+import LocationDialog from "./events/LocationDialog";
 
-const LocalEventsSection = ({ location: defaultLocation }: { location: string }) => {
+interface LocalEventsSectionProps {
+  location: string;
+}
+
+const LocalEventsSection = ({ location: defaultLocation }: LocalEventsSectionProps) => {
   const { currentLocation, setCurrentLocation, isLoading, error, getGPSLocation } = useLocation();
   const [events, setEvents] = useState<any[]>([]);
   const [showLocationDialog, setShowLocationDialog] = useState(false);
@@ -45,7 +47,6 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
     }
   };
 
-  // Fetch events when location changes
   useEffect(() => {
     if (currentLocation) {
       fetchEventsForCity(currentLocation);
@@ -67,68 +68,22 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
 
   return (
     <section className="mt-16">
-      <div className="flex flex-col items-center gap-4 mb-8">
-        <div className="flex items-center gap-2">
-          <MapPin className="h-6 w-6 text-gray-500" />
-          <h2 className="text-3xl font-bold text-center">
-            What's Happening Tonight in {currentLocation || defaultLocation}
-          </h2>
-        </div>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => setShowLocationDialog(true)}
-          className="flex items-center gap-2"
-        >
-          <MapPin className="h-4 w-4" />
-          Change Location
-        </Button>
-      </div>
+      <EventsHeader 
+        location={currentLocation || defaultLocation}
+        onLocationChange={() => setShowLocationDialog(true)}
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {events.map((event, index) => (
-          <EventCard key={index} event={event} />
-        ))}
-      </div>
+      <EventsGrid events={events} />
 
-      <Dialog open={showLocationDialog} onOpenChange={setShowLocationDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Set Your Location</DialogTitle>
-            <DialogDescription>
-              Enter your city name to see local events
-            </DialogDescription>
-          </DialogHeader>
-
-          {error && (
-            <div className="flex items-center gap-2 text-sm text-red-500 mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <p>{error}</p>
-            </div>
-          )}
-
-          <form onSubmit={handleManualLocationSubmit} className="space-y-4">
-            <Input
-              placeholder="Enter city name"
-              value={manualLocation}
-              onChange={(e) => setManualLocation(e.target.value)}
-            />
-            <div className="flex gap-2">
-              <Button type="submit">Set Location</Button>
-              <Button 
-                type="button" 
-                variant="outline"
-                onClick={() => {
-                  setShowLocationDialog(false);
-                  getGPSLocation();
-                }}
-              >
-                Try GPS Again
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <LocationDialog 
+        open={showLocationDialog}
+        onOpenChange={setShowLocationDialog}
+        manualLocation={manualLocation}
+        setManualLocation={setManualLocation}
+        onSubmit={handleManualLocationSubmit}
+        error={error}
+        onGPSRetry={getGPSLocation}
+      />
     </section>
   );
 };
