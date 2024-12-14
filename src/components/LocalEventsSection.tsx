@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MapPin, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,7 +46,7 @@ const LocalEventsSection = ({ location: defaultLocation }: { location: string })
   };
 
   // Fetch events when location changes
-  useState(() => {
+  useEffect(() => {
     if (currentLocation) {
       fetchEventsForCity(currentLocation);
     } else if (defaultLocation) {
