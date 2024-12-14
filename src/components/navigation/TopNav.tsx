@@ -64,7 +64,7 @@ const TopNav = ({ session, profile }: TopNavProps) => {
                     name={profile?.full_name} 
                     className="group-hover:scale-105 transition-transform duration-200"
                   />
-                  <ChevronDown className="h-4 w-4 absolute bottom-0 right-0 text-gray-600 group-hover:text-primary transition-colors duration-200" />
+                  <ChevronDown className="h-5 w-5 absolute -bottom-1 -right-1 text-primary drop-shadow-sm bg-white/80 rounded-full p-0.5 backdrop-blur-sm border border-primary/10 group-hover:text-primary-600 transition-colors duration-200" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
