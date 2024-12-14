@@ -36,8 +36,15 @@ const TopNav = ({ session, profile }: TopNavProps) => {
     <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <span className="text-xl font-bold text-primary">WanderMatch</span>
+          <div className="flex items-center space-x-2">
+            <a href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+              <img 
+                src="/lovable-uploads/c240c260-ea6d-4ad3-adea-d318a98900de.png" 
+                alt="WanderMatch Logo" 
+                className="h-8 w-8"
+              />
+              <span className="text-xl font-bold text-primary">WanderMatch</span>
+            </a>
           </div>
 
           <div className="flex items-center space-x-4">
