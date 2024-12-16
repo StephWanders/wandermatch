@@ -33,7 +33,7 @@ const TopNav = () => {
                 alt="WanderMatch Logo" 
                 className="h-8 w-8"
               />
-              <span className="text-xl font-bold text-gray-900">WanderMatch</span>
+              <span className="text-xl font-bold" style={{ color: '#2fcab7' }}>WanderMatch</span>
             </a>
           </div>
           <div className="flex items-center space-x-4">
