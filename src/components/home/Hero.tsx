@@ -56,14 +56,7 @@ const Hero = ({ session, profile }: HeroProps) => {
               >
                 Join Now
               </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-2 border-primary-500 text-primary-600 hover:bg-primary-50 px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-                onClick={() => navigate("/?view=sign_in")}
-              >
-                Sign In
-              </Button>
+             <button style="background-color: #2fcab7; color: #ffffff; border: none;">Learn More</button>
             </div>
 
             <AuthSection />
