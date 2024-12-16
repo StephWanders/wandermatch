@@ -10,7 +10,6 @@ const HeroSection = () => {
     if (session) {
       navigate('/matches');
     } else {
-      // Always show sign up form for Join Now button
       navigate('/?view=sign_up');
     }
   };

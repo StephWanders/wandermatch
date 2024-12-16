@@ -18,7 +18,7 @@ const CallToAction = () => {
         <CardContent className="flex justify-center gap-4">
           <Button
             size="lg"
-            className="gradient-bg hover:opacity-90 transition-opacity duration-300"
+            className="gradient-bg hover:opacity-90 transition-opacity duration-300 text-white"
             asChild
           >
             <Link to="/?view=sign_up">Sign Up Now</Link>
@@ -26,7 +26,7 @@ const CallToAction = () => {
           <Button 
             size="lg" 
             variant="outline" 
-            className="border-primary text-primary hover:bg-primary/5"
+            className="border-2 border-primary hover:bg-primary/5 text-primary-700 hover:text-primary-800 transition-colors duration-300"
           >
             Learn More
           </Button>

@@ -34,8 +34,8 @@ const FeatureCard = ({
         <Button 
           className={`w-full ${
             buttonVariant === "default"
-              ? "bg-teal-500 hover:bg-teal-600"
-              : "bg-orange-500 hover:bg-orange-600"
+              ? "bg-teal-500 hover:bg-teal-600 text-white"
+              : "bg-orange-500 hover:bg-orange-600 text-white"
           }`}
         >
           {buttonText}
