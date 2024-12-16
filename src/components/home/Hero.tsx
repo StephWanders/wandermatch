@@ -56,7 +56,14 @@ const Hero = ({ session, profile }: HeroProps) => {
               >
                 Join Now
               </Button>
-             <Button style="background-color: #2fcab7; color: #ffffff; border: none;">Learn More</Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="bg-[#2fcab7] border-none text-white"
+                style={{ backgroundColor: "#2fcab7" }}
+              >
+                Learn More
+              </Button>
             </div>
 
             <AuthSection />
