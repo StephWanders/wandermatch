@@ -26,7 +26,7 @@ const CallToAction = () => {
           <Button 
             size="lg" 
             variant="outline" 
-            className="border-2 border-primary hover:bg-primary/5 text-primary-700 hover:text-primary-800 transition-colors duration-300"
+            className="border-2 border-primary hover:bg-primary/5 text-accent-900 hover:text-accent-800 transition-colors duration-300"
           >
             Learn More
           </Button>
