@@ -6,17 +6,19 @@ const FeatureCard = ({
   icon: Icon, 
   title, 
   description,
+  subPoints = [],
   buttonText,
   buttonVariant = "default"
 }: { 
   icon: React.ElementType;
   title: string;
   description: string;
+  subPoints?: string[];
   buttonText: string;
   buttonVariant?: "default" | "secondary";
 }) => {
   return (
-    <Card className="overflow-hidden bg-white/95 backdrop-blur-sm border-none shadow-lg">
+    <Card className="overflow-hidden bg-white/95 backdrop-blur-sm border-none shadow-lg hover:shadow-xl transition-all duration-300">
       <div className="aspect-[4/3] relative overflow-hidden">
         <div className={`absolute inset-0 ${
           buttonVariant === "default" 
@@ -30,7 +32,17 @@ const FeatureCard = ({
       </div>
       <CardContent className="p-6">
         <h3 className="text-xl font-semibold mb-2">{title}</h3>
-        <p className="text-gray-600 mb-4">{description}</p>
+        <p className="text-gray-600 mb-3">{description}</p>
+        {subPoints.length > 0 && (
+          <ul className="space-y-2 mb-4 text-sm text-gray-600">
+            {subPoints.map((point, index) => (
+              <li key={index} className="flex items-start">
+                <span className="mr-2 mt-1 text-teal-500">•</span>
+                {point}
+              </li>
+            ))}
+          </ul>
+        )}
         <Button 
           className={`w-full ${
             buttonVariant === "default"
@@ -55,42 +67,72 @@ const Features = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <FeatureCard
             icon={Users}
-            title="Smart Matching"
-            description="Find companions based on travel style, interests, and destination preferences"
-            buttonText="Join Now"
+            title="Smart Matching Algorithm"
+            description="Our advanced algorithm connects you with like-minded travelers based on your unique preferences and travel style."
+            subPoints={[
+              "Personalized matches based on travel style and budget",
+              "Destination and date compatibility",
+              "Interest-based connections for shared experiences"
+            ]}
+            buttonText="Find Your Match"
           />
           <FeatureCard
             icon={Map}
-            title="Travel Groups"
-            description="Join group trips or connect with fellow travelers at local events"
-            buttonText="Learn More"
+            title="Travel Groups & Events"
+            description="Join curated group trips and exciting local events tailored to your interests and travel goals."
+            subPoints={[
+              "Digital nomad meetups worldwide",
+              "Adventure group expeditions",
+              "Local cultural experiences"
+            ]}
+            buttonText="Explore Events"
             buttonVariant="secondary"
           />
           <FeatureCard
             icon={Shield}
             title="Safety Tools"
-            description="Verified profiles and safety features for peace of mind"
+            description="Travel with confidence using our comprehensive safety features designed to protect and empower travelers."
+            subPoints={[
+              "Real-time location sharing",
+              "24/7 SOS emergency support",
+              "Verified profiles and reviews"
+            ]}
             buttonText="Learn More"
             buttonVariant="secondary"
           />
           <FeatureCard
             icon={MessageCircle}
             title="Easy Communication"
-            description="Chat and video call to plan your perfect trip together"
-            buttonText="Join Now"
+            description="Connect seamlessly with potential travel companions through our intuitive chat platform."
+            subPoints={[
+              "Real-time messaging",
+              "Voice and video calls",
+              "Trip planning tools"
+            ]}
+            buttonText="Start Chatting"
           />
           <FeatureCard
             icon={Compass}
             title="Travel Troops"
-            description="Find your tribe and explore together with like-minded adventurers"
-            buttonText="Learn More"
+            description="Join travel communities based on your interests and preferred destinations."
+            subPoints={[
+              "Interest-based groups",
+              "Local travel tips",
+              "Shared itineraries"
+            ]}
+            buttonText="Join Groups"
             buttonVariant="secondary"
           />
           <FeatureCard
             icon={Lock}
             title="Privacy First"
-            description="Control your visibility and share only what you want"
-            buttonText="Join Now"
+            description="Your privacy and security are our top priorities with advanced protection measures."
+            subPoints={[
+              "Customizable privacy settings",
+              "Secure data encryption",
+              "Profile verification"
+            ]}
+            buttonText="Learn More"
           />
         </div>
       </div>
