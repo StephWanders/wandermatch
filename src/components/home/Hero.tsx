@@ -56,7 +56,7 @@ const Hero = ({ session, profile }: HeroProps) => {
               >
                 Join Now
               </Button>
-             <button style="background-color: #2fcab7; color: #ffffff; border: none;">Learn More</button>
+             <Button style="background-color: #2fcab7; color: #ffffff; border: none;">Learn More</Button>
             </div>
 
             <AuthSection />
